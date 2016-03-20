@@ -1,0 +1,172 @@
+
+<div class="container">
+
+	<div class="col-md-5">
+		<table id="whiteBoard" name="chessboardTable" ng-if="whitePlayer==true">
+			<tr ng-repeat="row in [7,6,5,4,3,2,1,0] track by $index">
+				<td ng-repeat="column in [0,1,2,3,4,5,6,7] track by $index">
+					<div style="position: relative">
+						<img class="square"
+							ng-if="(row%2==0 && column%2==0) || (row%2!=0 && column%2!=0)"
+							src="images/BSQUARE.bmp" /> <img class="square"
+							ng-if="(row%2==0 && column%2!=0) || (row%2!=0 && column%2==0)"
+							src="images/WSQUARE.bmp" /> <img id="{{'BP'+column+''+row}}"
+							draggable="{{newGame}}" class="chessPiece" src="images/pieces/BP.png"
+							ng-if="row==6" /> <img id="{{'BR'+column+''+row}}" draggable="{{newGame}}"
+							class="chessPiece" src="images/pieces/BR.png"
+							ng-if="row==7 && (column==0 || column==7)" /> <img
+							id="{{'BN'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BN.png"
+							ng-if="row==7 && (column==1 || column==6)" /> <img
+							id="{{'BB'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BB.png"
+							ng-if="row==7 && (column==2 || column==5)" /> <img
+							id="{{'BQ'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BQ.png" ng-if="row==7 && (column==3)" /> <img
+							id="{{'BK'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BK.png" ng-if="row==7 && (column==4)" /> <img
+							id="{{'WP'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WP.png" ng-if="row==1" /> <img
+							id="{{'WR'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WR.png"
+							ng-if="row==0 && (column==0 || column==7)" /> <img
+							id="{{'WN'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WN.png"
+							ng-if="row==0 && (column==1 || column==6)" /> <img
+							id="{{'WB'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WB.png"
+							ng-if="row==0 && (column==2 || column==5)" /> <img
+							id="{{'WQ'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WQ.png" ng-if="row==0 && (column==3)" /> <img
+							id="{{'WK'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WK.png" ng-if="row==0 && (column==4)" />
+					</div>
+				</td>
+			</tr>
+		</table>
+
+		<table id="blackBoard" name="chessboardTable" ng-if="whitePlayer==false">
+			<tr ng-repeat="row in [0,1,2,3,4,5,6,7] track by $index">
+				<td ng-repeat="column in [7,6,5,4,3,2,1,0] track by $index">
+					<div style="position: relative">
+						<img class="square"
+							ng-if="(row%2==0 && column%2==0) || (row%2!=0 && column%2!=0)"
+							src="images/BSQUARE.bmp" /> <img class="square"
+							ng-if="(row%2==0 && column%2!=0) || (row%2!=0 && column%2==0)"
+							src="images/WSQUARE.bmp" /> <img id="{{'BP'+column+''+row}}"
+							draggable="{{newGame}}" class="chessPiece" src="images/pieces/BP.png"
+							ng-if="row==6" /> <img id="{{'BR'+column+''+row}}" draggable="{{newGame}}"
+							class="chessPiece" src="images/pieces/BR.png"
+							ng-if="row==7 && (column==0 || column==7)" /> <img
+							id="{{'BN'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BN.png"
+							ng-if="row==7 && (column==1 || column==6)" /> <img
+							id="{{'BB'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BB.png"
+							ng-if="row==7 && (column==2 || column==5)" /> <img
+							id="{{'BQ'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BQ.png" ng-if="row==7 && (column==3)" /> <img
+							id="{{'BK'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/BK.png" ng-if="row==7 && (column==4)" /> <img
+							id="{{'WP'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WP.png" ng-if="row==1" /> <img
+							id="{{'WR'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WR.png"
+							ng-if="row==0 && (column==0 || column==7)" /> <img
+							id="{{'WN'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WN.png"
+							ng-if="row==0 && (column==1 || column==6)" /> <img
+							id="{{'WB'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WB.png"
+							ng-if="row==0 && (column==2 || column==5)" /> <img
+							id="{{'WQ'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WQ.png" ng-if="row==0 && (column==3)" /> <img
+							id="{{'WK'+column+''+row}}" draggable="{{newGame}}" class="chessPiece"
+							src="images/pieces/WK.png" ng-if="row==0 && (column==4)" />
+					</div>
+
+				</td>
+			</tr>
+		</table>
+		</div>
+		
+
+
+		<div class="col-md-6" >
+		<div>
+		<table>
+			<tr><td>{{whitePlayerName}}({{whitePlayerElo}})</td><td>-{{blackPlayerName}}({{blackPlayerElo}})</td></tr>
+			<tr><td>{{whiteClock}}</td><td>{{blackClock}}</td></tr>
+			</table>
+			
+			<div ng-if="playingGame">
+				
+			<button ng-click="offerDraw()">Offer Draw</button>
+			<button ng-click="resign()">Resign</button>
+			</div>
+			<div ng-if="playingGame && drawOfferReceived">
+				<span>{{oponent}} offered you a draw. Do you want to accept?</span>
+				<button ng-click="drawOfferReply(true)">Yes</button>
+				<button ng-click="drawOfferReply(false)">No</button>
+			</div>
+			{{gameResult}}
+		</div>
+		{{newGame}}
+			<div class="notation" ng-if="annotatedMoves.length!==0 && annotatedMoves">
+
+				<table class="notationTable table table-bordered">
+				<theader>
+				<tr>
+							<td>Move no.</td>
+							<td>White move</td>
+							<td>Black move</td>
+						</tr>
+						</theader>
+					<tbody>
+						
+						<tr ng-repeat="annotatedMove in annotatedMoves">
+							<td>{{annotatedMove.number}}</td>
+							<td>{{annotatedMove.white}}</td>
+							<td>{{annotatedMove.black}}</td>
+						</tr>
+					</tbody>
+
+				</table>
+			</div>
+		</div>
+		<div class="col-md-6" ng-show="!playingGame">
+			<form name="formLogin" novalidate>
+				<div id="login-data">
+					<div class="form-group">
+						<h2>Seek details</h2>
+					</div>
+					<div ng-if="error" class="alert alert-danger">Wrong username
+						or password</div>
+					<div class="form-group">
+						<div class="form-group">
+							<label for="time">Time</label> <input type="text"
+								class="form-control" name="time" id="tim" ng-model="time"
+								required /> <label
+								ng-show="formLogin.time.$error.required && uname"
+								ngclass="{'
+text-danger': formLogin.uname.$error.required}">
+								Enter time.</label>
+						</div>
+
+						<div class="form-group">
+							<label for="increment">Increment:</label> <input type="text"
+								class="form-control" name="increment" id="incr"
+								ng-model="increment" required /> <label
+								ng-show="formLogin.increment.$error.required && pass"
+								ngclass="{'
+text-danger': formLogin.increment.$error.required}">
+								Enter increment.</label>
+						</div>
+
+						<button type="submit" class="btn btn-primary"
+							ng-click="seekOponent()">Find oponent</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
