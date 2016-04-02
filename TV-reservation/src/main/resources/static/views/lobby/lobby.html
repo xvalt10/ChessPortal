@@ -1,0 +1,22 @@
+<div class="container">
+	
+		<div class="col-sm-2">Find a game
+		{{countOfPlayersOnline}} players currently online
+		</div>
+		<div class="col-sm-10">
+			Lobby Chat
+				<div class="chatWindow" ng-scrollbars ng-scrollbars-config="config" style="border:1px solid gray">
+					
+					<div  id="chatPost" ng-repeat="message in messages">
+						{{message.author}}</br> {{message.message}}</br>{{message.date}}
+					</div>
+
+				</div>
+			
+			<div >
+				<input type="text" id="chatmessage" ng-model="chatMessage.message">
+				<button ng-click="sendChatMessage()">Send</button>
+			</div>
+		</div>
+	
+</div>

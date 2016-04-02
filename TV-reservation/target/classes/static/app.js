@@ -5,8 +5,8 @@ angular
 		.module(
 				'myApp',
 				[ 'ngRoute', 'myApp.Login', 'myApp.reservation', 'myApp.Admin',
-						'myApp.version', 'loginModule', 'reservationModule',
-						'registerModule', 'reservationFilters', 'constants','dragModule','myApp.BoardModule' ])
+						'myApp.version', 'loginModule','websocketModule','myApp.LobbyModule', 'reservationModule',
+						'registerModule', 'reservationFilters', 'constants','dragModule','myApp.BoardModule','ngScrollbars' ])
 		
 		.config(['$routeProvider','$httpProvider', function($routeProvider, $httpProvider) {
 
@@ -33,7 +33,7 @@ angular
 			});
 			$routeProvider.when('/lobby', {
 				templateUrl : 'views/lobby/lobby.html',
-				controller : 'BoardCtrl'
+				controller : 'LobbyCtrl'
 			});
 			
 			$routeProvider.otherwise({
@@ -46,3 +46,4 @@ angular
 angular.module('loginModule', []);
 angular.module('reservationModule', []);
 angular.module('registerModule', []);
+angular.module('websocketModule', []);

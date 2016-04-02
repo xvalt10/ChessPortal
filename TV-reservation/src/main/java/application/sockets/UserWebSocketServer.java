@@ -45,6 +45,8 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 
 	public void afterConnectionClosed(WebSocketSession session,
 			CloseStatus status) throws Exception {
+		System.out.println("Connection closed on websocket.Removing session.");
+		sessionHandler.removeSession(session);
 
 	}
 
@@ -75,9 +77,15 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 				sessionHandler.drawOfferReply(jsonMessage);
 				break;
 			case "resign":
-				sessionHandler.sendResignation(jsonMessage);
+				sessionHandler.sendResignation(jsonMessage);break;
+			case "chatMessageLobby":
 				
-				break;
+				sessionHandler.sendChatMessage(jsonMessage);break;
+			case "queryPlayersOnline":
+				sessionHandler.getCountOfPlayersOnline(jsonMessage);break;
+				
+				
+				
 			}
 
 		} catch (Exception e) {

@@ -343,8 +343,8 @@ angular
 										stopClocks();
 										$scope.$apply(function() {
 											$scope.endGame($scope.whitePlayer?"1-0":"0-1");
-											$scope.whitePlayerElo = $scope.whitePlayer?data.myNewElo:data.oponentsNewElo;
-											$scope.blackPlayerElo = !$scope.whitePlayer?data.myNewElo:data.oponentsNewElo;
+											$scope.whitePlayerElo = $scope.whitePlayerName===data.player?data.myNewElo:data.oponentsNewElo;
+											$scope.blackPlayerElo = $scope.blackPlayerName===data.player?data.myNewElo:data.oponentsNewElo;
 										});
 										
 									}

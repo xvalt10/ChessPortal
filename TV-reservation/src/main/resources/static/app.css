@@ -102,6 +102,15 @@ width:80%;
  height:55px
 }
 
+#chatPost{
+	border: 1px solid gray;
+	margin-bottom:5px;
+	margin-left:0px;
+	margin-right:0px;
+	padding:5px;
+	
+}
+
 .chessPiece{
 
 width:40px;
@@ -113,6 +122,13 @@ height:40px;
 
 .notationTable{
 	margin-top:10px;
+}
+
+.chatWindow{
+	/* height:200px; */
+	border:1px solid gray;
+	margin-bottom:5px;
+	padding:5px;
 }
 
 

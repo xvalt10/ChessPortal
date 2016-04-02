@@ -99,32 +99,42 @@
 	
 	<!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-  <![endif]--><div class="container">
-<div class="jumbotron">
+<!--   <![endif]<div class="container"> -->
+<!-- <div class="jumbotron"> -->
       
-        <h3>Welcome to the tennis court reservation system!</h3>
-        <p> To use the reservation system you first need to log in. If you are not already a member you can create a new user account by clicking on the button below: </p>
-        <p><a class="btn btn-primary btn-lg" href="#/register" role="button">Register &raquo;</a></p>
-      </div>
-    </div>
+<!--         <h3>Welcome to the tennis court reservation system!</h3> -->
+<!--         <p> To use the reservation system you first need to log in. If you are not already a member you can create a new user account by clicking on the button below: </p> -->
+<!--         <p><a class="btn btn-primary btn-lg" href="#/register" role="button">Register &raquo;</a></p> -->
+<!--       </div> -->
+<!--     </div> -->
 
-	<div ng-view class="content" style="padding-left:15px"></div>
+	<div ng-view class="container"></div>
 
 
 
 	<!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
   -->
-	<script src="bower_components/angular/angular.js"></script>
+	<!--<script src="bower_components/angular/angular.js"></script>-->
+	<link rel="stylesheet" href="bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" type="text/css"/>
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="bower_components/angular/angular.min.js"></script>
 	<script src="bower_components/angular-route/angular-route.js"></script>
+	
+
+
+<script src="bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
+<script src="bower_components/ng-scrollbars/dist/scrollbars.min.js"></script>
 	<script src="app.js"></script>
 	<script src="views/login/login.js"></script>
 	<script src="views/admin/admin.js"></script>
+	<script src="views/lobby/lobby.js"></script>
 	<script src="views/registration/registration.js"></script>
 	<script src="views/reservation/reservation.js"></script>
 	<script src="views/playingHall/playingHall.js"></script>
 	<script src="js/services/loginservice.js"></script>
 	<script src="js/services/reservationService.js"></script>
+	<script src="js/services/websocketService.js"></script>
 	<script src="js/constants.js"></script>
 	<script src="js/directives/draggableDirective.js"></script>
 	<script src="js/filters/filters.js"></script>

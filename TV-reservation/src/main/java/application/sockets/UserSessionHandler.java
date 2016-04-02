@@ -132,7 +132,9 @@ public class UserSessionHandler {
 
 	public void removeSession(WebSocketSession session) {
 		System.out.println("Removing new session");
-		sessions.remove(session);
+		System.out.println(sessions.size());
+		sessions.remove(session.getPrincipal().getName());
+		System.out.println(sessions.size());
 	}
 
 	public void offerDraw(JsonObject message){
@@ -194,6 +196,21 @@ public class UserSessionHandler {
 		JsonObject addMessage = provider.createObjectBuilder()
 				.add("action", "move").add("moveInfo", moveInfo).build();
 		return addMessage;
+	}
+	
+	public void getCountOfPlayersOnline (JsonObject message) {
+		int playersOnline= sessions.size();
+		JsonProvider provider = JsonProvider.provider();
+		JsonObject playersOnlineMessage = provider.createObjectBuilder()
+				.add("action", "countOfPlayersOnline").add("count", playersOnline).build();
+		if(sessions.get(message.getString("user")).getSession()!=null){
+		sendMessageToSession(sessions.get(message.getString("user")).getSession(),
+				playersOnlineMessage);}
+		
+	}
+	
+	public void sendChatMessage(JsonObject message){
+		sendMessageToAllConnectedSessions(message);
 	}
 
 	private void sendMessageToSession(WebSocketSession session, JsonObject message) {
