@@ -28,8 +28,8 @@ angular
 							var socket;
 							var user;
 							var clockTimer;
-							
-							$scope.squareSize=squareSize;
+
+							$scope.squareSize = squareSize;
 							$scope.playingGame = null;
 							$scope.oponent = null;
 							$scope.whitePlayer = null;
@@ -38,17 +38,18 @@ angular
 							$scope.myMove = null;
 							$scope.whitePlayerName = null;
 							$scope.blackPlayerName = null;
-							$scope.gameResult= null;
-							
-							$scope.initialisationComplete=function(){
-								$scope.$apply(function(){
-									//console.log("Setting newGame to false;");
-									$scope.newGame=false;});
-								
+							$scope.gameResult = null;
+
+							$scope.initialisationComplete = function() {
+								$scope.$apply(function() {
+									// console.log("Setting newGame to false;");
+									$scope.newGame = false;
+								});
+
 							};
-							
-							$scope.setMyMove=function(isItMyMove){
-								$scope.myMove=isItMyMove;
+
+							$scope.setMyMove = function(isItMyMove) {
+								$scope.myMove = isItMyMove;
 							}
 
 							var getChessboardCoordinates = function(obj) {
@@ -60,7 +61,7 @@ angular
 										top += obj.offsetTop;
 									} while (obj = obj.offsetParent);
 								}
-								//console.log(chessboard);
+								// console.log(chessboard);
 								chessboard.coordinates.left = chessboard.element
 										.getBoundingClientRect().left;
 								chessboard.coordinates.right = chessboard.element
@@ -72,14 +73,14 @@ angular
 								// (chessboard.coordinates.right -
 								// chessboard.coordinates.left) / 8;
 								squareSize = 55;
-								//console.log("Square size:" + squareSize);
-								//console.log(chessboard.coordinates);
+								// console.log("Square size:" + squareSize);
+								// console.log(chessboard.coordinates);
 							};
 
 							$scope.determineRowColumn = function(x, y,
 									whitePlayer) {
-								//console.log(squareSize);
-								//console.log(chessboard.coordinates)
+								// console.log(squareSize);
+								// console.log(chessboard.coordinates)
 
 								var coordinates = {};
 								coordinates.x = (x - chessboard.coordinates.left)
@@ -112,11 +113,103 @@ angular
 								}
 
 							}
+							;
+
+							$scope.checkLegalityOfMove = function(element,
+									startPosition, endPosition, ownMove,
+									whitePlayer, topPiece, leftPiece) {
+								
+								console.log("Checking legality of piece:"
+										+ startPosition.piece.substr(1, 1)
+										+ " " + topPiece);
+								switch (startPosition.piece.substr(1, 1)) {
+								case "N":
+
+									if (((Math.abs(startPosition.row
+											- endPosition.row) == 2 && Math
+											.abs(startPosition.column
+													- endPosition.column) == 1) || (Math
+											.abs(startPosition.row
+													- endPosition.row) == 1 && Math
+											.abs(startPosition.column
+													- endPosition.column) == 2))
+											&& (whitePlayer ? endPosition.piece
+													.indexOf("W") == -1
+													: endPosition.piece
+															.indexOf("B") == -1)) {
+										console.log("Legal knight move");
+										return true;
+									} else {
+
+									
+										console.log("Illegal knight move");
+										return false;
+									}
+									break;
+								case "B":
+									var isLegal=true;
+									if (Math.abs(endPosition.row-startPosition.row)==Math.abs(endPosition.column-startPosition.column)&& (whitePlayer ? endPosition.piece
+											.indexOf("W") == -1
+											: endPosition.piece
+													.indexOf("B") == -1)){
+										if (endPosition.row>startPosition.row && endPosition.column>startPosition.column){
+											for (var x =1;x<endPosition.row-startPosition.row;x++){
+												if(
+												chessboard.squares[findIndexOfSquare(startPosition.column+x, startPosition.row+x)].piece !== "empty"){
+													isLegal=false;break;
+												};
+												
+											}
+											
+										}
+										else if (endPosition.row>startPosition.row && endPosition.column<startPosition.column){
+											for (var x =1;x<endPosition.row-startPosition.row;x++){
+												if(
+												chessboard.squares[findIndexOfSquare(endPosition.column+x, startPosition.row+x)].piece !== "empty"){
+													isLegal=false;break;
+												};
+												
+											}
+											
+										}
+										else if (endPosition.row<startPosition.row && endPosition.column>startPosition.column){
+											for (var x =1;x<startPosition.row-endPosition.row;x++){
+												if(
+												chessboard.squares[findIndexOfSquare(startPosition.column+x, endPosition.row+x)].piece !== "empty"){
+													isLegal=false;break;
+												};
+												
+											}
+											
+										}
+										else if (endPosition.row<startPosition.row && endPosition.column<startPosition.column){
+											for (var x =1;x<startPosition.row-endPosition.row;x++){
+												if(
+												chessboard.squares[findIndexOfSquare(endPosition.column+x, endPosition.row+x)].piece !== "empty"){
+													isLegal=false;break;
+												};
+												
+											}
+											
+										}
+										
+									}
+									else{
+										isLegal= false;
+									}
+									console.log("Bishop move legal:"+isLegal);
+									return isLegal;
+									break;
+								default:
+									return true;
+								}
+
+							};
 
 							$scope.updateChessboardAfterMove = function(
 									element, startPosition, endPosition,
 									ownMove, whitePlayer) {
-
+								
 								var capture = false;
 								var top = ((((getInitialPositionOfPiece(startPosition.piece).row) - endPosition.row) * squareSize) + (0.13 * squareSize));
 								var left = (((endPosition.column - (getInitialPositionOfPiece(startPosition.piece)).column) * squareSize) + (0.13 * squareSize));
@@ -139,7 +232,10 @@ angular
 								chessboard.squares[startSquareIndex].piece = "empty";
 								if (chessboard.squares[endSquareIndex].piece !== "empty") {
 									capture = true;
-									$("#"+ chessboard.squares[endSquareIndex].piece).hide();
+									$(
+											"#"
+													+ chessboard.squares[endSquareIndex].piece)
+											.hide();
 
 								}
 
@@ -160,7 +256,8 @@ angular
 								var startSquare = String
 										.fromCharCode(97 + chessboard.squares[startSquareIndex].column)
 										+ (chessboard.squares[startSquareIndex].row + 1);
-								//console.log(piece, endSquareIndex, capture,	promotion, castle, startSquare);
+								// console.log(piece, endSquareIndex, capture,
+								// promotion, castle, startSquare);
 								var pieceSymbol = piece.indexOf("P") != -1 ? capture ? startSquare
 										.substr(0, 1)
 										: ""
@@ -168,13 +265,13 @@ angular
 								var captureSymbol = capture ? "x" : "";
 								var promotionSymbol = promotion == true ? "TODO"
 										: " ";
-								//console.log(promotion);
+								// console.log(promotion);
 								var square = String
 										.fromCharCode(97 + chessboard.squares[endSquareIndex].column)
 										+ (chessboard.squares[endSquareIndex].row + 1);
 								var moveNotation = pieceSymbol + captureSymbol
 										+ square + promotionSymbol;
-								//console.log(moveNumber);
+								// console.log(moveNumber);
 								var whiteMove = piece.indexOf("W") != -1;
 								var movecomplete;
 								if (whiteMove) {
@@ -185,14 +282,15 @@ angular
 									chessboard.annotatedMoves[moveNumber].number = moveNumber + 1;
 									// $('.notationTable tbody
 									// tr:last').after('<tr><td>'+moveNumber+'</td><td>'+moveNotation+'</td></tr>');
-									//console.log(chessboard.annotatedMoves);
+									// console.log(chessboard.annotatedMoves);
 									movecomplete = false;
 								} else {
 
-									//console.log(chessboard.annotatedMoves);
+									// console.log(chessboard.annotatedMoves);
 									chessboard.annotatedMoves[moveNumber].black = moveNotation;
 
-									//console.log("incremented moveNumber:"+ moveNumber);
+									// console.log("incremented moveNumber:"+
+									// moveNumber);
 									movecomplete = true;
 								}
 								if (movecomplete) {
@@ -201,7 +299,7 @@ angular
 								$scope
 										.$apply(function() {
 											$scope.annotatedMoves = chessboard.annotatedMoves;
-									
+
 										});
 								return moveNotation;
 								// $(".notationtable")
@@ -209,30 +307,46 @@ angular
 							}
 
 							function findIndexOfSquare(x, y) {
-								//console.log(x, y);
+								// console.log(x, y);
 								for (var index = 0; index < chessboard.squares.length; index++) {
 									if (chessboard.squares[index].column == x
 											&& chessboard.squares[index].row == y) {
-										//console.log("Returning index:" + index);
+										// console.log("Returning index:" +
+										// index);
 										return index;
 									}
 								}
 							}
-							
-							var calculateEloChange=function(elowhite, eloblack, gameResultWhite, gameResultBlack){
-								//console.log(elowhite, eloblack, gameResultWhite, gameResultBlack);
-								var expectedOutcomeWhite = 1 / (1+Math.pow(10,(eloblack-elowhite)/400));
-								var expectedOutcomeBlack = 1 / (1+Math.pow(10,(elowhite-eloblack)/400));
-								var newRatingWhite = Math.round(elowhite + 15*(gameResultWhite-expectedOutcomeWhite));
-								var newRatingBlack = Math.round(eloblack + 15*(gameResultBlack-expectedOutcomeBlack));
-								//console.log(expectedOutcomeWhite, expectedOutcomeBlack,newRatingWhite, newRatingBlack);
-								
-								return {"newRatingWhite":newRatingWhite, "newRatingBlack":newRatingBlack};
-								
+
+							var calculateEloChange = function(elowhite,
+									eloblack, gameResultWhite, gameResultBlack) {
+								// console.log(elowhite, eloblack,
+								// gameResultWhite, gameResultBlack);
+								var expectedOutcomeWhite = 1 / (1 + Math.pow(
+										10, (eloblack - elowhite) / 400));
+								var expectedOutcomeBlack = 1 / (1 + Math.pow(
+										10, (elowhite - eloblack) / 400));
+								var newRatingWhite = Math
+										.round(elowhite
+												+ 15
+												* (gameResultWhite - expectedOutcomeWhite));
+								var newRatingBlack = Math
+										.round(eloblack
+												+ 15
+												* (gameResultBlack - expectedOutcomeBlack));
+								// console.log(expectedOutcomeWhite,
+								// expectedOutcomeBlack,newRatingWhite,
+								// newRatingBlack);
+
+								return {
+									"newRatingWhite" : newRatingWhite,
+									"newRatingBlack" : newRatingBlack
+								};
+
 							}
 
 							var initialiseChessboard = function() {
-								//console.log("Initialising chessboard.");
+								// console.log("Initialising chessboard.");
 								chessboard.coordinates = {};
 								chessboard.annotatedMoves = [];
 								getChessboardCoordinates(chessboard.element);
@@ -293,13 +407,13 @@ angular
 								}
 
 								chessboard.squares = squares;
-								//console.log("Squares scope.initialised.");
-								//console.log(chessboard.squares);
-								//console.log("Pieces scope.initialised.");
-								//console.log(chessboard.pieces);
-							
+								// console.log("Squares scope.initialised.");
+								// console.log(chessboard.squares);
+								// console.log("Pieces scope.initialised.");
+								// console.log(chessboard.pieces);
+
 								initialised = true;
-							
+
 							}
 
 							var initialiseWebSockets = function() {
@@ -309,58 +423,64 @@ angular
 								socket.onerror = onError;
 
 								function onError(event) {
-									//console.log("Error occured:" + event);
+									// console.log("Error occured:" + event);
 
 								}
 
 								function onMessage(event) {
-									//console.log(event);
+									// console.log(event);
 									var data = JSON.parse(event.data);
 									if (data.action == "move") {
 										executeReceivedMove(data);
 									} else if (data.action == "startGame") {
 										startGame(data);
-									}
-									else if (data.action == "offerDraw") {
-										//console.log("Received draw offer.");
+									} else if (data.action == "offerDraw") {
+										// console.log("Received draw offer.");
 										displayDrawOffer();
-									}
-									else if (data.action == "drawOfferReply"){
-										if(data.acceptDraw==true){
-										stopClocks();
-										$scope.$apply(function() {
-										$scope.endGame("1/2 - 1/2");
-										$scope.whitePlayerElo = $scope.whitePlayer?data.myNewElo:data.oponentsNewElo;
-										$scope.blackPlayerElo = !$scope.whitePlayer?data.myNewElo:data.oponentsNewElo;
-										});
+									} else if (data.action == "drawOfferReply") {
+										if (data.acceptDraw == true) {
+											stopClocks();
+											$scope
+													.$apply(function() {
+														$scope
+																.endGame("1/2 - 1/2");
+														$scope.whitePlayerElo = $scope.whitePlayer ? data.myNewElo
+																: data.oponentsNewElo;
+														$scope.blackPlayerElo = !$scope.whitePlayer ? data.myNewElo
+																: data.oponentsNewElo;
+													});
+										} else {
+
 										}
-										else{
-											
-										}
-									}
-									else if (data.action == "resign") {
-										//console.log("Received oponent's resignation");
+									} else if (data.action == "resign") {
+										// console.log("Received oponent's
+										// resignation");
 										stopClocks();
-										$scope.$apply(function() {
-											$scope.endGame($scope.whitePlayer?"1-0":"0-1");
-											$scope.whitePlayerElo = $scope.whitePlayerName===data.player?data.myNewElo:data.oponentsNewElo;
-											$scope.blackPlayerElo = $scope.blackPlayerName===data.player?data.myNewElo:data.oponentsNewElo;
-										});
-										
+										$scope
+												.$apply(function() {
+													$scope
+															.endGame($scope.whitePlayer ? "1-0"
+																	: "0-1");
+													$scope.whitePlayerElo = $scope.whitePlayerName === data.player ? data.myNewElo
+															: data.oponentsNewElo;
+													$scope.blackPlayerElo = $scope.blackPlayerName === data.player ? data.myNewElo
+															: data.oponentsNewElo;
+												});
+
 									}
 								}
 							}
-							
-							var displayDrawOffer=function(){
-								//console.log("displaying draw offer");
+
+							var displayDrawOffer = function() {
+								// console.log("displaying draw offer");
 								$scope.drawOfferReceived = true;
 							};
 
 							var executeReceivedMove = function(data) {
-								
-								//console.log("Received move:" + event.data);
+
+								// console.log("Received move:" + event.data);
 								var moveInfo = JSON.parse(data.moveInfo);
-								//console.log(moveInfo.element);
+								// console.log(moveInfo.element);
 
 								$scope.updateChessboardAfterMove($("#"
 										+ moveInfo.element),
@@ -368,7 +488,7 @@ angular
 										moveInfo.endPosition, false,
 										$scope.whitePlayer);
 								$scope.pressClock($scope.whitePlayer);
-								$scope.myMove=true;
+								$scope.myMove = true;
 
 							}
 							var generateClockTimeFromSeconds = function(seconds) {
@@ -389,9 +509,8 @@ angular
 									if ($scope.whiteTime > 0) {
 										$scope.whiteTime -= 1;
 										$scope.whiteClock = generateClockTimeFromSeconds($scope.whiteTime);
-									}
-									else{						
-										$scope.playingGame=false;
+									} else {
+										$scope.playingGame = false;
 										$scope.gameResult = "0-1";
 										stopClocks();
 									}
@@ -399,10 +518,9 @@ angular
 									if ($scope.blackTime > 0) {
 										$scope.blackTime -= 1;
 										$scope.blackClock = generateClockTimeFromSeconds($scope.blackTime);
-									}
-									else {
-										
-										$scope.playingGame=false;
+									} else {
+
+										$scope.playingGame = false;
 										$scope.gameResult = "1-0";
 										stopClocks();
 									}
@@ -414,165 +532,175 @@ angular
 							}
 
 							var startClock = function(whitePlayer) {
-								//console.log("Starting clock for whitePlayer:"+ whitePlayer);
+								// console.log("Starting clock for
+								// whitePlayer:"+ whitePlayer);
 								clockTimer = $timeout($scope
 										.onTimeout(whitePlayer), 1000);
 
 							}
 
 							$scope.pressClock = function(whitePlayer) {
-								//console.log("Pressing clock");
+								// console.log("Pressing clock");
 								$timeout.cancel(clockTimer);
 								startClock(whitePlayer);
 							}
-							
+
 							var stopClocks = function() {
-								//console.log("Stopping clock");
+								// console.log("Stopping clock");
 								$timeout.cancel(clockTimer);
-								
+
 							}
 
 							var startGame = function(data) {
 								$(".chessPiece").show();
-								moveNumber=0;
+								moveNumber = 0;
 								$scope.playingGame = true;
 								$scope.gameResult = "";
 								$scope.whiteTime = data.time * 60;
 								$scope.blackTime = data.time * 60;
-								$scope.drawOfferReceived=false;
+								$scope.drawOfferReceived = false;
 								$scope.whitePlayerElo = data.whitePlayerElo;
 								$scope.blackPlayerElo = data.blackPlayerElo;
 								$scope.whitePlayerName = data.whitePlayer;
 								$scope.blackPlayerName = data.blackPlayer;
 								$scope.whiteClock = generateClockTimeFromSeconds($scope.whiteTime);
 								$scope.blackClock = generateClockTimeFromSeconds($scope.blackTime);
-								//console.log("Starting game.");
-								//console.log(data.blackPlayer, user.username);
-								
-								$scope.$apply(function(){
-									
-									
-									//console.log("nulling annotated moves");
-									$scope.annotatedMoves=[];
-									//console.log("Setting newGame to true;");
-									
-									initPage();
-									$scope.newGame=true;
-								});
-								
-								if (data.blackPlayer == user.username) {
-									
+								// console.log("Starting game.");
+								// console.log(data.blackPlayer, user.username);
 
-									//console.log("I am the black player.")
+								$scope.$apply(function() {
+
+									// console.log("nulling annotated moves");
+									$scope.annotatedMoves = [];
+									// console.log("Setting newGame to true;");
+
+									initPage();
+									$scope.newGame = true;
+								});
+
+								if (data.blackPlayer == user.username) {
+
+									// console.log("I am the black player.")
 									$scope.$apply(function() {
 										$scope.oponent = data.whitePlayer;
 										$scope.whitePlayer = false;
-										//initialiseWebSockets();
+										// initialiseWebSockets();
 									});
 
 								} else {
-									
-									
+
 									$scope.$apply(function() {
 										$scope.oponent = data.blackPlayer;
 										$scope.whitePlayer = true;
-										$scope.myMove=true;
-										
-										
+										$scope.myMove = true;
+
 									});
 								}
-								//console.log("My oponent is:" + $scope.oponent);
+								// console.log("My oponent is:" +
+								// $scope.oponent);
 								startClock(true);
 
 							};
-							
-							$scope.endGame=function(gameResult){
+
+							$scope.endGame = function(gameResult) {
 								var gameResultWhite;
 								var gameResultBlack;
-								if (gameResult==="1-0"){
-									gameResultWhite=1;
-									gameResultBlack=0;
+								if (gameResult === "1-0") {
+									gameResultWhite = 1;
+									gameResultBlack = 0;
+								} else if (gameResult === "0-1") {
+									gameResultWhite = 0;
+									gameResultBlack = 1;
+								} else if (gameResult === "1/2 - 1/2") {
+									gameResultWhite = 0.5;
+									gameResultBlack = 0.5;
 								}
-								else if (gameResult==="0-1"){
-									gameResultWhite=0;
-									gameResultBlack=1;
-								}
-								else if (gameResult==="1/2 - 1/2"){
-									gameResultWhite=0.5;
-									gameResultBlack=0.5;
-								}
-								stopClocks();							
-								$scope.playingGame=false;
-								var newElos=calculateEloChange($scope.whitePlayerElo, $scope.blackPlayerElo, gameResultWhite,gameResultBlack);
+								stopClocks();
+								$scope.playingGame = false;
+								var newElos = calculateEloChange(
+										$scope.whitePlayerElo,
+										$scope.blackPlayerElo, gameResultWhite,
+										gameResultBlack);
 								$scope.gameResult = gameResult;
-								
+
 								return newElos;
-								
-								
+
 							}
-							
-							$scope.offerDraw=function(){
+
+							$scope.offerDraw = function() {
 								var drawOffer = {
-										action : "offerDraw",
-										oponent : $scope.oponent
+									action : "offerDraw",
+									oponent : $scope.oponent
 								}
-								//console.log("sending draw offer to server");
+								// console.log("sending draw offer to server");
 								socket.send(JSON.stringify(drawOffer));
 							}
-							
-							$scope.drawOfferReply=function(acceptDraw){
+
+							$scope.drawOfferReply = function(acceptDraw) {
 								var drawOffer = {
-										action : "drawOfferReply",
-										player : user.username,
-										oponent : $scope.oponent,
-										acceptDraw: acceptDraw
+									action : "drawOfferReply",
+									player : user.username,
+									oponent : $scope.oponent,
+									acceptDraw : acceptDraw
 								}
-								//console.log("sending drawOfferReply to server");
-								
-								if (acceptDraw){
-									var newElos=$scope.endGame("1/2 - 1/2");
-									var myNewElo=$scope.whitePlayer?newElos.newRatingWhite:newElos.newRatingBlack;
-									var oponentsNewElo=!$scope.whitePlayer?newElos.newRatingWhite:newElos.newRatingBlack;
-									$scope.whitePlayerElo = $scope.whitePlayer?myNewElo:oponentsNewElo;
-									$scope.blackPlayerElo = !$scope.whitePlayer?myNewElo:oponentsNewElo;
+								// console.log("sending drawOfferReply to
+								// server");
+
+								if (acceptDraw) {
+									var newElos = $scope.endGame("1/2 - 1/2");
+									var myNewElo = $scope.whitePlayer ? newElos.newRatingWhite
+											: newElos.newRatingBlack;
+									var oponentsNewElo = !$scope.whitePlayer ? newElos.newRatingWhite
+											: newElos.newRatingBlack;
+									$scope.whitePlayerElo = $scope.whitePlayer ? myNewElo
+											: oponentsNewElo;
+									$scope.blackPlayerElo = !$scope.whitePlayer ? myNewElo
+											: oponentsNewElo;
 									drawOffer.myNewElo = myNewElo;
-									drawOffer.oponentsNewElo =oponentsNewElo;
-//									stopClocks();
-									$scope.playingGame=false;
-//									$scope.gameResult = $scope.gameResult = "1/2 - 1/2";
+									drawOffer.oponentsNewElo = oponentsNewElo;
+									// stopClocks();
+									$scope.playingGame = false;
+									// $scope.gameResult = $scope.gameResult =
+									// "1/2 - 1/2";
 								}
-								//console.log(drawOffer);
+								// console.log(drawOffer);
 								socket.send(JSON.stringify(drawOffer));
 							}
-							
-							$scope.resign=function(){
-								var newElos=$scope.endGame(!$scope.whitePlayer?"1-0":"0-1");
-								var myNewElo=$scope.whitePlayer?newElos.newRatingWhite:newElos.newRatingBlack;
-								var oponentsNewElo=!$scope.whitePlayer?newElos.newRatingWhite:newElos.newRatingBlack;
+
+							$scope.resign = function() {
+								var newElos = $scope
+										.endGame(!$scope.whitePlayer ? "1-0"
+												: "0-1");
+								var myNewElo = $scope.whitePlayer ? newElos.newRatingWhite
+										: newElos.newRatingBlack;
+								var oponentsNewElo = !$scope.whitePlayer ? newElos.newRatingWhite
+										: newElos.newRatingBlack;
 								var resignation = {
-										action : "resign",
-										player: user.username,
-										oponent : $scope.oponent,
-										myNewElo : myNewElo,
-										oponentsNewElo:oponentsNewElo
+									action : "resign",
+									player : user.username,
+									oponent : $scope.oponent,
+									myNewElo : myNewElo,
+									oponentsNewElo : oponentsNewElo
 								};
-								
-								$scope.whitePlayerElo = $scope.whitePlayer?myNewElo:oponentsNewElo;
-								$scope.blackPlayerElo = !$scope.whitePlayer?myNewElo:oponentsNewElo;
-								//$scope.newGame=false;
-								
+
+								$scope.whitePlayerElo = $scope.whitePlayer ? myNewElo
+										: oponentsNewElo;
+								$scope.blackPlayerElo = !$scope.whitePlayer ? myNewElo
+										: oponentsNewElo;
+								// $scope.newGame=false;
+
 								socket.send(JSON.stringify(resignation));
-								
-								
-//								stopClocks();
-//								
-							$scope.playingGame=false;
-//								$scope.gameResult = !$scope.whitePlayer?"1-0":"0-1";
-								
+
+								// stopClocks();
+								//								
+								$scope.playingGame = false;
+								// $scope.gameResult =
+								// !$scope.whitePlayer?"1-0":"0-1";
+
 							}
 
 							$scope.seekOponent = function() {
-								//console.log("Sending seek to server.");
+								// console.log("Sending seek to server.");
 								var seekDetails = {
 
 									action : "seekOponent",
@@ -581,7 +709,7 @@ angular
 									increment : parseInt($scope.increment)
 
 								}
-								//console.log(seekDetails.time,seekDetails.increment)
+								// console.log(seekDetails.time,seekDetails.increment)
 								socket.send(JSON.stringify(seekDetails));
 							}
 
@@ -596,38 +724,37 @@ angular
 									endPosition : endPosition,
 
 								};
-								//console.log(socket);
+								// console.log(socket);
 								socket.send(JSON.stringify(moveAction));
-								//console.log("sending move");
-								//console.log(moveAction);
+								// console.log("sending move");
+								// console.log(moveAction);
 							}
-							
+
 							$scope.$watch("newGame", function(value) {
 								console.log("newGame changed:" + value);
-								if (value==true){
-								//	initPage();
+								if (value == true) {
+									// initPage();
 								}
 							});
-							
 
-//							$scope.$watch("whitePlayer", function(value) {
-//								//console.log("hello from watch.:" + value);
-//								// I change here
-//								var val = value || null;
-//								if (val) {
-//								//	initPage();
-//								}
-//							});
+							// $scope.$watch("whitePlayer", function(value) {
+							// //console.log("hello from watch.:" + value);
+							// // I change here
+							// var val = value || null;
+							// if (val) {
+							// // initPage();
+							// }
+							// });
 
 							var initPage = function() {
 								$timeout(function() {
 									chessboard = {};
-									//console.log("Getting element.");
+									// console.log("Getting element.");
 									chessboard.element = document
 											.getElementsByName("chessboardTable")[0];
-									//console.log(chessboard.element);
+									// console.log(chessboard.element);
 									chessboard.pieces = [];
-									chessboard.annotatedMoves=[];
+									chessboard.annotatedMoves = [];
 									squareSize = 0;
 									startPosition = {};
 									endPosition = {};
@@ -642,14 +769,14 @@ angular
 
 							var init = function() {
 
-								////console.log("initialising controller");
+								// //console.log("initialising controller");
 
 								$timeout(function() {
 									$scope.$apply(function() {
 										initPage();
-										////console.log("Setting whitePlayer");
+										// //console.log("Setting whitePlayer");
 										$scope.whitePlayer = true;
-										
+
 									});
 								})
 

@@ -10,7 +10,9 @@ angular
 									
 									
 									var top = element.prop('offsetTop');
-									var left= element.prop('offsetLeft')
+									var left= element.prop('offsetLeft');
+									var topPiece;
+									var leftPiece;
 									
 								console.log(element.prop('offsetTop'),element.prop('offsetLeft'));
 									
@@ -56,6 +58,9 @@ angular
 									
 									element.on('mousedown', function(event) {
 										//startX = 0, startY = 0, x = 0, y = 0, endX = 0, endY = 0;
+										console.log(element);
+										topPiece=element.context.offsetTop;
+										leftPiece=element.context.offsetLeft;
 										if(scope.newGame===true){
 											
 											//scope.newGame=false;
@@ -98,6 +103,10 @@ angular
 										endY = event.pageY;
 
 										endPosition = scope.determineRowColumn(endX,endY,scope.whitePlayer);
+										//var moveLegal = checkIfMoveIsLegal();
+										var moveIsLegal=scope.checkLegalityOfMove(element, startPosition, endPosition,
+												true, scope.whitePlayer, topPiece,leftPiece);
+										if (moveIsLegal){
 										scope.updateChessboardAfterMove(element,startPosition,endPosition,true,scope.whitePlayer);
 //										console.log(startPosition);
 //										console.log(endPosition);
@@ -105,7 +114,14 @@ angular
 //										console.log(getInitialPositionOfPiece(startPosition.piece).column);
 										scope.pressClock(!scope.whitePlayer);
 										scope.setMyMove(false);
+									}
+										else{
+											x=0,y=0;
+										element.css({
+											top : topPiece + 'px',
+											left : leftPiece + 'px'
 
+										});}
 								
 
 										$document.off('mousemove', mousemove);

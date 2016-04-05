@@ -94,7 +94,7 @@
 
 		<div class="col-md-6" >
 		<div>
-		<table>
+		<table ng-if="playingGame">
 			<tr><td>{{whitePlayerName}}({{whitePlayerElo}})</td><td>-{{blackPlayerName}}({{blackPlayerElo}})</td></tr>
 			<tr><td>{{whiteClock}}</td><td>{{blackClock}}</td></tr>
 			</table>
