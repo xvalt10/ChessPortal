@@ -111,6 +111,11 @@ width:80%;
 	
 }
 
+.promotionPieces{
+	border:1px solid gray;
+	margin-bottom:10px;
+}
+
 .chessPiece{
 
 width:40px;
