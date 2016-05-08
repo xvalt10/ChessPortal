@@ -178,7 +178,12 @@ angular
 										|| Math.abs(startPosition.column
 												- endPosition.column) > 1) {
 									return false;
-								} else if (Math
+								} 
+								else if(($scope.whiteMove==true && endPosition.row<startPosition.row)||($scope.whiteMove==false && endPosition.row>startPosition.row)){
+									return false;
+								}
+								
+								else if (Math
 										.abs(!whitePlayer ? startPosition.row
 												- endPosition.row
 												: endPosition.row
@@ -193,7 +198,7 @@ angular
 												: endPosition.row
 														- startPosition.row) == 1
 										&& startPosition.column
-												- endPosition.column == 0) {
+												- endPosition.column == 0&& (endPosition.piece == "empty")) {
 									return true;
 								} else if (Math
 										.abs(!whitePlayer ? startPosition.row
@@ -310,6 +315,7 @@ angular
 							function canBishopMateBePrevented(chessboard,
 									kingPosition, checkingPiecePosition,
 									whiteMove) {
+								console.log("Can bishop mate be prevented?");
 								var matePreventionPossible = false;
 								if (kingPosition.row > checkingPiecePosition.row
 										&& kingPosition.column > checkingPiecePosition.column) {
@@ -320,7 +326,7 @@ angular
 												checkingPiecePosition.row + x,
 												checkingPiecePosition.column
 														+ x, whiteMove) == true) {
-
+											console.log("Yes - option 1");
 											matePreventionPossible = true;
 											break;
 										}
@@ -336,7 +342,7 @@ angular
 														- x,
 												kingPosition.column + x,
 												whiteMove) == true) {
-
+											console.log("Yes - option 2");
 											matePreventionPossible = true;
 											break;
 										}
@@ -352,7 +358,7 @@ angular
 														+ x,
 												kingPosition.column - x,
 												whiteMove) == true) {
-
+											console.log("Yes - option 3");
 											matePreventionPossible = true;
 											break;
 										}
@@ -368,7 +374,7 @@ angular
 														+ x,
 												kingPosition.column + x,
 												whiteMove) == true) {
-
+											console.log("Yes - option 4");
 											matePreventionPossible = true;
 											break;
 										}
@@ -383,10 +389,20 @@ angular
 									kingPosition, checkingPiecePosition,
 									whiteMove) {
 								var matePreventionPossible = false;
+								
+								if (canAnyOponentsPieceMoveToSquare(
+										chessboard,
+										checkingPiecePosition.row,
+										checkingPiecePosition.column,
+										whiteMove)) {
+
+									matePreventionPossible = true;
+								}
+								else {
 
 								switch (checkingPiecePosition.piece
 										.substr(1, 1)) {
-								case "P":
+							/*	case "P":
 									if (canAnyOponentsPieceMoveToSquare(
 											chessboard,
 											checkingPiecePosition.row,
@@ -406,7 +422,7 @@ angular
 
 										matePreventionPossible = true;
 									}
-									break;
+									break;*/
 
 								case "B":
 									matePreventionPossible = canBishopMateBePrevented(
@@ -421,17 +437,19 @@ angular
 									break;
 
 								case "Q":
-									if (canBishopMateBePrevented(
-											chessboard, kingPosition,
-											checkingPiecePosition, whiteMove)==true || canRookMateBePrevented(
+									if (canBishopMateBePrevented(chessboard,
+											kingPosition,
+											checkingPiecePosition, whiteMove) == true
+											|| canRookMateBePrevented(
 													chessboard, kingPosition,
-													checkingPiecePosition, whiteMove)==true){
-										matePreventionPossible=true;
+													checkingPiecePosition,
+													whiteMove) == true) {
+										matePreventionPossible = true;
 									}
 									break;
 
-								}
-								return canMateBePrevented;
+								}}
+								return matePreventionPossible;
 							}
 							function isKingMoveLegal(startPosition,
 									endPosition, whitePlayer) {
@@ -458,7 +476,7 @@ angular
 											&& isSquareEmpty(0, 6)
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 0, 6,
-													$scope.whiteMove)) {
+													$scope.whiteMove) && hasKingAlreadyMoved("white")==false) {
 										console.log("White Short castle");
 										$scope.castling = "0-0";
 										return true;
@@ -473,7 +491,7 @@ angular
 											&& isSquareEmpty(7, 6)
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 7, 6,
-													$scope.whiteMove)) {
+													$scope.whiteMove)&& hasKingAlreadyMoved("black")==false) {
 										console.log("Black Short castle");
 										$scope.castling = "0-0";
 										return true;
@@ -511,7 +529,7 @@ angular
 											&& isSquareEmpty(0, 3)
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 0, 3,
-													$scope.whiteMove)) {
+													$scope.whiteMove)&& hasKingAlreadyMoved("white")==false) {
 										console.log("White Long castle");
 										$scope.castling = "0-0-0";
 										return true;
@@ -525,7 +543,7 @@ angular
 											&& isSquareEmpty(7, 3)
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 7, 3,
-													$scope.whiteMove)) {
+													$scope.whiteMove)&& hasKingAlreadyMoved("black")==false) {
 										console.log("Black Long castle");
 										$scope.castling = "0-0-0";
 										return true;
@@ -796,7 +814,7 @@ angular
 							}
 
 							function isKingMated(chessboard, kingPosition,
-									whiteMove) {
+									checkingPiecePosition, whiteMove) {
 
 								var x = [ 1, 1, 1, -1, -1, -1, 0, 0 ];
 								var y = [ 0, 1, -1, 0, 1, -1, 1, -1 ];
@@ -837,13 +855,21 @@ angular
 									}
 
 								}
-								if (numberOfLegalSquareForKingMove > 0) {
+								if (numberOfLegalSquareForKingMove > 0 ) {
 									// console.log("King not mated:"
 									// + numberOfLegalSquareForKingMove);
 									return false;
 								} else {
+									console.log("King has no squares.");
+									if (canMateBePrevented(chessboard,
+											kingPosition,
+											checkingPiecePosition, whiteMove) == true) {
+										console.log("Mate can be prevented.");
+										return false;
+									}
 									// console.log("King is mated.");
-									return true;
+									else{
+									return true;}
 								}
 							}
 
@@ -885,7 +911,8 @@ angular
 													kingInCheckOrAndMate.mate = isKingMated(
 															chessboard,
 															kingPosition,
-															whiteMove);
+															endPosition,
+															whiteMove)
 												}
 											}
 											;
@@ -919,6 +946,17 @@ angular
 								// return kingInCheck;
 							}
 							;
+							
+							$scope.redrawChessboard=function(currentSquares){
+								if($scope.playingGame==false){
+								for (var int = 0; int < currentSquares.length; int++) {
+									if(currentSquares[int].piece!="empty"){
+										console.log("Moving "+currentSquares[int].piece +"to row:"+currentSquares[int].row+" column:"+currentSquares[int].column);
+										$scope.movePieceToCoordinates(currentSquares[int].piece,currentSquares[int].row, currentSquares[int].column);
+										
+									} 
+								}}
+							}
 
 							$scope.drawLastMove = function(startPosition,
 									endPosition) {
@@ -1035,6 +1073,41 @@ angular
 								document.body.appendChild(createLineElement(x,
 										y, c, alpha));
 
+							}
+							
+							$scope.movePieceToCoordinates = function(piece,row,column){
+//								var squareoffset = $("img[id*='S"+column+row+"']").offset();
+//								var pieceoffset = $("#WR00").offset();
+//								
+//								console.log("img[id*='S"+column+row+"']");
+//							 	console.log($("img[id*='S"+column+row+"']").offset());
+//							 	console.log($("#WR00").offset());
+//							 	console.log(((pieceoffset.top-squareoffset.top )*-1)+ (0.26 * squareSize));
+//							 	console.log((pieceoffset.left -squareoffset.left));
+//							 	$("#WR00").css({
+//
+//									top : (((pieceoffset.top-squareoffset.top )*-1)+ (0.26 * squareSize))
+//											+ 'px',
+//									left : (pieceoffset.left -squareoffset.left)
+//											+ 'px',
+//
+//								});
+								var top = (((($scope
+										.getInitialPositionOfPiece(piece).row) - row) * squareSize) + (0.13 * squareSize));
+								var left = (((column - ($scope
+										.getInitialPositionOfPiece(piece)).column) * squareSize) + (0.13 * squareSize));
+
+								$("#"+piece).css({
+
+									top : $scope.whitePlayer ? top + 'px' : (top
+											* (-1) + (0.26 * squareSize))
+											+ 'px',
+									left : $scope.whitePlayer ? left + 'px' : (left
+											* (-1) + (0.26 * squareSize))
+											+ 'px',
+
+								});
+								
 							}
 
 							function movePieceOnBoard(element, startPosition,
@@ -1213,6 +1286,19 @@ angular
 								}
 								$scope.whiteMove = !$scope.whiteMove;
 							}
+							
+							function hasKingAlreadyMoved(color){
+								chessboard.annotatedMoves
+								.forEach(function(move) {
+									if (color="white" && (move.white.indexOf("K")!=-1 || move.white.indexOf("0")!=-1 )){
+										return true;
+									}
+									else if (color="black" && (move.black.indexOf("K")!=-1 || move.white.indexOf("0")!=-1 )){
+										return true;
+									}
+								});
+								return false;
+							}
 
 							function addAnnotation(piece, startSquareIndex,
 									endSquareIndex, capture, promotion,
@@ -1249,12 +1335,17 @@ angular
 								// //console.log(moveNumber);
 								var whiteMove = piece.indexOf("W") != -1;
 								var movecomplete;
+								var currentchessboard= JSON.parse(JSON.stringify(chessboard.squares));
+//								for (var i = 0; i < chessboard.squares.length; i++){
+//								    currentchessboard[i] = chessboard.squares[i].slice();}
 								if (whiteMove) {
 									chessboard.annotatedMoves[moveNumber] = {};
 
 									chessboard.annotatedMoves[moveNumber].white = moveNotation;
 									chessboard.annotatedMoves[moveNumber].black = "";
 									chessboard.annotatedMoves[moveNumber].number = moveNumber + 1;
+									chessboard.annotatedMoves[moveNumber].chessboardAfterWhiteMove = currentchessboard;
+									chessboard.annotatedMoves[moveNumber].chessboardAfterBlackMove = [];
 									// $('.notationTable tbody
 									// tr:last').after('<tr><td>'+moveNumber+'</td><td>'+moveNotation+'</td></tr>');
 									// //console.log(chessboard.annotatedMoves);
@@ -1263,7 +1354,8 @@ angular
 
 									// //console.log(chessboard.annotatedMoves);
 									chessboard.annotatedMoves[moveNumber].black = moveNotation;
-
+									chessboard.annotatedMoves[moveNumber].chessboardAfterBlackMove = currentchessboard;
+									
 									// //console.log("incremented moveNumber:"+
 									// moveNumber);
 									movecomplete = true;
@@ -1495,9 +1587,10 @@ angular
 										$scope.whiteTime -= 1;
 										$scope.whiteClock = generateClockTimeFromSeconds($scope.whiteTime);
 									} else {
-										$scope.playingGame = false;
-										$scope.gameResult = "0-1";
-										stopClocks();
+										$scope.endGame("0-1");
+//										$scope.playingGame = false;
+//										$scope.gameResult = "0-1";
+//										stopClocks();
 										return;
 									}
 								} else {
@@ -1506,10 +1599,10 @@ angular
 										$scope.blackTime -= 1;
 										$scope.blackClock = generateClockTimeFromSeconds($scope.blackTime);
 									} else {
-
-										$scope.playingGame = false;
-										$scope.gameResult = "1-0";
-										stopClocks();
+										$scope.endGame("1-0");
+//										$scope.playingGame = false;
+//										$scope.gameResult = "1-0";
+//										stopClocks();
 										return;
 									}
 								}

@@ -143,6 +143,7 @@ width:80%;
  height:55px
  
 }
+#annotatedMove:hover{cursor:pointer}
 
 #chatPost{
 	border: 1px solid gray;

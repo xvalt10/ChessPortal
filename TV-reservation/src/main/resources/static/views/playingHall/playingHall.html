@@ -232,6 +232,7 @@ text-danger': formLogin.increment.$error.required}">
 					<button ng-click="offerDraw()" class="btn btn-primary">Offer
 						Draw</button>
 					<button ng-click="resign()" class="btn btn-primary">Resign</button>
+					
 				</div>
 			</div>
 		</div>
@@ -262,8 +263,8 @@ text-danger': formLogin.increment.$error.required}">
 
 					<tr ng-repeat="annotatedMove in annotatedMoves">
 						<td>{{annotatedMove.number}}</td>
-						<td>{{annotatedMove.white}}</td>
-						<td>{{annotatedMove.black}}</td>
+						<td id="annotatedMove" ng-click="redrawChessboard(annotatedMove.chessboardAfterWhiteMove)">{{annotatedMove.white}}</td>
+						<td id="annotatedMove" ng-click="redrawChessboard(annotatedMove.chessboardAfterBlackMove)">{{annotatedMove.black}}</td>
 					</tr>
 				</tbody>
 
