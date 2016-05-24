@@ -394,7 +394,7 @@ angular
 										chessboard,
 										checkingPiecePosition.row,
 										checkingPiecePosition.column,
-										whiteMove)) {
+										whiteMove,true)) {
 
 									matePreventionPossible = true;
 								}
@@ -452,18 +452,21 @@ angular
 								return matePreventionPossible;
 							}
 							function isKingMoveLegal(startPosition,
-									endPosition, whitePlayer) {
+									endPosition, whitePlayer,stopRecursion) {
 								if (Math.abs(endPosition.row
 										- startPosition.row) <= 1
 										&& Math.abs(endPosition.column
 												- startPosition.column) <= 1
-										&& (whitePlayer ? endPosition.piece
-												.indexOf("W") == -1
-												: (endPosition.piece
-														.indexOf("B") == -1 || endPosition.piece
-														.indexOf("WB") != -1))) {
-									console.log("Normal king move.");
-									return true;
+										&& (whitePlayer==true ? isBlackPieceOnSquare(endPosition.row, endPosition.column)||isSquareEmpty(endPosition.row, endPosition.column)
+												: isWhitePieceOnSquare(endPosition.row, endPosition.column)||isSquareEmpty(endPosition.row, endPosition.column))) {
+									
+									if(stopRecursion==true & canAnyOponentsPieceMoveToSquare(chessboard, endPosition.row, endPosition.column, $scope.whiteMove)==false){
+									console.log("King capture allowed. NO check.");
+									return true;}
+									else if(stopRecursion!=true){
+										console.log("Normal king move.");
+										return true;
+									}
 								} else if (endPosition.row == startPosition.row
 										&& Math.abs(endPosition.column
 												- startPosition.column) == 2
@@ -522,28 +525,29 @@ angular
 												- startPosition.column) == 2
 										&& (endPosition.column == 2)) {
 									if (whitePlayer == true
-											&& isSquareEmpty(0, 2)
+											&& isSquareEmpty(0, 2) &&stopRecursion!=true
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 0, 2,
-													$scope.whiteMove)
+													$scope.whiteMove,true)
 											&& isSquareEmpty(0, 3)
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 0, 3,
-													$scope.whiteMove)&& hasKingAlreadyMoved("white")==false) {
+													$scope.whiteMove,true)&& hasKingAlreadyMoved("white")==false) {
 										console.log("White Long castle");
 										$scope.castling = "0-0-0";
 										return true;
 									}
 
 									if (whitePlayer == false
-											&& isSquareEmpty(7, 2)
+											&& isSquareEmpty(7, 2) &&stopRecursion!=true
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 7, 2,
-													$scope.whiteMove)
+													$scope.whiteMove,true)
 											&& isSquareEmpty(7, 3)
 											&& !canAnyOponentsPieceMoveToSquare(
 													chessboard, 7, 3,
-													$scope.whiteMove)&& hasKingAlreadyMoved("black")==false) {
+													$scope.whiteMove,true)&& hasKingAlreadyMoved("black")==false) {
+										
 										console.log("Black Long castle");
 										$scope.castling = "0-0-0";
 										return true;
@@ -579,6 +583,9 @@ angular
 									// }
 								} else {
 									console.log("King else condition.");
+									console.log(startPosition);
+console.log(endPosition);
+console.log(whitePlayer);
 									return false;
 								}
 							}
@@ -673,11 +680,11 @@ angular
 							;
 
 							$scope.checkLegalityOfMove = function(
-									startPosition, endPosition, whitePlayer) {
-								console.log("Checking legality of move:")
+									startPosition, endPosition, whitePlayer,stopRecursion) {
+								/*console.log("Checking legality of move:")
 								console.log(startPosition);
 								console.log(endPosition);
-								console.log(whitePlayer);
+								console.log(whitePlayer);*/
 
 								if (typeof endPosition == 'undefined') {
 									return false;
@@ -726,8 +733,9 @@ angular
 											endPosition, whitePlayer);
 									break;
 								case "K":
+									console.log("calling isKingMoveLegalFunction:"+stopRecursion);
 									return isKingMoveLegal(startPosition,
-											endPosition, whitePlayer);
+											endPosition, whitePlayer,stopRecursion);
 									break;
 								case "B":
 									return isBishopMoveLegal(startPosition,
@@ -771,7 +779,7 @@ angular
 							}
 
 							function canAnyOponentsPieceMoveToSquare(
-									chessboard, row, column, whiteMove) {
+									chessboard, row, column, whiteMove,stopRecursion) {
 								var pieceFound = false;
 								var targetSquareIndex = findIndexOfSquare(
 										column, row);
@@ -779,6 +787,7 @@ angular
 								console
 										.log("Can any oponent's piece move to suqare:");
 								console.log(targetSquare);
+								console.log("Colour:"+whiteMove);
 								chessboard.squares
 										.forEach(function(initialSquare) {
 
@@ -791,13 +800,12 @@ angular
 																initialSquare.row,
 																initialSquare.column))) {
 
-													console
-															.log(initialSquare.piece);
+													
 													if ($scope
 															.checkLegalityOfMove(
 																	initialSquare,
 																	targetSquare,
-																	$scope.whitePlayer) == true) {
+																	$scope.whitePlayer,stopRecursion) == true) {
 
 														console
 																.log("Following piece can move to targetSqare:"
@@ -830,7 +838,7 @@ angular
 									// console.log(targetSquare);
 									if ($scope.checkLegalityOfMove(
 											kingPosition, targetSquare,
-											$scope.whitePlayer) == false) {
+											!$scope.whiteMove) == false) {
 										console.log("Retracting square:"
 												+ (kingPosition.column + x[i])
 												+ " "
@@ -840,7 +848,7 @@ angular
 											chessboard,
 											kingPosition.row + y[i],
 											kingPosition.column + x[i],
-											whiteMove) == true) {
+											!$scope.whiteMove) == true) {
 										console.log("Retracting square:"
 												+ (kingPosition.column + x[i])
 												+ " "
@@ -863,7 +871,7 @@ angular
 									console.log("King has no squares.");
 									if (canMateBePrevented(chessboard,
 											kingPosition,
-											checkingPiecePosition, whiteMove) == true) {
+											checkingPiecePosition, $scope.whiteMove) == true) {
 										console.log("Mate can be prevented.");
 										return false;
 									}
@@ -893,20 +901,34 @@ angular
 											}
 
 										});
-								// console.log("Is king in check check");
+								 console.log("Is king in check check");
 								// console.log(endPosition);
-								// console.log(kingPosition);
+								 console.log(kingPosition);
+								 if ($scope.checkLegalityOfMove(
+											endPosition,
+											kingPosition,
+											$scope.whiteMove) == true) {
+										console.log("Checking piece "+endPosition.piece);
+										kingInCheckOrAndMate.check = true;
+										kingInCheckOrAndMate.mate = isKingMated(
+												chessboard,
+												kingPosition,
+												endPosition,
+												whiteMove)
+									
+									 
+								 }
+								 else{
 
 								chessboard.squares
 										.forEach(function(square) {
-											if ($scope.whitePlayer ? square.piece
-													.indexOf("W") != -1
-													: square.piece.substr(0, 1)
-															.indexOf("B") != -1) {
+											if ($scope.whiteMove==false ? isBlackPieceOnSquare(square.row, square.column)
+													: isWhitePieceOnSquare(square.row, square.column)) {
 												if ($scope.checkLegalityOfMove(
-														endPosition,
+														square,
 														kingPosition,
-														$scope.whitePlayer) == true) {
+														$scope.whiteMove) == true) {
+													console.log("Checking piece "+square.piece);
 													kingInCheckOrAndMate.check = true;
 													kingInCheckOrAndMate.mate = isKingMated(
 															chessboard,
@@ -917,7 +939,7 @@ angular
 											}
 											;
 
-										});
+										});}
 								return kingInCheckOrAndMate;
 
 								//								
@@ -1285,6 +1307,13 @@ angular
 
 								}
 								$scope.whiteMove = !$scope.whiteMove;
+								if ($scope.whiteMove==true){
+									console.log("Whites move.")
+								}
+								if ($scope.whiteMove==false){
+									console.log("Blacks move.")
+								}
+								
 							}
 							
 							function hasKingAlreadyMoved(color){
@@ -1756,7 +1785,7 @@ angular
 								$scope.gameResult = gameResult;
 								$scope.whitePlayer = whitePlayer;
 								$scope.resultMessage = function() {
-									console.log("Result message called.");
+									//console.log("Result message called.");
 									if (gameResult == "1-0"
 											&& whitePlayer == true) {
 										return "Congratulation you won the game.";

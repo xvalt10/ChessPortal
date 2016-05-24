@@ -70,11 +70,11 @@ angular
 										
 										if(scope.myMove){
 											//console.log("My move");
-										console.log(scope.myMove);
+										/*console.log(scope.myMove);*/
 										startPosition = scope.determineRowColumn(
 												event.pageX, event.pageY,scope.whitePlayer);
-										console.log("Start position:");
-										console.log(startPosition);
+										/*console.log("Start position:");
+										console.log(startPosition);*/
 										if ((scope.whitePlayer && startPosition.piece.indexOf("W")!=-1)||(!scope.whitePlayer && startPosition.piece.indexOf("B")!=-1)){
 										event.preventDefault();
 										//console.log("Mouse down:"+startX,startY,x,y, event.pageX,event.pageY);
@@ -112,8 +112,8 @@ angular
 										
 										endPosition = scope.determineRowColumn(endX,endY,scope.whitePlayer);
 										//var moveLegal = checkIfMoveIsLegal();
-										console.log(startPosition);
-										
+										/*is
+										*/
 										var moveIsLegal=scope.checkLegalityOfMove(startPosition, endPosition,
 												scope.whitePlayer);
 										if (moveIsLegal==true){
