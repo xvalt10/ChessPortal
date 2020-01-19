@@ -21296,7 +21296,7 @@ var inputType = {
         </file>
       </example>
    */
-  'number': numberInputType,
+  'moveNumber': numberInputType,
 
 
   /**

@@ -1,15 +1,22 @@
 package application.security;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 
+import javax.sql.DataSource;
+
 @Configuration
 public class AuthenticationProviderConfig {
- @Bean(name = "dataSource")
+
+    @Autowired
+    DataSource dataSource;
+
+ /*@Bean(name = "dataSource")
  public DriverManagerDataSource dataSource() {
      DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
      driverManagerDataSource.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -17,14 +24,18 @@ public class AuthenticationProviderConfig {
      driverManagerDataSource.setUsername("sa");
      driverManagerDataSource.setPassword("start123");
      return driverManagerDataSource;
- }
+ }*/
     
     @Bean(name="userDetailsService")
     public UserDetailsService userDetailsService(){
      JdbcDaoImpl jdbcImpl = new JdbcDaoImpl();
-     jdbcImpl.setDataSource(dataSource());
-     jdbcImpl.setUsersByUsernameQuery("select username,password, enabled from UserAccount where username=?");
-     jdbcImpl.setAuthoritiesByUsernameQuery("select b.username, a.role from UserRole a, UserAccount b where b.username=? and a.userid=b.userid");
+     jdbcImpl.setDataSource(dataSource);
+     jdbcImpl.setUsersByUsernameQuery("select username,password,enabled " +
+             "from user_account " +
+             "where username=?");
+     jdbcImpl.setAuthoritiesByUsernameQuery("select a.username, b.role " +
+             "from user_account a, user_role b " +
+             "where a.username=? and a.user_id=b.user_id");
      return jdbcImpl;
     }
 }

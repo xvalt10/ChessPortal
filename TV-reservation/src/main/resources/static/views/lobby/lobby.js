@@ -6,7 +6,7 @@
 angular
 		.module(
 				'myApp.LobbyModule',
-				[ 'ngRoute', 'ui.bootstrap', 'reservationFilters', 'constants' ])
+				[ 'ngRoute', 'ui.bootstrap', 'reservationFilters', 'constants', 'ngScrollbars' ])
 
 		.controller(
 				'LobbyCtrl',
@@ -14,36 +14,46 @@ angular
 						
 						'LoginService',
 						'WebSocketService',
-						'$scope','$interval',
+						'$scope', '$rootScope','$interval', '$location',
 						
 						
-						function( LoginService,WebSocketService, $scope, $interval) {
+						function( LoginService,WebSocketService, $scope, $rootScope, $interval, $location) {
 							
 							$scope.chatMessage={action:"chatMessageLobby"};
-							var username = LoginService.getUserLoggedIn().username;
-							
+							$scope.time = 0;
+							$scope.increment = 0;
+							$scope.messages=[];
+							$scope.countOfPlayersOnline = 0;
+							$scope.gamesInProgress = 0;
+							$scope.playersOnline = [];
+							$scope.seekingOponent = false;
+							$scope.seekFormShown = false;
+
+
 							var socket={};
 							var queryPlayersInterval;
-							$scope.messages=[];
-							$scope.countOfPlayersOnline=0;
+							var seekOponentInterval;
 							
 							$scope.sendChatMessage = function(){
-								$scope.chatMessage.author=username;
+								$scope.chatMessage.author=$rootScope.user;
 								socket.send(JSON.stringify($scope.chatMessage));
+								$scope.chatMessage.message = "";
 							}
 							
 							$scope.config = {
-								    autoHideScrollbar: false,
-								    theme: '3d',
-								    advanced:{
-								        updateOnContentResize: true
-								    },
-								        setHeight: 300,
-								        scrollInertia: 0,
-								        scrollButtons: {
-						                    scrollAmount: 'auto', // scroll amount when button pressed
-						                    enable: true // enable scrolling buttons by default
-						                }
+
+								autoHideScrollbar: false,
+								setHeight: 300,
+								scrollInertia: 500,
+								axis: 'yx',
+								advanced: {
+									updateOnContentResize: true
+								},
+								scrollButtons: {
+									scrollAmount: 'auto', // scroll amount when button pressed
+									enable: true // enable scrolling buttons by default
+								},
+								theme: 'dark'
 								    };
 							
 							$scope.displayChatMessage = function(message){
@@ -54,32 +64,74 @@ angular
 								
 								
 							}
+
+							$scope.seekOponent = function (time, increment) {
+								var seekDetails = {
+
+									action: "seekOponent",
+									user: LoginService.getUserLoggedIn().username,
+									time: parseInt(typeof time !== 'undefined' ? time
+										: $scope.time),
+									increment: parseInt(typeof increment !== 'undefined' ? increment
+										: $scope.increment)
+
+								}
+								seekOponentInterval=$interval(function(){
+									socket.send(JSON.stringify(seekDetails));
+								},1000);
+
+								$scope.seekingOponent = true;
+								$scope.seekFormShown = false;
+							};
+
+							$scope.showSeekForm = function () {
+								$scope.seekFormShown = true;
+							};
 							
-							function queryPlayersOnline(){
-								socket.send(JSON.stringify({user:username,action:"queryPlayersOnline"}));
+							function queryPlayersOnline() {
+								console.log("Querying players online.");
+								socket.send(JSON.stringify({user:$rootScope.user,action:"getPlayersOnline"}));
+
+							}
+
+							$scope.observeGame = function(playername){
+								$location.path("/playingHall/observe/"+playername);
 							}
 							
 							function onMessage(event) {
-								console.log(event);
+								//console.log(event);
 								var data = JSON.parse(event.data);
 								if (data.action == "chatMessageLobby") {
 									$scope.displayChatMessage(data);
 								}
-								if (data.action == "countOfPlayersOnline") {
-									$scope.countOfPlayersOnline=data.count;
+								if (data.action == "getPlayersOnline") {
+									console.log(data.players);
+									$scope.playersOnline = data.players;
+									$scope.countOfPlayersOnline = data.players.length;
+									$scope.gamesInProgress = data.gamesInProgress;
 								}
-								
-						}
-							
+								if (data.action === "startGame") {
+										console.log(data);
+									    $interval.cancel(seekOponentInterval);
+									    $interval.cancel(queryPlayersInterval)
+									    $location.path("/playingHall/"+data.gameId);
+										console.log("Game started.")
+								}
+								if (data.action === "gameInfo") {
+									console.log("Received game info:"+data);
+								}
+							}
 							var init = function(){
+
 								socket=WebSocketService.initWebSockets();
 								socket.onmessage=onMessage;
 								socket.onclose=function(event){
+									console.log("closing timer");
 									$interval.cancel(queryPlayersInterval);
+									$interval.cancel(seekOponentInterval);
 								};
-								console.log(LoginService.getUserLoggedIn());
 								
-								queryPlayersInterval=$interval(queryPlayersOnline,5000);
+								queryPlayersInterval=$interval(queryPlayersOnline,1000);
 						
 								}
 							

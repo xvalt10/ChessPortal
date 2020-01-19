@@ -47,7 +47,7 @@ public class UserService {
 	
 	@RequestMapping(method = RequestMethod.PUT, value="{userId}/updateElo/{newElo}")
 	public Useraccount updateElo(@PathVariable Long userId, @PathVariable Integer newElo) {
-		Useraccount userAccount=userAccountRepository.findOne(userId);
+		Useraccount userAccount=userAccountRepository.findById(userId).orElseThrow(IllegalArgumentException::new);
 		userAccount.setElo(newElo);
 		return userAccountRepository.save(userAccount);
 		
@@ -57,7 +57,7 @@ public class UserService {
 	
 	@RequestMapping(method = RequestMethod.PUT, value="{userId}/deposit/{sum}")
 	private Useraccount getUserAccount(@PathVariable Long userId, @PathVariable BigDecimal sum) {
-		Useraccount userAccount=userAccountRepository.findOne(userId);
+		Useraccount userAccount=userAccountRepository.findById(userId).orElseThrow(IllegalArgumentException::new);
 		userAccount.setAccountbalance(userAccount.getAccountbalance().add(sum));
 		return userAccountRepository.save(userAccount);
 		

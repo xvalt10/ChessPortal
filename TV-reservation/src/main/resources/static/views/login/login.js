@@ -28,17 +28,15 @@ var authenticationData={};
 	};
 	
 	var authenticate = function(credentials, callback) {
-console.log("authenticating...");
+
 	    var headers = credentials ? {authorization : "Basic "
 	        + btoa(credentials.username + ":" + credentials.password)
 	    } : {};
 
 	    $http.get('user', {headers : headers}).success(function(data) {
 	      if (data.name) {
-	    	  console.log(authenticationData);
-	    	  console.log("setting authentication data");
 	    	  authenticationData=data;
-	    	  console.log(authenticationData);
+
 	    	  LoginService.getUserFromDB(data.name).then(function(response){
 	    		  var user = response.data;
 	    		  user.role = authenticationData.authorities[0].authority;
@@ -46,9 +44,9 @@ console.log("authenticating...");
 	    		  LoginService.setUserLoggedIn(response.data);
 	    		  $rootScope.$broadcast('userAddedToSession');
 	    	  });
-	    		
-	    	  console.log("User authenticated.");
+
 	        $rootScope.authenticated = true;
+	        $rootScope.user = data.name;
 	      } else {
 	    	  console.log("User not authenticated.");
 	        $rootScope.authenticated = false;
@@ -69,7 +67,7 @@ console.log("authenticating...");
 	        if ($rootScope.authenticated) {
 	        	console.log("Changing location to reservation");
 	        
-	          $location.path("/reservation");
+	          $location.path("/lobby");
 	          $scope.error = false;
 	        } else {
 	          $location.path("/loginpage");
@@ -95,9 +93,7 @@ console.log("authenticating...");
 		  if (user==null){
 			  return false;
 		  }
-		  
-	//console.log("Checking if user has role:"+role);
-	//		console.log(user);
+
 			if (user.role==role){
 				return true;
 			}

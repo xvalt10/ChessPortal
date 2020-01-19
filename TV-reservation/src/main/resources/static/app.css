@@ -60,11 +60,7 @@ width:80%;
    
 }
 
-.clock{
-	font-size: 14px;
-	font-weight:bold;
-	border: 1px solid black;
-}
+
 .container {
  /*    background-color: #f8f8f8;
     border-color: #e7e7e7;*/
@@ -82,11 +78,10 @@ width:80%;
 	.withPadding{
 	padding:15px;
 	}
-	#blackBoard{
+
+	#whiteBoard, #blackBoard{
 	margin-bottom:15px;
-	}
-	#whiteBoard{
-	margin-bottom:15px;
+
 	}
 
 .formContainer {
@@ -146,11 +141,11 @@ width:80%;
 #annotatedMove:hover{cursor:pointer}
 
 #chatPost{
-	border: 1px solid gray;
-	margin-bottom:5px;
-	margin-left:0px;
+	/*border: 1px solid gray;*/
+	/*margin-bottom:5px;*/
+	/*margin-left:0px;
 	margin-right:0px;
-	padding:5px;
+	padding:1px;*/
 	
 }
 
@@ -167,16 +162,117 @@ height:40px;
 	z-index: 1;
 
 }
+.clock{
+	font-size:30px;
+	text-align: center;
+	font-weight:bold;
+	border: 1px solid black;
+}
+.clockActive{
+	color:green;
+}
+
+.clockNotActive{
+	color:black;
+}
 
 .notationTable{
-	margin-top:10px;
+	border-color: black;
+	width:100%
+}
+.notationTable td{
+	border-color: black;
+	width:33.3%
+}
+
+.notation{
+    margin:15px;
+	border: 1px solid black;
+}
+
+.annotatedMove{
+	cursor:pointer
+}
+
+.chessboardOverlayWrapper {
+	position: relative;
+	display: inline-block; /* <= shrinks container to image size */
+	transition: transform 150ms ease-in-out;
+}
+
+.chessboardOverlayWrapper table { /* <= optional, for responsiveness */
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
+.chessboardOverlayWrapper svg {
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 
 .chatWindow{
-	/* height:200px; */
 	border:1px solid gray;
 	margin-bottom:5px;
 	padding:5px;
 }
 
+.chatMessageDiv{
+	margin-bottom:15px;
+}
 
+.chatPostAuthor{
+	margin-bottom: 1px;
+}
+
+.loader{
+	width: 30px;
+	height: 30px;
+	border-radius: 100%;
+	position: relative;
+	margin: 0 auto;
+}
+
+.svgOverChessboard{
+
+}
+
+/* LOADER 1 */
+
+#loader-1:before, #loader-1:after{
+	content: "";
+	position: absolute;
+	top: -10px;
+	left: -10px;
+	width: 100%;
+	height: 100%;
+	border-radius: 100%;
+	border: 5px solid transparent;
+	border-top-color: #3498db;
+}
+
+#loader-1:before{
+	z-index: 100;
+	animation: spin 1s infinite;
+}
+
+#loader-1:after{
+	border: 5px solid #ccc;
+}
+
+@keyframes spin{
+	0%{
+		-webkit-transform: rotate(0deg);
+		-ms-transform: rotate(0deg);
+		-o-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+
+	100%{
+		-webkit-transform: rotate(360deg);
+		-ms-transform: rotate(360deg);
+		-o-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}

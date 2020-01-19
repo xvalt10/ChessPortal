@@ -1,20 +1,23 @@
 package application.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.web.socket.WebSocketSession;
 
-public class Player {
-	
+import java.io.Serializable;
+
+@JsonIgnoreProperties(value = { "session" })
+public class Player implements Serializable {
+
+	private String username;
 	private boolean isPlaying;
 	private boolean isSeeking;
 	private int time;
 	private int increment;
 	private int minRatingForSeek;
 	private int maxRatingForSeek;
-	private WebSocketSession session;
+	private transient WebSocketSession session;
 	private int elo;
-	
-	
-	
+
 	public boolean isSeeking() {
 		return isSeeking;
 	}
@@ -31,6 +34,7 @@ public class Player {
 		return isPlaying;
 	}
 	public void setPlaying(boolean isPlaying) {
+		System.out.println("Setting playing status of user to: " +isPlaying);
 		this.isPlaying = isPlaying;
 	}
 	public int getTime() {
@@ -63,6 +67,15 @@ public class Player {
 	public void setSession(WebSocketSession session) {
 		this.session = session;
 	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	@Override
 	public String toString(){
 		return "isPlaying".concat(String.valueOf(isPlaying)).concat("Increment:").concat(String.valueOf(increment)).concat("Time:").concat(String.valueOf(time));

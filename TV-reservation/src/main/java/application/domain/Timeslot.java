@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 
 
 /**
- * The persistent class for the TimeSlot database table.
+ * The persistent class for the TimeSlot database table.86
  * 
  */
 @Entity

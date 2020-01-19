@@ -47,8 +47,9 @@ public class TimeSlotService {
 	@RequestMapping(method = RequestMethod.PUT, value = "{slotId}/{userId}")
 	private Timeslot reserveTimeSlot(@PathVariable Long slotId, @PathVariable Long userId,
 			HttpServletResponse response) {
-		Timeslot timeslot = timeSlotRepository.findOne(slotId);
-		Useraccount userAccount = userAccountRepository.findOne(userId);
+		Timeslot timeslot = timeSlotRepository.findById(slotId).orElseThrow(IllegalArgumentException::new);
+		Useraccount userAccount = userAccountRepository.findById(userId).orElseThrow(IllegalArgumentException::new);
+
 		userAccount.setAccountbalance(userAccount.getAccountbalance().subtract(timeslot.getPrice()));
 		if (userAccount.getAccountbalance().compareTo(new BigDecimal(0)) < 0) {
 			throw new InsufficientFundsException();

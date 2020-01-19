@@ -1,14 +1,29 @@
 'use strict';
-
 // Declare app level module which depends on views, and components
 angular
 		.module(
 				'myApp',
 				[ 'ngRoute', 'myApp.Login', 'myApp.reservation', 'myApp.Admin',
 						'myApp.version', 'loginModule','websocketModule','myApp.LobbyModule', 'reservationModule',
-						'registerModule', 'reservationFilters', 'constants','dragModule','myApp.BoardModule','ngScrollbars' ])
+						'registerModule', 'reservationFilters', 'constants','dragModule','myApp.BoardModule','ngScrollbars'])
 		
-		.config(['$routeProvider','$httpProvider', function($routeProvider, $httpProvider) {
+		.config(['$routeProvider','$httpProvider','ScrollBarsProvider', function($routeProvider, $httpProvider,ScrollBarsProvider) {
+
+			ScrollBarsProvider.defaults = {
+				autoHideScrollbar: false,
+
+				scrollInertia: 500,
+				axis: 'y',
+				advanced: {
+					updateOnContentResize: true
+				},
+				scrollButtons: {
+					scrollAmount: 'auto', // scroll amount when button pressed
+					enable: true // enable scrolling buttons by default
+				},
+				theme: 'dark'
+			};
+
 
 			$routeProvider.when('/admin', {
 				templateUrl : 'views/admin/admin.html',
@@ -27,7 +42,11 @@ angular
 				templateUrl : 'views/reservation/reservation.html',
 				controller : 'ReservationCtrl'
 			});
-			$routeProvider.when('/playingHall', {
+			$routeProvider.when('/playingHall/:gameId', {
+				templateUrl : 'views/playingHall/playingHall.html',
+				controller : 'BoardCtrl'
+			});
+			$routeProvider.when('/playingHall/observe/:observedPlayer', {
 				templateUrl : 'views/playingHall/playingHall.html',
 				controller : 'BoardCtrl'
 			});
@@ -47,3 +66,4 @@ angular.module('loginModule', []);
 angular.module('reservationModule', []);
 angular.module('registerModule', []);
 angular.module('websocketModule', []);
+
