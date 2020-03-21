@@ -56,7 +56,7 @@ angular
                 $scope.promotionSquareReached = false;
                 $scope.seekFormShown = false;
                 $scope.scrollbarconfig = {
-                    setHeight: 200,
+                    setHeight: 400,
                 };
                 $scope.currentVariation = null;
 
@@ -881,6 +881,26 @@ angular
                     }
 
                     if ($scope.mode === "analyzing") {
+                        if(typeof variationId === 'undefined'){
+                            $scope.currentVariation = null;
+                        } else{
+                            $scope.currentVariation = $scope.variations.get(variationId);
+                        }
+                        if(whiteMove){
+                            if(!$scope.currentVariation){
+                            $scope.drawLastMove(chessboard.annotatedMoves[moveNo-1].whiteMoveStartSquare, chessboard.annotatedMoves[moveNo-1].whiteMoveEndSquare);}
+                            else{
+                                let variationMove = $scope.currentVariation.moves[moveNo-1-$scope.currentVariation.moveNumber];
+                                $scope.drawLastMove(variationMove.whiteMoveStartSquare, variationMove.whiteMoveEndSquare);
+                            }
+                        }else{
+                            if(!$scope.currentVariation){
+                            $scope.drawLastMove(chessboard.annotatedMoves[moveNo-1].blackMoveStartSquare, chessboard.annotatedMoves[moveNo-1].blackMoveEndSquare);}
+                            else{
+                                let variationMove = $scope.currentVariation.moves[moveNo-1-$scope.currentVariation.moveNumber];
+                                $scope.drawLastMove(variationMove.blackMoveStartSquare, variationMove.blackMoveEndSquare);
+                            }
+                        }
                         $scope.whiteMove = !whiteMove;
                         chessboard.squares = JSON.parse(JSON.stringify(currentSquares));
                         printCurrentChessboard();
@@ -890,11 +910,7 @@ angular
                             moveNumber = moveNo;
                         }
 
-                        if(typeof variationId === 'undefined'){
-                            $scope.currentVariation = null;
-                        } else{
-                            $scope.currentVariation = $scope.variations.get(variationId);
-                        }
+
                         console.log("Position after end of redraw of position:");
                         if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
                             printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
@@ -1345,7 +1361,7 @@ angular
                     let currentchessboard = JSON.parse(JSON.stringify(chessboard.squares));
 
                     if (whiteMove) {
-                        let newMove = addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove);
+                        let newMove = addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove, startSquare, endSquare);
 
                         if (chessboard.annotatedMoves.length > moveNumber || $scope.currentVariation) {
 
@@ -1355,7 +1371,8 @@ angular
                                 let numberOfVariations = variations.length;
                                 let newVariationNeedsToBeCreated = true;
                                 for (let i = 0; i < numberOfVariations; i++) {
-                                    if (variations[i].moves[0].whiteMove === newMove) {
+                                    if (variations[i].moves[0].whiteMove === newMove.whiteMove) {
+                                        $scope.currentVariation = variations[i];
                                         newVariationNeedsToBeCreated = false;
                                         break;
                                     }
@@ -1387,7 +1404,6 @@ angular
                                 }
 
                             } else {
-
                                 //adding white move to an existing variation
                                 let variation = $scope.variations.get($scope.currentVariation.variationId);
                                 let moveNumberInVariation = moveNumber - variation.moveNumber;
@@ -1397,7 +1413,8 @@ angular
                                     let numberOfVariations = variations.length;
 
                                     for (let i = 0; i < numberOfVariations; i++) {
-                                        if (variations[i].moves[0].whiteMove === newMove) {
+                                        if (variations[i].moves[0].whiteMove === newMove.whiteMove) {
+                                            $scope.currentVariation = variations[i];
                                             newVariationNeedsToBeCreated = false;
                                             break;
                                         }
@@ -1448,10 +1465,15 @@ angular
                                 let numberOfVariations = variations.length;
                                 let newVariationNeedsToBeCreated = true;
 
-                                for (let i = 0; i < numberOfVariations; i++) {
-                                    if (variations[i].moves[0].blackMove === moveNotation) {
-                                        newVariationNeedsToBeCreated = false;
-                                        break;
+                                if(numberOfVariations===0 && chessboard.annotatedMoves[moveNumber].blackMove === moveNotation){
+                                    newVariationNeedsToBeCreated = false;
+                                }else {
+                                    for (let i = 0; i < numberOfVariations; i++) {
+                                        if (variations[i].moves[0].blackMove === moveNotation) {
+                                            newVariationNeedsToBeCreated = false;
+                                            $scope.currentVariation = variations[i];
+                                            break;
+                                        }
                                     }
                                 }
 
@@ -1495,6 +1517,7 @@ angular
                                     for (let i = 0; i < numberOfVariations; i++) {
                                         if (variations[i].moves[0].blackMove === moveNotation) {
                                             newVariationNeedsToBeCreated = false;
+                                            $scope.currentVariation = variations[i];
                                             break;
                                         }
                                     }
@@ -1523,6 +1546,8 @@ angular
                                         printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
 
                                     variation.moves[variation.moves.length - 1].blackMove = moveNotation;
+                                    variation.moves[variation.moves.length - 1].blackMoveStartSquare = startSquare;
+                                    variation.moves[variation.moves.length - 1].blackMoveEndSquare = endSquare;
                                     variation.moves[variation.moves.length - 1].chessboardAfterBlackMove = currentchessboard;
 
                                     console.log("Position after adding black move to existing variation:");
@@ -1536,6 +1561,8 @@ angular
                         } else {
 
                             chessboard.annotatedMoves[moveNumber].blackMove = moveNotation;
+                            chessboard.annotatedMoves[moveNumber].blackMoveStartSquare = startSquare;
+                            chessboard.annotatedMoves[moveNumber].blackMoveEndSquare = endSquare;
                             chessboard.annotatedMoves[moveNumber].chessboardAfterBlackMove = currentchessboard;
 
                             console.log("Position after new mainline black move:");
@@ -1549,14 +1576,19 @@ angular
                         moveNumber++;
                     }
                     $scope.annotatedMoves = chessboard.annotatedMoves;
+                    $scope.updateScrollbar('scrollTo', 440);
 
                     return moveNotation;
                 }
 
-                function addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove) {
+                function addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove, startSquare, endSquare) {
                     let newAnnotatedMove = {};
                     newAnnotatedMove.whiteMove = whiteMove ? moveNotation : "";
                     newAnnotatedMove.blackMove = whiteMove ? "" : moveNotation;
+                    newAnnotatedMove.whiteMoveStartSquare = whiteMove ? startSquare : "";
+                    newAnnotatedMove.whiteMoveEndSquare = whiteMove ? endSquare : "";
+                    newAnnotatedMove.blackMoveStartSquare = whiteMove ? "" : startSquare;
+                    newAnnotatedMove.blackMoveEndSquare = whiteMove ? "" : endSquare;
                     newAnnotatedMove.whiteMoveVariations = [];
                     newAnnotatedMove.blackMoveVariations = [];
                     newAnnotatedMove.moveNumber = moveNumber + 1;

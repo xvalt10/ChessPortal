@@ -177,17 +177,27 @@ height:40px;
 }
 
 .notationTable{
-	border-color: black;
-	width:100%
+	border:1px solid black;
+	width:95%;
 }
+.notationTableHeader td{
+	font-weight: bold;
+	max-height:10px;
+}
+
 .notationTable td{
-	border-color: black;
-	width:33.3%
+	padding: 2px;
+	border:1px solid black;
+	width:33.3%;
+}
+
+.mCSB_inside>.mCSB_container{
+	margin-right:0px
 }
 
 .notation{
-    margin:15px;
-	border: 1px solid black;
+    margin: 1px 15px;
+	width:95%;
 }
 
 .annotatedMove{

@@ -189,7 +189,7 @@
         <div class="row">
 
             <div class="col-md-4">
-                <table ng-if="whitePlayerName" class="clockSideSection">
+                <table ng-if="whitePlayerName && mode !=='analyzing'" class="clockSideSection">
                     <tr>
                         <td ng-if="!whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}}) <span>{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
                         </td>
@@ -236,17 +236,17 @@
         <div class="row">
 
             <div class="notation">
-                <table class="table notationTable" style="margin-bottom:0px;">
+                <table class="notationTable" style="margin-bottom:0px;">
                     <theader>
-                        <tr>
-                            <td>Move no.</td>
-                            <td>White move</td>
-                            <td>Black move</td>
+                        <tr class="notationTableHeader">
+                            <td >Move no.</td>
+                            <td >White move</td>
+                            <td >Black move</td>
                         </tr>
                     </theader>
                 </table>
-                <div ng-scrollbars ng-scrollbars-config="scrollbarconfig">
-                    <table class="table notationTable">
+                <div id="scrollableDivForNotation" ng-scrollbars  ng-scrollbars-update=updateScrollbar ng-scrollbars-config="scrollbarconfig">
+                    <table class="notationTable">
                         <!--  <theader>
                               <tr>
                                   <td>Move no.</td>
@@ -298,7 +298,7 @@
 
         <div class="row">
             <div class="col-md-6">
-                <table ng-if="whitePlayerName">
+                <table ng-if="whitePlayerName && mode !=='analyzing'">
                     <tr>
                         <td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}}) <span>{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
                         </td>
