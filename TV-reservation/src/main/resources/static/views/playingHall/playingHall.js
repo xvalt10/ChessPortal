@@ -16,9 +16,9 @@ angular
             '$modal',
             '$q',
             '$http',
-            '$timeout', '$routeParams',
+            '$timeout', '$routeParams', '$location',
             function (ReservationService, LoginService, WebSocketService, $scope,
-                      $rootScope, $modal, $q, $http, $timeout, $routeParams) {
+                      $rootScope, $modal, $q, $http, $timeout, $routeParams, $location) {
 
                 let controller = this;
                 let chessboard;
@@ -33,10 +33,11 @@ angular
                 let element;
                 $scope.castling = null;
                 $scope.lastMove = {};
-				let positionOccurrencesMap = new Map();
+                let positionOccurrencesMap = new Map();
 
-				$scope.mode = "playing";
-                $scope.squareSize = 0;
+                let variationId = 0;
+                $scope.mode = "playing";
+                $scope.squareSize = 55;
                 $scope.playingGame = null;
                 $scope.seekingOponent = null;
                 $scope.oponent = null;
@@ -57,11 +58,9 @@ angular
                 $scope.scrollbarconfig = {
                     setHeight: 200,
                 };
+                $scope.currentVariation = null;
 
-
-
-
-
+                $scope.variations = new Map();
 
                 $scope.initialisationComplete = function () {
                     $scope.$apply(function () {
@@ -70,18 +69,18 @@ angular
 
                 };
 
-                $scope.$on("$destroy", function(){
-                    if($scope.mode === 'observing'){
+                $scope.$on("$destroy", function () {
+                    if ($scope.mode === 'observing') {
                         stopObservingGame();
                     }
                     stopClocks();
                 });
 
-                let stopObservingGame = function(){
-                    $http.get('observe/' + $routeParams.observedPlayer+"/cancel", {}).success(function (data) {
+                let stopObservingGame = function () {
+                    $http.get('observe/' + $routeParams.observedPlayer + "/cancel", {}).success(function () {
                         console.log("Removing of observer successfull.");
                     }).error(function (data) {
-                        console.log("Removing of observer failed:"+data.error);
+                        console.log("Removing of observer failed:" + data.error);
                     });
                 };
 
@@ -111,6 +110,10 @@ angular
                     squareSize = 55;
                     // //console.log("Square size:" + squareSize);
                     // //console.log(chessboard.coordinates);
+                };
+
+                $scope.activateAnalysisMode = function () {
+                    $scope.mode = "analyzing";
                 };
 
                 $scope.determineRowColumn = function (x, y,
@@ -557,9 +560,9 @@ angular
 
                     ) {
                         if ((endPosition.row > startPosition.row
-                            && endPosition.column > startPosition.column)||
+                            && endPosition.column > startPosition.column) ||
                             (endPosition.row < startPosition.row
-                            && endPosition.column < startPosition.column)) {
+                                && endPosition.column < startPosition.column)) {
                             for (let x = 1; x < endPosition.row
                             - startPosition.row; x++) {
                                 let square = findSquare(startPosition.column + x,
@@ -613,25 +616,25 @@ angular
 
                         }
 
-                   /*     else if (endPosition.row < startPosition.row
-                            && endPosition.column < startPosition.column) {
-                            for (let x = 1; x < startPosition.row
-                            - endPosition.row; x++) {
-                                let square = findSquare(
-                                    endPosition.column + x,
-                                    endPosition.row + x)
-                                if ((!kingInCheck && !isSquareEmpty(square)) ||
-                                    (kingInCheck && !isSquareEmpty(square) && !isPieceOnSquare(square, "K"))) {
+                        /*     else if (endPosition.row < startPosition.row
+                                 && endPosition.column < startPosition.column) {
+                                 for (let x = 1; x < startPosition.row
+                                 - endPosition.row; x++) {
+                                     let square = findSquare(
+                                         endPosition.column + x,
+                                         endPosition.row + x)
+                                     if ((!kingInCheck && !isSquareEmpty(square)) ||
+                                         (kingInCheck && !isSquareEmpty(square) && !isPieceOnSquare(square, "K"))) {
 
-                                    // console.log("Case4");
-                                    isLegal = false;
-                                    break;
-                                }
+                                         // console.log("Case4");
+                                         isLegal = false;
+                                         break;
+                                     }
 
 
-                            }
+                                 }
 
-                        }*/
+                             }*/
 
                     } else {
                         // console.log("Case 5");
@@ -646,8 +649,10 @@ angular
                     startPosition, endPosition, whitePlayer, isKingInCheck) {
 
                     if (typeof endPosition === 'undefined' || startPosition.piece === "empty" ||
-                        (endPosition.row === startPosition.row
-                        && endPosition.column === startPosition.column)) {
+                        (endPosition.row === startPosition.row && endPosition.column === startPosition.column) ||
+                        (isWhitePieceOnSquare(startPosition) && isWhitePieceOnSquare(endPosition)) ||
+                        (isBlackPieceOnSquare(startPosition) && isBlackPieceOnSquare(endPosition))
+                    ) {
                         return false;
                     }
 
@@ -675,7 +680,7 @@ angular
                         case "K":
 
                             return isKingMoveLegal(startPosition,
-                                endPosition, whitePlayer);
+                                endPosition, $scope.mode === 'analyzing' ? $scope.whiteMove : whitePlayer);
                         case "B":
                             return isBishopMoveLegal(startPosition,
                                 endPosition, isKingInCheck);
@@ -769,8 +774,7 @@ angular
                             console.log("Retracting invalid square:"
                                 + (kingPosition.column + x[i]) + " " + (kingPosition.row + y[i]));
                             numberOfLegalSquareForKingMove--;
-                        }
-                        else {
+                        } else {
                             console
                                 .log("Valid square for king move:"
                                     + getSquareAsString(targetSquare));
@@ -848,23 +852,57 @@ angular
                             });
                     }
                     return kingInCheckOrAndMate;
-                    
+
                 }
 
+                $scope.redrawChessboard = function (currentSquares, elementId, whiteMove, moveNo, variationId) {
+                    console.log("Position after redraw of position:");
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                      printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                        printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
 
-                $scope.redrawChessboard = function (currentSquares, elementId) {
-                    if ($scope.playingGame === false || $scope.mode==="observing") {
+                    /*console.log("Redrawing board");
+                    console.log(printSquares(currentSquares));*/
+
+                    if ($scope.playingGame === false || $scope.mode === "observing" || $scope.mode === "analyzing") {
                         for (let int = 0; int < currentSquares.length; int++) {
                             if (currentSquares[int].piece !== "empty") {
                                 $scope.movePieceToCoordinates(currentSquares[int].piece,
                                     currentSquares[int].row, currentSquares[int].column);
+                                $("#"+ currentSquares[int].piece).show();
                             }
                         }
                     }
-                    if(typeof elementId !== 'undefined'){
-                        $('td[id ^= "annotatedMove"]').css('font-weight','normal');
-                        $("#"+elementId).css('font-weight','bold');
+                    if (typeof elementId !== 'undefined') {
+                        $('td[id ^= "annotatedMove"]').css('font-weight', 'normal');
+                        $('td[id ^= "moveOfVariation"]').css('font-weight', 'normal');
+                        $("#" + elementId).css('font-weight', 'bold');
                     }
+
+                    if ($scope.mode === "analyzing") {
+                        $scope.whiteMove = !whiteMove;
+                        chessboard.squares = JSON.parse(JSON.stringify(currentSquares));
+                        printCurrentChessboard();
+                        if(whiteMove){
+                            moveNumber = moveNo - 1;
+                        }else {
+                            moveNumber = moveNo;
+                        }
+
+                        if(typeof variationId === 'undefined'){
+                            $scope.currentVariation = null;
+                        } else{
+                            $scope.currentVariation = $scope.variations.get(variationId);
+                        }
+                        console.log("Position after end of redraw of position:");
+                        if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                            printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                        if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                            printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
+
+                    }
+
                 };
 
                 $scope.drawLastMove = function (startPosition,
@@ -872,34 +910,21 @@ angular
                     console.log("Drawing move");
                     console.log(startPosition, endPosition);
                     let chessboardsize = document.getElementById("chessboardOverlay").offsetWidth;
-                    let squaresize = Math.floor(chessboardsize/8);
+                    let squaresize = Math.floor(chessboardsize / 8);
 
-                   /* let startElement = $scope.whitePlayer ? "W"
-                        + startPositionSquareColor
-                        + startPosition.column
-                        + startPosition.row : "B"
-                        + startPositionSquareColor
-                        + startPosition.column
-                        + startPosition.row;
-                    let endElement = $scope.whitePlayer ? "W"
-                        + endPositionSquareColor
-                        + endPosition.column + endPosition.row
-                        : "B" + endPositionSquareColor
-                        + endPosition.column
-                        + endPosition.row;*/
                     createLine(
                         $scope.whitePlayer ?
-                            (startPosition.column + 1) * squaresize - squaresize/2 :
-                            (8-startPosition.column)  * squaresize - squaresize/2,
+                            (startPosition.column + 1) * squaresize - squaresize / 2 :
+                            (8 - startPosition.column) * squaresize - squaresize / 2,
                         $scope.whitePlayer ?
-                            (8 - startPosition.row) * squaresize - squaresize/2 :
-                            (startPosition.row) * squaresize + squaresize/2 ,
+                            (8 - startPosition.row) * squaresize - squaresize / 2 :
+                            (startPosition.row) * squaresize + squaresize / 2,
                         $scope.whitePlayer ?
-                            (endPosition.column + 1) * squaresize - squaresize/2 :
-                            (8 -endPosition.column) * squaresize - squaresize/2,
+                            (endPosition.column + 1) * squaresize - squaresize / 2 :
+                            (8 - endPosition.column) * squaresize - squaresize / 2,
                         $scope.whitePlayer ?
-                            (8 - endPosition.row) * squaresize - (!$scope.whiteMove ? 0.5 * squaresize: squaresize/2) :
-                            (endPosition.row) * squaresize + (!$scope.whiteMove ? 0.5 * squaresize : squaresize/2)
+                            (8 - endPosition.row) * squaresize - (!$scope.whiteMove ? 0.5 * squaresize : squaresize / 2) :
+                            (endPosition.row) * squaresize + (!$scope.whiteMove ? 0.5 * squaresize : squaresize / 2)
                     );
 
                     eraseAllHighlightedSquares();
@@ -908,21 +933,21 @@ angular
 
                 };
 
-                function eraseAllHighlightedSquares(){
+                function eraseAllHighlightedSquares() {
                     $(".rect").remove();
                 }
 
-                function highlightSquare(square, width, height){
-                    let y = $scope.whitePlayer ? (7-square.row) * width : (square.row) * width;
-                    let x = $scope.whitePlayer ? (square.column) * width : (7- square.column) * width;
+                function highlightSquare(square, width, height) {
+                    let y = $scope.whitePlayer ? (7 - square.row) * width : (square.row) * width;
+                    let x = $scope.whitePlayer ? (square.column) * width : (7 - square.column) * width;
                     let svgNS = "http://www.w3.org/2000/svg";
-                    let rectangular = document.createElementNS(svgNS,"rect");
-                    rectangular.setAttributeNS(null, 'class','rect');
-                    rectangular.setAttributeNS(null, 'x',x.toString());
-                    rectangular.setAttributeNS(null, 'y',y.toString());
-                    rectangular.setAttributeNS(null, 'width',width.toString());
-                    rectangular.setAttributeNS(null, 'height',height.toString());
-                    rectangular.setAttributeNS(null, 'style','fill:none;stroke:yellow;stroke-width:2');
+                    let rectangular = document.createElementNS(svgNS, "rect");
+                    rectangular.setAttributeNS(null, 'class', 'rect');
+                    rectangular.setAttributeNS(null, 'x', x.toString());
+                    rectangular.setAttributeNS(null, 'y', y.toString());
+                    rectangular.setAttributeNS(null, 'width', width.toString());
+                    rectangular.setAttributeNS(null, 'height', height.toString());
+                    rectangular.setAttributeNS(null, 'style', 'fill:none;stroke:yellow;stroke-width:2');
 
                     document.getElementById("svgId").appendChild(rectangular);
 
@@ -932,15 +957,15 @@ angular
 
                 function createLineElement(x1, y1, x2, y2) {
                     let svgNS = "http://www.w3.org/2000/svg";
-                    let line = document.createElementNS(svgNS,"path");
-                    line.setAttributeNS(null,"id","arrow");
-                    line.setAttributeNS(null,"stroke-width", '4');
-                    line.setAttributeNS(null,"marker-end","url(#head)");
-                    line.setAttributeNS(null,"fill", "none");
-                    line.setAttributeNS(null,"stroke", "blue");
+                    let line = document.createElementNS(svgNS, "path");
+                    line.setAttributeNS(null, "id", "arrow");
+                    line.setAttributeNS(null, "stroke-width", '4');
+                    line.setAttributeNS(null, "marker-end", "url(#head)");
+                    line.setAttributeNS(null, "fill", "none");
+                    line.setAttributeNS(null, "stroke", "blue");
 
-                    line.setAttributeNS(null,"opacity", "0.2");
-                    line.setAttributeNS(null,"d",'M' + Math.floor(x1) + " " + Math.floor(y1) + " " + Math.floor(x2) + " " + Math.floor(y2));
+                    line.setAttributeNS(null, "opacity", "0.2");
+                    line.setAttributeNS(null, "d", 'M' + Math.floor(x1) + " " + Math.floor(y1) + " " + Math.floor(x2) + " " + Math.floor(y2));
 
                     return line;
                 }
@@ -995,9 +1020,22 @@ angular
                                                              element, startSquare, endSquare,
                                                              ownMove, whitePlayer, promotedPiece) {
 
+                    console.log("Position before start updatechessboard:");
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                        printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                        printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
+
                     let capture = false;
                     movePieceOnBoard(element, startSquare,
                         endSquare, whitePlayer);
+
+
+                    console.log("Position vefore en passant:");
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                        printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                        printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
 
                     if (!isSquareEmpty(endSquare)
                         || pieceTakenEnPassant(startSquare,
@@ -1013,25 +1051,29 @@ angular
                             $("#" + enPassantPawnSquare.piece).hide();
                             enPassantPawnSquare.piece = "empty";
                             enPassant = false;
-                        }else{
+                        } else {
                             $("#" + endSquare.piece).hide();
                         }
                     }
 
+
+
                     if (typeof promotedPiece !== 'undefined') {
                         let promotedPieceFullName = promotedPiece + endSquare.column + endSquare.row;
 
-                        $(element).prop('id',promotedPieceFullName);
-                        $(element).css('top',"8px");
-                        $(element).css('left',"10px");
+                        $(element).prop('id', promotedPieceFullName);
+                        $(element).css('top', "8px");
+                        $(element).css('left', "10px");
                         $(element).attr('src', 'http://localhost:8082/images/pieces/' + promotedPiece + '.png');
-                        $(element).detach().appendTo('#squareDiv'+endSquare.column+endSquare.row);
+                        $(element).detach().appendTo('#squareDiv' + endSquare.column + endSquare.row);
 
                         /*let indexOfNewPiece =chessboard.pieces.length;
                         chessboard.pieces[indexOfNewPiece] = {};
                         chessboard.pieces[indexOfNewPiece].row = endSquare.row;
                         chessboard.pieces[indexOfNewPiece].column = endSquare.column;
                         chessboard.pieces[indexOfNewPiece].piece = promotedPieceFullName;*/
+
+
 
                         let indexOfPiece = $scope.getInitialPositionOfPiece(startPiece).index;
                         chessboard.pieces[indexOfPiece].column = endSquare.column;
@@ -1048,75 +1090,29 @@ angular
                         findSquare(endSquare.column, endSquare.row).piece = startPiece;
                         startSquare.piece = "empty";
                         findSquare(startSquare.column, startSquare.row).piece = "empty";
+
                     }
 
-					if(hasThreeFoldRepetitionOccurred()){
-						$scope.endGame("1/2 - 1/2 (three fold repetition)");
-						if($scope.whitePlayer){
-                        sendGameResult();
-						}
-					}
+
+
+                    if (hasThreeFoldRepetitionOccurred()) {
+                        $scope.endGame("1/2 - 1/2 (three fold repetition)");
+                        if ($scope.whitePlayer) {
+                            sendGameResult();
+                        }
+                    }
                     let kingInCheckOrAndMate = isKingInCheckOrAndMate(
                         chessboard, $scope.whiteMove,
                         startSquare, endSquare);
 
-                    $scope.drawLastMove(startSquare, endSquare);
-                    if ($scope.castling === "0-0") {
-                        let targetSquare;
-                        if (isWhitePieceOnSquare(endSquare)) {
-                            console.log("White on move.");
-                            targetSquare = {
-                                row: 0,
-                                column: 5,
-                                piece: "empty"
-                            };
-                            movePieceOnBoard(
-                                $("#WR70"),
-                                $scope
-                                    .getInitialPositionOfPiece("WR70"),
-                                targetSquare, whitePlayer);
-                        } else {
-                            console.log("Black on move.");
-                            targetSquare = {
-                                row: 7,
-                                column: 5,
-                                piece: "empty"
-                            };
-                            movePieceOnBoard(
-                                $("#BR77"),
-                                $scope
-                                    .getInitialPositionOfPiece("BR77"),
-                                targetSquare, whitePlayer);
-                        }
-                    } else if ($scope.castling === "0-0-0") {
-                        let targetSquare;
-                        if (isWhitePieceOnSquare(endSquare)) {
-                            console.log("White on move.");
-                            targetSquare = {
-                                row: 0,
-                                column: 3,
-                                piece: "empty"
-                            };
-                            movePieceOnBoard(
-                                $("#WR00"),
-                                $scope
-                                    .getInitialPositionOfPiece("WR00"),
-                                targetSquare, whitePlayer);
-                        } else {
-                            console.log("Black on move.");
-                            targetSquare = {
-                                row: 7,
-                                column: 3,
-                                piece: "empty"
-                            };
-                            movePieceOnBoard(
-                                $("#BR07"),
-                                $scope
-                                    .getInitialPositionOfPiece("BR07"),
-                                targetSquare, whitePlayer);
-                        }
 
-                    }
+
+                    $scope.drawLastMove(startSquare, endSquare);
+
+
+                    if($scope.castling ==="0-0" || $scope.castling === "0-0-0"){
+                    moveRookIfPlayerCastled();}
+
 
                     let annotatedMove = addAnnotation(
                         startSquare,
@@ -1125,6 +1121,7 @@ angular
                         typeof promotedPiece !== 'undefined', $scope.castling,
                         kingInCheckOrAndMate.check,
                         kingInCheckOrAndMate.mate);
+
                     if (ownMove && $scope.mode === 'playing') {
                         sendMove(
                             typeof promotedPiece !== 'undefined' ? startPiece
@@ -1140,37 +1137,150 @@ angular
                         sendGameResult();
 
                     }
+
+                    $scope.castling = "";
                     $scope.whiteMove = !$scope.whiteMove;
 
 
                 };
 
+
+                function moveRookIfPlayerCastled() {
+                    let targetSquare;
+                    let piece;
+                    let initialSquare;
+                    let initialSquareCoordinates;
+
+                    if ($scope.castling === "0-0") {
+
+                        if ($scope.whiteMove) {
+                            piece = "WR70";
+                            targetSquare = findSquare(5,0);
+                            initialSquareCoordinates =  $scope
+                                .getInitialPositionOfPiece("WR70");
+                            initialSquare = findSquare(initialSquareCoordinates.column,initialSquareCoordinates.row);
+                        } else {
+                            targetSquare = findSquare(5,7);
+                            piece = "BR77";
+                            initialSquareCoordinates =  $scope
+                                .getInitialPositionOfPiece(piece);
+                            initialSquare = findSquare(initialSquareCoordinates.column,initialSquareCoordinates.row);
+                        }
+                    } else if ($scope.castling === "0-0-0") {
+                        if ($scope.whiteMove) {
+                            console.log("White on move.");
+                            targetSquare = findSquare(3,0);
+                            piece = "WR00";
+                            initialSquareCoordinates = $scope
+                                .getInitialPositionOfPiece(piece);
+                            initialSquare = findSquare(initialSquareCoordinates.column, initialSquareCoordinates.row);
+
+                        } else {
+                            console.log("Black on move.");
+                            targetSquare = findSquare(3,7);
+                            piece = "BR07";
+                            initialSquareCoordinates = $scope
+                                .getInitialPositionOfPiece(piece);
+                            initialSquare = findSquare(initialSquareCoordinates.column, initialSquareCoordinates.row);
+
+                        }
+                    }
+
+                    movePieceOnBoard(
+                        $("#"+piece),
+                        initialSquareCoordinates,
+                        targetSquare, $scope.whitePlayer);
+
+                    targetSquare.piece = piece;
+                    findSquare(targetSquare.column, targetSquare.row).piece = piece;
+                    initialSquare.piece = "empty";
+                    findSquare(initialSquare.column, initialSquare.row).piece = "empty";
+                    printCurrentChessboard();
+                }
+
                 function hasThreeFoldRepetitionOccurred() {
 
-                	let threefoldrepetitionOccurred = false;
+                    let threefoldrepetitionOccurred = false;
                     let chessboardAsString = printCurrentChessboard();
                     let numberOfOccurrences = 0;
-                    if(positionOccurrencesMap.has(chessboardAsString)){
-                    	numberOfOccurrences = positionOccurrencesMap.get(chessboardAsString) + 1;
-					}
-					positionOccurrencesMap.set(chessboardAsString, numberOfOccurrences);
-					if(numberOfOccurrences === 3){
-						threefoldrepetitionOccurred = true;
-					}
-					return threefoldrepetitionOccurred;
+                    if (positionOccurrencesMap.has(chessboardAsString)) {
+                        numberOfOccurrences = positionOccurrencesMap.get(chessboardAsString) + 1;
+                    }
+                    positionOccurrencesMap.set(chessboardAsString, numberOfOccurrences);
+                    if (numberOfOccurrences === 3) {
+                        threefoldrepetitionOccurred = true;
+                    }
+                    return threefoldrepetitionOccurred;
 
                 }
 
                 function hasKingAlreadyMoved(color) {
+                    let hasKingAlreadyMoved = false;
                     chessboard.annotatedMoves
                         .forEach(function (move) {
                             if (color === "white" && (move.whiteMove.indexOf("K") !== -1 || move.whiteMove.indexOf("0") !== -1)) {
-                                return true;
+                                hasKingAlreadyMoved = true;
                             } else if (color === "black" && (move.blackMove.indexOf("K") !== -1 || move.blackMove.indexOf("0") !== -1)) {
-                                return true;
+                                hasKingAlreadyMoved = true;
                             }
                         });
-                    return false;
+                    return hasKingAlreadyMoved;
+                }
+
+                $scope.rookMovedDueToCastling = function (piece) {
+                    let rookMovedDueToCastling = false;
+                    chessboard.annotatedMoves
+                        .forEach(function (move) {
+                            if (piece === 'WR70' && move.whiteMove.indexOf("0-0") !== -1) {
+                                rookMovedDueToCastling =  true;
+                            } else if (piece === 'WR00' && move.whiteMove.indexOf("0-0-0") !== -1) {
+                                rookMovedDueToCastling =  true;
+                            } else if (piece === 'BR07' && move.blackMove.indexOf("0-0-0") !== -1) {
+                                rookMovedDueToCastling =  true;
+                            } else if (piece === 'BR77' && move.blackMove.indexOf("0-0") !== -1) {
+                                rookMovedDueToCastling =  true;
+                            }
+
+
+                        });
+                    return rookMovedDueToCastling;
+                };
+
+                function printSquares(squares) {
+                    let chessboardAsString = "";
+                    for (let rowIndex = 7; rowIndex >= 0; rowIndex--) {
+                        for (let columnIndex = 0; columnIndex <= 7; columnIndex++) {
+                            let squareIndex;
+                            for (let index = 0; index < squares.length; index++) {
+                                if (squares[index].column === columnIndex
+                                    && squares[index].row === rowIndex) {
+
+                                    squareIndex = index;
+                                    break;
+                                }
+                            }
+
+                            let piece = squares[squareIndex].piece;
+                            if (piece === 'empty') {
+                                piece = '-';
+                            } else {
+                                if (piece.indexOf("W") !== -1) {
+                                    piece = piece.toLowerCase();
+                                }
+                                piece = piece.substring(1, 2);
+
+                            }
+                            chessboardAsString += piece;
+                            if (columnIndex !== 0 && columnIndex % 7 === 0) {
+                                chessboardAsString += "\n";
+                            }
+                        }
+
+
+                    }
+
+                    console.log(chessboardAsString);
+                    return chessboardAsString;
                 }
 
                 function printCurrentChessboard() {
@@ -1206,17 +1316,14 @@ angular
                                        castling, check, mate) {
 
                     let moveNotation;
-                    if (castling === "0-0"
-                        || castling === "0-0-0") {
+                    if (castling === "0-0" || castling === "0-0-0") {
                         moveNotation = castling;
                     } else {
-                        let pieceSymbol = (endSquare.piece.indexOf("P") !== -1 || promotion === true) ?
+                        let pieceSymbol = (isPieceOnSquare(endSquare, "P") || promotion === true) ?
                             capture ? getSquareAsString(startSquare).substring(0, 1) : ""
                             : endSquare.piece.substr(1, 1);
                         let captureSymbol = capture ? "x" : "";
-                        let promotionSymbol = promotion === true ? '='
-                            + endSquare.piece.substr(1, 1)
-                            : "";
+                        let promotionSymbol = promotion === true ? '=' + endSquare.piece.substr(1, 1) : "";
                         let checkSymbol = check ? "+" : "";
                         let mateSymbol = mate === true ? "#" : "";
 
@@ -1227,34 +1334,235 @@ angular
                             + mateSymbol;
                     }
 
+                    console.log("Position after start of annotation:");
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                   printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove)}
+                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                    printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove)}
+
                     let whiteMove = endSquare.piece.indexOf("W") !== -1;
                     let movecomplete;
                     let currentchessboard = JSON.parse(JSON.stringify(chessboard.squares));
 
                     if (whiteMove) {
-                        chessboard.annotatedMoves[moveNumber] = {};
-                        chessboard.annotatedMoves[moveNumber].whiteMove = moveNotation;
-                        chessboard.annotatedMoves[moveNumber].blackMove = "";
-                        chessboard.annotatedMoves[moveNumber].moveNumber = moveNumber + 1;
-                        chessboard.annotatedMoves[moveNumber].chessboardAfterWhiteMove = currentchessboard;
-                        chessboard.annotatedMoves[moveNumber].chessboardAfterBlackMove = [];
+                        let newMove = addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove);
+
+                        if (chessboard.annotatedMoves.length > moveNumber || $scope.currentVariation) {
+
+                            if (!$scope.currentVariation) {
+                                //adding white move to main line
+                                let variations = chessboard.annotatedMoves[moveNumber].whiteMoveVariations;
+                                let numberOfVariations = variations.length;
+                                let newVariationNeedsToBeCreated = true;
+                                for (let i = 0; i < numberOfVariations; i++) {
+                                    if (variations[i].moves[0].whiteMove === newMove) {
+                                        newVariationNeedsToBeCreated = false;
+                                        break;
+                                    }
+                                }
+
+                                if (newVariationNeedsToBeCreated) {
+                                    console.log("Position after start Of create variation:");
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
+                                    chessboard.annotatedMoves[moveNumber].whiteMoveVariations[numberOfVariations] = {moves: []};
+                                    chessboard.annotatedMoves[moveNumber].whiteMoveVariations[numberOfVariations].moves[0] = newMove;
+                                    chessboard.annotatedMoves[moveNumber].whiteMoveVariations[numberOfVariations].variationId = variationId;
+                                    $scope.currentVariation = {
+                                        "variationId": variationId,
+                                        "moveNumber": moveNumber,
+                                        "whiteMove": whiteMove,
+                                        "variationIndex": numberOfVariations,
+                                        "moves": chessboard.annotatedMoves[moveNumber].whiteMoveVariations[numberOfVariations].moves
+                                    };
+                                    $scope.variations.set(variationId, $scope.currentVariation);
+                                    variationId++;
+                                    console.log("Position end of create variation:");
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
+                                }
+
+                            } else {
+
+                                //adding white move to an existing variation
+                                let variation = $scope.variations.get($scope.currentVariation.variationId);
+                                let moveNumberInVariation = moveNumber - variation.moveNumber;
+                                if(variation.moves.length > moveNumberInVariation){
+                                    let newVariationNeedsToBeCreated = true;
+                                    let variations = variation.moves[moveNumberInVariation].whiteMoveVariations;
+                                    let numberOfVariations = variations.length;
+
+                                    for (let i = 0; i < numberOfVariations; i++) {
+                                        if (variations[i].moves[0].whiteMove === newMove) {
+                                            newVariationNeedsToBeCreated = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (newVariationNeedsToBeCreated) {
+                                        console.log("Creating new variation: "+variationId +" with the white starting move "+newMove.whiteMove);
+                                        console.log(printSquares(newMove.chessboardAfterWhiteMove));
+
+                                        variation.moves[moveNumberInVariation].whiteMoveVariations[numberOfVariations] = {moves:[]};
+                                        variation.moves[moveNumberInVariation].whiteMoveVariations[numberOfVariations].moves[0] = newMove;
+                                        variation.moves[moveNumberInVariation].whiteMoveVariations[numberOfVariations].variationId = variationId;
+                                        $scope.currentVariation = {
+                                            "variationId": variationId,
+                                            "parentVariationId": variation.variationId,
+                                            "moveNumber": moveNumber,
+                                            "whiteMove": whiteMove,
+                                            "variationIndex": numberOfVariations,
+                                            "moves": variation.moves[moveNumberInVariation].whiteMoveVariations[numberOfVariations].moves
+                                        };
+                                        $scope.variations.set($scope.currentVariation.variationId, $scope.currentVariation);
+                                        variationId++;
+                                    }
+
+                                }else{
+                                    //adding white move to existing variation
+                                    variation.moves[variation.moves.length] = newMove;
+                                }
+                            }
+                        } else {
+
+                            chessboard.annotatedMoves[moveNumber] = newMove;
+                            console.log("Position after new mainline white move:");
+                            if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                                printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                            if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                                printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
+                        }
 
                         movecomplete = false;
                     } else {
 
-                        chessboard.annotatedMoves[moveNumber].blackMove = moveNotation;
-                        chessboard.annotatedMoves[moveNumber].chessboardAfterBlackMove = currentchessboard;
+                        //annotating black move
+                        if ($scope.currentVariation || chessboard.annotatedMoves[moveNumber].blackMove !== "") {
+                            if (!$scope.currentVariation) {
 
+                                let variations = chessboard.annotatedMoves[moveNumber].blackMoveVariations;
+                                let numberOfVariations = variations.length;
+                                let newVariationNeedsToBeCreated = true;
+
+                                for (let i = 0; i < numberOfVariations; i++) {
+                                    if (variations[i].moves[0].blackMove === moveNotation) {
+                                        newVariationNeedsToBeCreated = false;
+                                        break;
+                                    }
+                                }
+
+                                if (newVariationNeedsToBeCreated) {
+                                    console.log("Chessboard in the mainline start:");
+                                    console.log(printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove));
+                                    console.log(printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove));
+                                    //new variation with a black starting move created
+                                    chessboard.annotatedMoves[moveNumber].blackMoveVariations[numberOfVariations] = {moves: []};
+                                    let newMove = addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove);
+                                    chessboard.annotatedMoves[moveNumber].blackMoveVariations[numberOfVariations].moves[0] = newMove;
+                                    chessboard.annotatedMoves[moveNumber].blackMoveVariations[numberOfVariations].variationId = variationId;
+                                    $scope.currentVariation = {
+                                        "variationId": variationId,
+                                        "moveNumber": moveNumber,
+                                        "whiteMove": whiteMove,
+                                        "variationIndex": numberOfVariations,
+                                        "moves":chessboard.annotatedMoves[moveNumber].blackMoveVariations[numberOfVariations].moves
+                                    };
+                                    $scope.variations.set($scope.currentVariation.variationId, $scope.currentVariation);
+                                    variationId++;
+
+                                    console.log("Creating new variation: "+variationId +" with the black starting move "+newMove.blackMove);
+                                    console.log(printSquares(newMove.chessboardAfterBlackMove));
+                                    console.log("Chessboard in the mainline end:");
+
+                                    console.log(printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove));
+                                    console.log(printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove));
+                                }
+                            } else {
+                                //adding black move to an existing variation
+                                let variation = $scope.variations.get($scope.currentVariation.variationId);
+                                let newVariationNeedsToBeCreated = true;
+                                let moveNumberInVariation = moveNumber - variation.moveNumber;
+
+                                if(variation.moves[moveNumberInVariation].blackMove !== "") {
+
+                                    let variations = variation.moves[moveNumberInVariation].blackMoveVariations;
+                                    let numberOfVariations = variations.length;
+
+                                    for (let i = 0; i < numberOfVariations; i++) {
+                                        if (variations[i].moves[0].blackMove === moveNotation) {
+                                            newVariationNeedsToBeCreated = false;
+                                            break;
+                                        }
+                                    }
+
+                                    //adding variation starting with a black move
+                                    if (newVariationNeedsToBeCreated) {
+                                        variation.moves[moveNumberInVariation].blackMoveVariations[numberOfVariations] = {moves: []};
+                                        variation.moves[moveNumberInVariation].blackMoveVariations[numberOfVariations].moves[0] = addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove);
+                                        variation.moves[moveNumberInVariation].blackMoveVariations[numberOfVariations].variationId = variationId;
+                                        $scope.currentVariation = {
+                                            "variationId": variationId,
+                                            "parentVariationId": variation.variationId,
+                                            "moveNumber": moveNumber,
+                                            "whiteMove": whiteMove,
+                                            "variationIndex": numberOfVariations,
+                                            "moves": variation.moves[moveNumberInVariation].blackMoveVariations[numberOfVariations].moves
+                                        };
+                                        $scope.variations.set($scope.currentVariation.variationId, $scope.currentVariation);
+                                        variationId++;
+                                    }
+                                } else{
+                                    console.log("Position before adding black move to existing variation:");
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
+
+                                    variation.moves[variation.moves.length - 1].blackMove = moveNotation;
+                                    variation.moves[variation.moves.length - 1].chessboardAfterBlackMove = currentchessboard;
+
+                                    console.log("Position after adding black move to existing variation:");
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterWhiteMove !== 'undefined' ){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);}
+                                    if(chessboard.annotatedMoves.length > 0 && typeof chessboard.annotatedMoves[0].chessboardAfterBlackMove !== 'undefined' && chessboard.annotatedMoves[0].chessboardAfterBlackMove.length!==0){
+                                        printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);}
+                                }
+                            }
+
+                        } else {
+
+                            chessboard.annotatedMoves[moveNumber].blackMove = moveNotation;
+                            chessboard.annotatedMoves[moveNumber].chessboardAfterBlackMove = currentchessboard;
+
+                            console.log("Position after new mainline black move:");
+                            printSquares(chessboard.annotatedMoves[0].chessboardAfterWhiteMove);
+                            printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove);
+                        }
                         movecomplete = true;
                     }
+
                     if (movecomplete) {
                         moveNumber++;
                     }
                     $scope.annotatedMoves = chessboard.annotatedMoves;
 
                     return moveNotation;
+                }
 
-
+                function addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove) {
+                    let newAnnotatedMove = {};
+                    newAnnotatedMove.whiteMove = whiteMove ? moveNotation : "";
+                    newAnnotatedMove.blackMove = whiteMove ? "" : moveNotation;
+                    newAnnotatedMove.whiteMoveVariations = [];
+                    newAnnotatedMove.blackMoveVariations = [];
+                    newAnnotatedMove.moveNumber = moveNumber + 1;
+                    newAnnotatedMove.chessboardAfterWhiteMove = whiteMove ? currentchessboard : [];
+                    newAnnotatedMove.chessboardAfterBlackMove = whiteMove ? [] : currentchessboard;
+                    return newAnnotatedMove;
                 }
 
                 function getSquareAsString(square) {
@@ -1293,8 +1601,11 @@ angular
                             + 15
                             * (gameResultBlack - expectedOutcomeBlack));
 
+                    $scope.whitePlayerEloChange = $scope.whitePlayerElo - newRatingWhite;
+                    $scope.blackPlayerEloChange = $scope.blackPlayerElo - newRatingBlack;
                     $scope.whitePlayerElo = newRatingWhite;
                     $scope.blackPlayerElo = newRatingBlack;
+
 
                     /*return {
                         "newRatingWhite": newRatingWhite,
@@ -1386,7 +1697,7 @@ angular
                     socket.onerror = onError;
                     socket.onopen = onOpen;
 
-                    function onOpen(){
+                    function onOpen() {
                         console.log("opening session and requesting game info");
 
                     }
@@ -1422,12 +1733,12 @@ angular
                                         .endGame($scope.whitePlayer ? "1-0"
                                             : "0-1");
                                 });
-                        } else if (data.action === "gameInfo"){
+                        } else if (data.action === "gameInfo") {
                             startGame(data);
-                        } else if (data.action === "gameResult"){
+                        } else if (data.action === "gameResult") {
                             $scope.endGame(data.gameResult);
+                        }
                     }
-                }
                 };
 
                 let displayDrawOffer = function () {
@@ -1465,41 +1776,46 @@ angular
                 };
 
                 $scope.onTimeout = function (whitePlayer) {
-                    console.log("Timeout method:"+whitePlayer)
+                    console.log("Timeout method:" + whitePlayer);
                     if (whitePlayer) {
                         if ($scope.whiteTime > 0
-                           // && $scope.playingGame === true
-						) {
+                            // && $scope.playingGame === true
+                        ) {
                             $scope.whiteTime -= 1;
                             $scope.whiteClock = generateClockTimeFromSeconds($scope.whiteTime);
                             console.log("Decreasing white time.")
                         } else {
-                            $scope.endGame("0-1");
-                            sendGameResult();
+                            if ($scope.whitePlayer === whitePlayer) {
+                                $scope.endGame("0-1 (Black won on time)");
+                                sendGameResult();
+                            }
                             return;
                         }
                     } else {
                         if ($scope.blackTime > 0
                             //&& $scope.playingGame === true
-						) {
+                        ) {
                             $scope.blackTime -= 1;
                             $scope.blackClock = generateClockTimeFromSeconds($scope.blackTime);
                         } else {
-                            $scope.endGame("1-0");
-                            sendGameResult();
+                            if ($scope.whitePlayer === whitePlayer) {
+                                $scope.endGame("1-0 (White won on time)");
+                                sendGameResult();
+                            }
                             return;
                         }
                     }
-                    if($scope.playingGame || $scope.mode === "observing"){
-                    clockTimer = $timeout(function () {
-                        $scope.onTimeout(whitePlayer)
-                    }, 1000);}
+                    if ($scope.playingGame || $scope.mode === "observing") {
+                        clockTimer = $timeout(function () {
+                            $scope.onTimeout(whitePlayer)
+                        }, 1000);
+                    }
 
                 };
 
                 let startClock = function (whitePlayer) {
-                     console.log("Starting clock for whitePlayer:"
-                     + whitePlayer);
+                    console.log("Starting clock for whitePlayer:"
+                        + whitePlayer);
                     clockTimer = $timeout($scope
                         .onTimeout(whitePlayer), 1000);
 
@@ -1538,7 +1854,7 @@ angular
 
                     $scope.$apply(function () {
                         initialiseChessboard();
-                        if ($scope.mode === "observing"){
+                        if ($scope.mode === "observing") {
                             $scope.annotatedMoves = data.annotatedMoves;
                         }
                         $scope.newGame = true;
@@ -1559,7 +1875,7 @@ angular
 
                         });
                     }
-                    startClock(true);
+                    //startClock(true);
 
                 };
 
@@ -1574,7 +1890,7 @@ angular
 
                 $scope.promotePiece = function (piece) {
 
-                    $scope.updateChessboardAfterMove(startPosition.piece,element,
+                    $scope.updateChessboardAfterMove(startPosition.piece, element,
                         startPosition, endPosition, true,
                         $scope.whitePlayer, piece);
                     $scope.lastMove.startPosition = startPosition;
@@ -1583,16 +1899,16 @@ angular
                     $scope.setMyMove(false);
                     $scope.promotionSquareReached = false;
 
-                }
+                };
 
                 $scope.endGame = function (gameResult) {
                     $("#arrow").remove();
                     let gameResultWhite;
                     let gameResultBlack;
-                    if (gameResult === "1-0") {
+                    if (gameResult === "1-0" || gameResult === "1-0 (White won on time)") {
                         gameResultWhite = 1;
                         gameResultBlack = 0;
-                    } else if (gameResult === "0-1") {
+                    } else if (gameResult === "0-1" || gameResult === "0-1 (Black won on time)") {
                         gameResultWhite = 0;
                         gameResultBlack = 1;
                     } else if (gameResult === "1/2 - 1/2") {
@@ -1627,20 +1943,34 @@ angular
                     $scope.gameResult = gameResult;
                     $scope.whitePlayer = whitePlayer;
                     $scope.resultMessage = function () {
-                        if (mode==="playing" && ((gameResult === "1-0"
+                        if (mode === "playing" && ((gameResult === "1-0"
                             && whitePlayer === true) || (gameResult === "0-1"
                             && whitePlayer === false))) {
                             return "Congratulation you won the game.";
-                        }  else if (mode==="playing" && ((gameResult === "1-0"
+                        } else if (mode === "playing" && ((gameResult === "1-0 (White won on time)"
+                            && whitePlayer === true) || (gameResult === "0-1 (Black won on time)"
+                            && whitePlayer === false))) {
+                            return "Congratulation you won the game on time.";
+                        } else if (mode === "playing" && ((gameResult === "1-0 (White won on time)"
+                            && whitePlayer === false) || (gameResult === "0-1 (Black won on time)"
+                            && whitePlayer === true))) {
+                            return "You lost the game on time.";
+                        } else if (mode === "playing" && ((gameResult === "1-0"
                             && whitePlayer === false) || (gameResult === "0-1"
-                            && whitePlayer === true) )) {
+                            && whitePlayer === true))) {
                             return "You lost the game.";
-                        }  else if (gameResult === "1-0" &&
-                            mode==="observing") {
+                        } else if (gameResult === "1-0" &&
+                            mode === "observing") {
                             return whitePlayerName + " won the game.";
                         } else if (gameResult === "0-1"
-                            && mode==="observing") {
+                            && mode === "observing") {
                             return blackPlayerName + " won the game.";
+                        } else if (gameResult === "1-0 (White won on time)" &&
+                            mode === "observing") {
+                            return whitePlayerName + " won the game on time.";
+                        } else if (gameResult === "0-1 (Black won on time)"
+                            && mode === "observing") {
+                            return blackPlayerName + " won the game on time.";
                         } else if (gameResult === "1/2 - 1/2") {
                             return "Game ended in a draw."
                         } else {
@@ -1714,12 +2044,12 @@ angular
                         $scope.endGame("1/2 - 1/2");
                         sendGameResult();
 
-                    }else {
+                    } else {
                         socket.send(JSON.stringify(drawOffer));
                     }
                 };
 
-                let sendGameResult = function(){
+                let sendGameResult = function () {
                     let gameResult = {
                         action: "gameResult",
                         oponent: $scope.oponent,
@@ -1737,27 +2067,27 @@ angular
                     sendGameResult();
                 };
 
-                let observeGame = function(game){
+                let observeGame = function (game) {
 
-                        $scope.whitePlayerName = game.whitePlayer.username;
-                        $scope.blackPlayerName = game.blackPlayer.username;
-                        $scope.whitePlayerElo = game.whitePlayer.elo;
-                        $scope.blackPlayerElo = game.blackPlayer.elo;
-                        $scope.annotatedMoves = Object.values(game.annotatedMoves);
+                    $scope.whitePlayerName = game.whitePlayer.username;
+                    $scope.blackPlayerName = game.blackPlayer.username;
+                    $scope.whitePlayerElo = game.whitePlayer.elo;
+                    $scope.blackPlayerElo = game.blackPlayer.elo;
+                    $scope.annotatedMoves = Object.values(game.annotatedMoves);
 
-                        let lastMove = $scope.annotatedMoves[$scope.annotatedMoves.length-1];
-                        $scope.whiteTime = lastMove.whiteTime;
-                        $scope.blackTime = lastMove.blackTime;
-                        $scope.whiteClock = generateClockTimeFromSeconds($scope.whiteTime);
-                        $scope.blackClock = generateClockTimeFromSeconds($scope.blackTime);
+                    let lastMove = $scope.annotatedMoves[$scope.annotatedMoves.length - 1];
+                    $scope.whiteTime = lastMove.whiteTime;
+                    $scope.blackTime = lastMove.blackTime;
+                    $scope.whiteClock = generateClockTimeFromSeconds($scope.whiteTime);
+                    $scope.blackClock = generateClockTimeFromSeconds($scope.blackTime);
 
-                        if(lastMove.blackMove){
-                            $scope.redrawChessboard(JSON.parse(lastMove.chessboardAfterBlackMove));
-                            startClock(true)
-                        } else {
-                            $scope.redrawChessboard(JSON.parse(lastMove.chessboardAfterWhiteMove));
-                            startClock(false);
-                        }
+                    if (lastMove.blackMove) {
+                        $scope.redrawChessboard(JSON.parse(lastMove.chessboardAfterBlackMove));
+                        startClock(true)
+                    } else {
+                        $scope.redrawChessboard(JSON.parse(lastMove.chessboardAfterWhiteMove));
+                        startClock(false);
+                    }
                     console.log(game);
                 };
 
@@ -1777,7 +2107,7 @@ angular
                             observeGame(game);
 
                         }).error(function (data) {
-                            console.log("Retrieval of moves of the observed game failed:"+data.error);
+                            console.log("Retrieval of moves of the observed game failed:" + data.error);
                         });
                     }
                 };
@@ -1794,8 +2124,8 @@ angular
                         kingInCheck: kingInCheck,
                         promotedPiece: promotedPiece,
                         castling: $scope.castling,
-                        chessboardAfterMove : JSON.stringify(chessboard.squares),
-                        gameId : $routeParams.gameId,
+                        chessboardAfterMove: JSON.stringify(chessboard.squares),
+                        gameId: $routeParams.gameId,
                         annotatedMove: annotatedMove,
                         whiteMove: $scope.whiteMove,
                         whiteTime: $scope.whiteTime,
@@ -1804,7 +2134,7 @@ angular
                     console.log("sending move to server:");
                     console.log(JSON.stringify(moveAction));
                     socket.send(JSON.stringify(moveAction));
-                    $scope.castling = "";
+
 
                 };
 
@@ -1820,10 +2150,12 @@ angular
                     });
                 };
 
-                let determineInitialModeOfUsage = function(){
-                    if(typeof $routeParams.observedPlayer !== 'undefined'){
+                let determineInitialModeOfUsage = function () {
+                    if (typeof $routeParams.observedPlayer !== 'undefined') {
                         $scope.mode = "observing";
-                    } else{
+                    } else if ($location.url().indexOf("analyzeGame") !== -1) {
+                        $scope.mode = "analyzing";
+                    } else {
                         $scope.mode = "playing";
                     }
                 };
@@ -1833,14 +2165,7 @@ angular
                     $timeout(function () {
                         $scope.$apply(function () {
                             initialiseWebSockets();
-                            $scope.$watch("controller.initialised", function(newValue, oldValue){
-                                if(newValue){
-                                   /* requestGameInfo();*/
-                                }
-                            });
                             initPage(true);
-
-                            //requestGameInfo();
                             $scope.whitePlayer = true;
                         });
                     });

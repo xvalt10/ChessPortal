@@ -38,7 +38,7 @@ angular
 								$scope.chatMessage.author=$rootScope.user;
 								socket.send(JSON.stringify($scope.chatMessage));
 								$scope.chatMessage.message = "";
-							}
+							};
 							
 							$scope.config = {
 
@@ -57,13 +57,13 @@ angular
 								    };
 							
 							$scope.displayChatMessage = function(message){
-								var size=$scope.messages.length;
+
 								message.date=new Date();
 								$scope.messages.unshift(message);
 								$scope.$apply();
 								
 								
-							}
+							};
 
 							$scope.seekOponent = function (time, increment) {
 								var seekDetails = {
@@ -75,7 +75,7 @@ angular
 									increment: parseInt(typeof increment !== 'undefined' ? increment
 										: $scope.increment)
 
-								}
+								};
 								seekOponentInterval=$interval(function(){
 									socket.send(JSON.stringify(seekDetails));
 								},1000);
@@ -95,16 +95,22 @@ angular
 							}
 
 							$scope.observeGame = function(playername){
+								cancelIntervals();
 								$location.path("/playingHall/observe/"+playername);
+							};
+
+							function cancelIntervals(){
+								$interval.cancel(seekOponentInterval);
+								$interval.cancel(queryPlayersInterval);
 							}
 							
 							function onMessage(event) {
 								//console.log(event);
 								var data = JSON.parse(event.data);
-								if (data.action == "chatMessageLobby") {
+								if (data.action === "chatMessageLobby") {
 									$scope.displayChatMessage(data);
 								}
-								if (data.action == "getPlayersOnline") {
+								if (data.action === "getPlayersOnline") {
 									console.log(data.players);
 									$scope.playersOnline = data.players;
 									$scope.countOfPlayersOnline = data.players.length;
@@ -112,8 +118,7 @@ angular
 								}
 								if (data.action === "startGame") {
 										console.log(data);
-									    $interval.cancel(seekOponentInterval);
-									    $interval.cancel(queryPlayersInterval)
+										cancelIntervals();
 									    $location.path("/playingHall/"+data.gameId);
 										console.log("Game started.")
 								}
@@ -125,7 +130,7 @@ angular
 
 								socket=WebSocketService.initWebSockets();
 								socket.onmessage=onMessage;
-								socket.onclose=function(event){
+								socket.onclose=function(){
 									console.log("closing timer");
 									$interval.cancel(queryPlayersInterval);
 									$interval.cancel(seekOponentInterval);
@@ -133,7 +138,7 @@ angular
 								
 								queryPlayersInterval=$interval(queryPlayersOnline,1000);
 						
-								}
+								};
 							
 							init();
 						}]);

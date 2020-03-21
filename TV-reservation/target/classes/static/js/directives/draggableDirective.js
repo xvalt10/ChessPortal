@@ -9,23 +9,20 @@ angular
                     link: function (scope, element, attr) {
 
 
-                        var top = element.prop('offsetTop');
-                        var left = element.prop('offsetLeft');
+                       // var top = element.prop('offsetTop');
+                       // var left = element.prop('offsetLeft');
                         var topPiece;
                         var leftPiece;
                         var startPosition = {};
 
                         var startX = 0, startY = 0, x = 0, y = 0, endX = 0, endY = 0;
                         let positionResetAfterPromotion = false;
-                        if (attr.id.endsWith("PromotedPiece")) {
-
-                        }
 
                         element.css({
                             cursor: 'pointer'
                         });
 
-                        attr.$observe('draggable', function (value) {
+                        attr.$observe('draggable', function () {
 
                             if (scope.newGame === true) {
 
@@ -49,23 +46,37 @@ angular
                                 scope.initialisationComplete();
                             }
 
-                            if ((scope.mode === 'playing' && scope.myMove) || scope.mode == 'analysing') {
+                            if ((scope.mode === 'playing' && scope.myMove) || scope.mode === 'analyzing') {
 
                                 startPosition = scope.determineRowColumn(
                                     event.pageX, event.pageY, scope.whitePlayer);
 
-                                if ((scope.whitePlayer && startPosition.piece.indexOf("W") !== -1) || (!scope.whitePlayer && startPosition.piece.indexOf("B") !== -1)) {
+                                if ((scope.whitePlayer && startPosition.piece.indexOf("W") !== -1)
+                                    || (!scope.whitePlayer && startPosition.piece.indexOf("B") !== -1)
+                                    || scope.mode === 'analyzing') {
                                     event.preventDefault();
 
-									console.log(element.context.src);
-                                    if(!positionResetAfterPromotion && element.context.src !== attr.src){
-										startX = 0;
-										positionResetAfterPromotion = true;
-									}
-                                    if (startX == 0) {
-                                        startX = event.pageX - x;
-                                        startY = event.pageY - y;
+                                    console.log(element.context.src);
+                                    if (!positionResetAfterPromotion && element.context.src !== attr.src) {
+                                        startX = 0;
+                                        positionResetAfterPromotion = true;
+                                    }
+                                    if (startX === 0) {
+                                        if(scope.rookMovedDueToCastling(startPosition.piece)){
+                                            if(startPosition.piece === "WR70" || startPosition.piece === "BR77"){
+                                                startX = event.pageX + (2 * scope.squareSize) -x;
+                                                startY = event.pageY - y;
+                                            }else if(startPosition.piece === "WR00" || startPosition.piece === "BR07"){
+                                                startX = event.pageX - (3 * scope.squareSize) -x;
+                                                startY = event.pageY - y;
+                                            }
+                                        }
+                                            else {
+                                            startX = event.pageX - x;
+                                            startY = event.pageY - y;
+                                        }
                                     } else {
+
                                         startX = startX - x;
                                         startY = startY - y;
                                     }
@@ -77,7 +88,7 @@ angular
                         });
 
                         function mousemove(event) {
-                            if ((scope.mode === 'playing' && scope.myMove) || scope.mode == 'analysing') {
+                            if ((scope.mode === 'playing' && scope.myMove) || scope.mode === 'analyzing') {
                                 event.preventDefault();
 
                                 y = event.pageY - startY;
@@ -101,8 +112,8 @@ angular
                                 scope.whitePlayer);
                             if (moveIsLegal == true) {
 
-                                if (startPosition.piece.indexOf("P") != -1 && ((scope.whitePlayer == true && endPosition.row == 7)
-                                    || (scope.whitePlayer == false && endPosition.row == 0))) {
+                                if (startPosition.piece.indexOf("P") !== -1 && ((scope.whitePlayer === true && endPosition.row === 7)
+                                    || (scope.whitePlayer === false && endPosition.row === 0))) {
                                     scope.displayPromotionPicker(element, startPosition, endPosition);
                                 } else {
                                     //console.log(startPosition);
@@ -126,6 +137,10 @@ angular
                             console.log("Mouse down:" + startX, startY, x, y);
                             $document.off('mousemove', mousemove);
                             $document.off('mouseup', mouseup);
+                        }
+
+                        function isPieceOnSquare(square, piece) {
+                            return square.piece.indexOf(piece) !== -1;
                         }
                     }
 

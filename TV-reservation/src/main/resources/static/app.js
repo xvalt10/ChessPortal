@@ -46,7 +46,7 @@ angular
 				templateUrl : 'views/playingHall/playingHall.html',
 				controller : 'BoardCtrl'
 			});
-			$routeProvider.when('/playingHall/observe/:observedPlayer', {
+			$routeProvider.when('/analyzeGame', {
 				templateUrl : 'views/playingHall/playingHall.html',
 				controller : 'BoardCtrl'
 			});

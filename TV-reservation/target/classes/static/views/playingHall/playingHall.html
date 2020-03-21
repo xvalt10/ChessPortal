@@ -29,15 +29,15 @@
                         <td>
                             <div style="position: relative">
                                 <img class="chessPiece"
-                                       ng-src="{{whitePlayer==true?'images/pieces/WR.png':'images/pieces/BR.png'}}"
-                                       ng-click="whitePlayer==true?promotePiece('WR'):promotePiece('BR')"/>
+                                     ng-src="{{whitePlayer==true?'images/pieces/WR.png':'images/pieces/BR.png'}}"
+                                     ng-click="whitePlayer==true?promotePiece('WR'):promotePiece('BR')"/>
                             </div>
                         </td>
                         <td>
                             <div style="position: relative">
                                 <img class="chessPiece"
-                                       ng-src="{{whitePlayer==true?'images/pieces/WQ.png':'images/pieces/BQ.png'}}"
-                                       ng-click="whitePlayer==true?promotePiece('WQ'):promotePiece('BQ')"/>
+                                     ng-src="{{whitePlayer==true?'images/pieces/WQ.png':'images/pieces/BQ.png'}}"
+                                     ng-click="whitePlayer==true?promotePiece('WQ'):promotePiece('BQ')"/>
                             </div>
                         </td>
                     </tr>
@@ -191,8 +191,10 @@
             <div class="col-md-4">
                 <table ng-if="whitePlayerName" class="clockSideSection">
                     <tr>
-                        <td ng-if="!whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})</td>
-                        <td ng-if="whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})</td>
+                        <td ng-if="!whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}}) <span>{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+                        </td>
+                        <td ng-if="whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}}) <span>{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+                        </td>
 
                     </tr>
                     <tr>
@@ -208,7 +210,7 @@
                 </table>
             </div>
             <div class="col-md-8">
-                <div ng-if="whitePlayerName" id="drawResignSection">
+                <div ng-if="mode === 'playing'" id="drawResignSection">
 
                     <button ng-click="offerDraw()" class="btn btn-primary">Offer
                         Draw
@@ -252,21 +254,42 @@
                                   <td>Black move</td>
                               </tr>
                           </theader>-->
-                        <tbody>
+                        <tbody ng-repeat="annotatedMove in annotatedMoves">
 
-                        <tr ng-repeat="annotatedMove in annotatedMoves">
+                        <tr>
                             <td>{{annotatedMove.moveNumber}}</td>
                             <td id="{{'annotatedMoveWhite'+annotatedMove.moveNumber}}" class="annotatedMove"
-                                ng-click="redrawChessboard(annotatedMove.chessboardAfterWhiteMove,'annotatedMoveWhite'+annotatedMove.moveNumber)">
+                                ng-click="redrawChessboard(annotatedMove.chessboardAfterWhiteMove,
+                                'annotatedMoveWhite'+annotatedMove.moveNumber, true, annotatedMove.moveNumber)">
                                 {{annotatedMove.whiteMove}}
                             </td>
                             <td id="{{'annotatedMoveBlack'+annotatedMove.moveNumber}}" class="annotatedMove"
-                                ng-click="redrawChessboard(annotatedMove.chessboardAfterBlackMove,'annotatedMoveBlack'+annotatedMove.moveNumber)">
+                                ng-click="redrawChessboard(annotatedMove.chessboardAfterBlackMove,
+                                'annotatedMoveBlack'+annotatedMove.moveNumber, false, annotatedMove.moveNumber)">
                                 {{annotatedMove.blackMove}}
                             </td>
                         </tr>
-                        </tbody>
+                        <script type="text/ng-template" id="variationTemplate">
+                            <td colspan="3">
+                            (<span style="color:blue" ng-repeat="moveOfVariation in variation.moves" >
+                                {{moveOfVariation.moveNumber}}. <span ng-if="variation.moves[0].whiteMove === '' && $index === 0">..</span><a ng-if="moveOfVariation.whiteMove" id="{{'moveOfVariation2White'+annotatedMove.moveNumber}}" ng-click="redrawChessboard(moveOfVariation.chessboardAfterWhiteMove,
+                                'moveOfVariation2White'+moveOfVariation.moveNumber, true, moveOfVariation.moveNumber, variation.variationId)">{{moveOfVariation.whiteMove}}</a>
+                                    <a ng-if="moveOfVariation.blackMove" id="{{'moveOfVariation2Black'+annotatedMove.moveNumber}}" ng-click="redrawChessboard(moveOfVariation.chessboardAfterBlackMove,
+                                'moveOfVariation2Black'+moveOfVariation.moveNumber, false, moveOfVariation.moveNumber, variation.variationId)">{{moveOfVariation.blackMove}}</a>
 
+                                <span ng-if="moveOfVariation.whiteMoveVariations" ng-repeat="variation in moveOfVariation.whiteMoveVariations" ng-include="'variationTemplate'"></span>
+                                <span ng-if="moveOfVariation.blackMoveVariations" ng-repeat="variation in moveOfVariation.blackMoveVariations" ng-include="'variationTemplate'"></span>
+                            </span>)
+                            </td>
+                        </script>
+
+                        <tr ng-repeat="variation in annotatedMove.whiteMoveVariations" ng-include="'variationTemplate'">
+                        </tr>
+
+                        <tr ng-repeat="variation in annotatedMove.blackMoveVariations" ng-include="'variationTemplate'">
+                        </tr>
+
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -277,8 +300,13 @@
             <div class="col-md-6">
                 <table ng-if="whitePlayerName">
                     <tr>
-                        <td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})</td>
-                        <td ng-if="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})</td>
+                        <td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}}) <span>{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+                        </td>
+                        <td ng-if="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}}) <span>{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+                        </td>
+
+                        <!--<td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})</td>
+                        <td ng-if="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})</td>-->
                     </tr>
                     <tr>
                         <td ng-class="{'clock clockActive':whiteMove, 'clock clockNotActive':!whiteMove}"
