@@ -1,12 +1,14 @@
 <div class="container bordered">
+    <div class="playerNamesRow">
     <div class="col-md-12 playersRow">
         <div class="players col-md-12 alert-success" ng-if="whitePlayerName">
             {{whitePlayerName}}({{whitePlayerElo}}) -
             {{blackPlayerName}}({{blackPlayerElo}}) <span ng-if="gameResult">Game result: {{gameResult}}</span>
         </div>
     </div>
-
-    <div class="col-md-6">
+    </div>
+    <div class="row">
+    <div class="col-md-5">
         <div class="row" ng-if="promotionSquareReached==true && playingGame">
             <div class="promotionPieces col-md-12">
                 Which piece do you want to promote the pawn to?
@@ -15,15 +17,15 @@
                         <td>
                             <div style="position: relative">
                                 <img class="chessPiece"
-                                     ng-src="{{whitePlayer==true?'images/pieces/WN.png':'images/pieces/BN.png'}}"
-                                     ng-click="whitePlayer==true?promotePiece('WN'):promotePiece('BN')"/>
+                                     ng-src="{{whitePlayer==true ? 'images/pieces/WN.png' : 'images/pieces/BN.png'}}"
+                                     ng-click="whitePlayer==true ? promotePiece('WN') : promotePiece('BN')"/>
                             </div>
                         </td>
                         <td>
                             <div style="position: relative">
                                 <img class="chessPiece"
-                                     ng-src="{{whitePlayer==true?'images/pieces/WB.png':'images/pieces/BB.png'}}"
-                                     ng-click="whitePlayer==true?promotePiece('WB'):promotePiece('BB')"/>
+                                     ng-src="{{whitePlayer==true ? 'images/pieces/WB.png' : 'images/pieces/BB.png'}}"
+                                     ng-click="whitePlayer==true ? promotePiece('WB'):promotePiece('BB')"/>
                             </div>
                         </td>
                         <td>
@@ -182,13 +184,16 @@
                 </defs>
             </svg>
         </div>
+        <div class="moveControlsWrapper">
+            <img src="../../images/arrow-first-move.png" />
+            <img src="../../images/arrow-previous-move.png"/>
+            <img src="../../images/arrow-next-move.png" ng-click="goToNextMove()"/>
+            <img src="../../images/arrow-last-move.png"/>
+        </div>
     </div>
-
-
-    <div class="col-md-6">
-        <div class="row">
-
-            <div class="col-md-4">
+    <div class="col-md-2 clockWrapper" ng-if="mode !== 'analyzing'">
+        <div class="row clockRow">
+            <div class="col-md-12">
                 <table ng-if="whitePlayerName && mode !=='analyzing'" class="clockSideSection">
                     <tr>
                         <td ng-if="!whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}}) <span>{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
@@ -209,6 +214,44 @@
 
                 </table>
             </div>
+        </div>
+        <div class="row" style="flex: 1 1 auto">
+            <div style="max-height: 100%"></div>
+        </div>
+            <div class="row clockRow" >
+                <div class="col-md-12">
+                    <table ng-if="whitePlayerName && mode !=='analyzing'">
+                        <tr>
+                            <td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}}) <span>{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+                            </td>
+                            <td ng-if="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}}) <span>{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+                            </td>
+
+                            <!--<td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})</td>
+                            <td ng-if="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})</td>-->
+                        </tr>
+                        <tr>
+                            <td ng-class="{'clock clockActive':whiteMove, 'clock clockNotActive':!whiteMove}"
+                                ng-if="whitePlayer">
+                                {{whiteClock}}
+                            </td>
+                            <td ng-class="{'clock clockActive':!whiteMove, 'clock clockNotActive':whiteMove}"
+                                ng-if="!whitePlayer">
+                                {{blackClock}}
+                            </td>
+                        </tr>
+                        <tr>
+                    </table>
+                </div>
+
+
+            </div>
+        </div>
+
+
+    <div class="col-md-5">
+        <div class="row">
+
             <div class="col-md-8">
                 <div ng-if="mode === 'playing'" id="drawResignSection">
 
@@ -233,9 +276,7 @@
 
         </div>
 
-        <div class="row">
-
-            <div class="notation">
+            <div class="notationWrapper">
                 <table class="notationTable" style="margin-bottom:0px;">
                     <theader>
                         <tr class="notationTableHeader">
@@ -247,13 +288,6 @@
                 </table>
                 <div id="scrollableDivForNotation" ng-scrollbars  ng-scrollbars-update=updateScrollbar ng-scrollbars-config="scrollbarconfig">
                     <table class="notationTable">
-                        <!--  <theader>
-                              <tr>
-                                  <td>Move no.</td>
-                                  <td>White move</td>
-                                  <td>Black move</td>
-                              </tr>
-                          </theader>-->
                         <tbody ng-repeat="annotatedMove in annotatedMoves">
 
                         <tr>
@@ -294,39 +328,11 @@
                 </div>
             </div>
 
-        </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <table ng-if="whitePlayerName && mode !=='analyzing'">
-                    <tr>
-                        <td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}}) <span>{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
-                        </td>
-                        <td ng-if="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}}) <span>{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
-                        </td>
 
-                        <!--<td ng-if="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})</td>
-                        <td ng-if="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})</td>-->
-                    </tr>
-                    <tr>
-                        <td ng-class="{'clock clockActive':whiteMove, 'clock clockNotActive':!whiteMove}"
-                            ng-if="whitePlayer">
-                            {{whiteClock}}
-                        </td>
-                        <td ng-class="{'clock clockActive':!whiteMove, 'clock clockNotActive':whiteMove}"
-                            ng-if="!whitePlayer">
-                            {{blackClock}}
-                        </td>
-                    </tr>
-                    <tr>
-                </table>
-            </div>
-            <div class="col-md-6">
-            </div>
 
-        </div>
 
     </div>
-
+</div>
 
 </div>

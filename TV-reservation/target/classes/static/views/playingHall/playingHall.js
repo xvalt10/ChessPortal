@@ -153,6 +153,33 @@ angular
                     }
                 };
 
+                $scope.goToNextMove = function(){
+                    let move;
+                    if(!$scope.currentVariation){
+                        move = chessboard.annotatedMoves[moveNumber];
+                        if(!$scope.whiteMove){
+                            $scope.redrawChessboard(move.chessboardAfterBlackMove,
+                                'annotatedMoveBlack'+(moveNumber+1), false, moveNumber+1);
+                        }else{
+                            $scope.redrawChessboard(move.chessboardAfterWhiteMove,
+                                'annotatedMoveWhite'+(moveNumber+1), true, moveNumber+1);
+                        }
+                    } else{
+                        move = $scope.currentVariation.moves[moveNumber - $scope.currentVariation.moveNumber];
+                        let variationId = $scope.currentVariation.variationId;
+                        if(!$scope.whiteMove){
+                            $scope.redrawChessboard(move.chessboardAfterBlackMove,
+                                'annotatedMoveBlack'+(moveNumber+1), false, moveNumber+1,variationId);
+                        }else{
+                            $scope.redrawChessboard(move.chessboardAfterWhiteMove,
+                                'annotatedMoveWhite'+(moveNumber+1), true, moveNumber+1,variationId);
+                        }
+                    }
+
+
+
+                }
+
                 function isRookMoveLegal(startPosition, endPosition, kingInCheck) {
                     let isLegal = true;
                     if (endPosition.row === startPosition.row) {
@@ -1483,7 +1510,7 @@ angular
                                     console.log(printSquares(chessboard.annotatedMoves[0].chessboardAfterBlackMove));
                                     //new variation with a black starting move created
                                     chessboard.annotatedMoves[moveNumber].blackMoveVariations[numberOfVariations] = {moves: []};
-                                    let newMove = addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove);
+                                    let newMove = addNewAnnotatedMove(moveNotation, currentchessboard, whiteMove, startSquare, endSquare);
                                     chessboard.annotatedMoves[moveNumber].blackMoveVariations[numberOfVariations].moves[0] = newMove;
                                     chessboard.annotatedMoves[moveNumber].blackMoveVariations[numberOfVariations].variationId = variationId;
                                     $scope.currentVariation = {
@@ -1808,7 +1835,6 @@ angular
                 };
 
                 $scope.onTimeout = function (whitePlayer) {
-                    console.log("Timeout method:" + whitePlayer);
                     if (whitePlayer) {
                         if ($scope.whiteTime > 0
                             // && $scope.playingGame === true

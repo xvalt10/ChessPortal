@@ -162,6 +162,38 @@ height:40px;
 	z-index: 1;
 
 }
+
+.moveControlsWrapper{
+	display:flex;flex-direction: row; align-content: center; align-items:center;justify-content: center;
+}
+.moveControlsWrapper img{
+	max-height:50px;
+	margin:5px;
+
+}
+.moveControlsWrapper img{
+	max-height:50px;
+	margin:5px;
+
+}
+.moveControlsWrapper img:hover{
+	cursor: pointer;
+
+}
+
+.playerNamesRow{
+	width: 100%;
+	margin-top: 1px;
+}
+
+.clockWrapper{
+	display:flex;flex-direction: column; justify-content: space-between; height: 440px;
+}
+
+.clockRow{
+	flex: 0 0 50px;
+}
+
 .clock{
 	font-size:30px;
 	text-align: center;
@@ -174,6 +206,11 @@ height:40px;
 
 .clockNotActive{
 	color:black;
+}
+
+
+.notationWrapper{
+	width:95%;
 }
 
 .notationTable{
@@ -195,10 +232,6 @@ height:40px;
 	margin-right:0px
 }
 
-.notation{
-    margin: 1px 15px;
-	width:95%;
-}
 
 .annotatedMove{
 	cursor:pointer
