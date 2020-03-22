@@ -169,10 +169,10 @@ angular
                         let variationId = $scope.currentVariation.variationId;
                         if(!$scope.whiteMove){
                             $scope.redrawChessboard(move.chessboardAfterBlackMove,
-                                'annotatedMoveBlack'+(moveNumber+1), false, moveNumber+1,variationId);
+                                'moveOfVariationBlack'+(moveNumber+1), false, moveNumber+1,variationId);
                         }else{
                             $scope.redrawChessboard(move.chessboardAfterWhiteMove,
-                                'annotatedMoveWhite'+(moveNumber+1), true, moveNumber+1,variationId);
+                                'moveOfVariationWhite'+(moveNumber+1), true, moveNumber+1,variationId);
                         }
                     }
 
@@ -903,7 +903,7 @@ angular
                     }
                     if (typeof elementId !== 'undefined') {
                         $('td[id ^= "annotatedMove"]').css('font-weight', 'normal');
-                        $('td[id ^= "moveOfVariation"]').css('font-weight', 'normal');
+                        $('a[id ^= "moveOfVariation"]').css('font-weight', 'normal');
                         $("#" + elementId).css('font-weight', 'bold');
                     }
 

@@ -306,10 +306,10 @@
                         <script type="text/ng-template" id="variationTemplate">
                             <td colspan="3">
                             (<span style="color:blue" ng-repeat="moveOfVariation in variation.moves" >
-                                {{moveOfVariation.moveNumber}}. <span ng-if="variation.moves[0].whiteMove === '' && $index === 0">..</span><a ng-if="moveOfVariation.whiteMove" id="{{'moveOfVariation2White'+annotatedMove.moveNumber}}" ng-click="redrawChessboard(moveOfVariation.chessboardAfterWhiteMove,
-                                'moveOfVariation2White'+moveOfVariation.moveNumber, true, moveOfVariation.moveNumber, variation.variationId)">{{moveOfVariation.whiteMove}}</a>
-                                    <a ng-if="moveOfVariation.blackMove" id="{{'moveOfVariation2Black'+annotatedMove.moveNumber}}" ng-click="redrawChessboard(moveOfVariation.chessboardAfterBlackMove,
-                                'moveOfVariation2Black'+moveOfVariation.moveNumber, false, moveOfVariation.moveNumber, variation.variationId)">{{moveOfVariation.blackMove}}</a>
+                                {{moveOfVariation.moveNumber}}. <span ng-if="variation.moves[0].whiteMove === '' && $index === 0">..</span><a ng-if="moveOfVariation.whiteMove" id="{{'moveOfVariationWhite'+moveOfVariation.moveNumber}}" ng-click="redrawChessboard(moveOfVariation.chessboardAfterWhiteMove,
+                                'moveOfVariationWhite'+moveOfVariation.moveNumber, true, moveOfVariation.moveNumber, variation.variationId)">{{moveOfVariation.whiteMove}}</a>
+                                    <a ng-if="moveOfVariation.blackMove" id="{{'moveOfVariationBlack'+moveOfVariation.moveNumber}}" ng-click="redrawChessboard(moveOfVariation.chessboardAfterBlackMove,
+                                'moveOfVariationBlack'+moveOfVariation.moveNumber, false, moveOfVariation.moveNumber, variation.variationId)">{{moveOfVariation.blackMove}}</a>
 
                                 <span ng-if="moveOfVariation.whiteMoveVariations" ng-repeat="variation in moveOfVariation.whiteMoveVariations" ng-include="'variationTemplate'"></span>
                                 <span ng-if="moveOfVariation.blackMoveVariations" ng-repeat="variation in moveOfVariation.blackMoveVariations" ng-include="'variationTemplate'"></span>
