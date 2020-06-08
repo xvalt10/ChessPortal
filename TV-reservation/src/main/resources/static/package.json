@@ -1,31 +1,60 @@
 {
-  "requires": true,
-  "lockfileVersion": 1,
+  "name": "odpeknvxnlq.angular",
+  "version": "0.0.0",
+  "private": true,
   "dependencies": {
-    "@angular/cdk": "^8.2.3",
-    "@angular/material": {
-      "integrity": "sha512-SOczkIaqes+r+9XF/UUiokidfFKBpHkOPIaFK857sFD0FBNPvPEpOr5oHKCG3feERRwAFqHS7Wo2ohVEWypb5A==",
-      "requires": {
-        "tslib": "^1.7.1"
-      },
-      "resolved": "https://registry.npmjs.org/@angular/material/-/material-8.2.3.tgz",
-      "version": "8.2.3"
-    },
-    "hammerjs": {
-      "integrity": "sha1-BO93hiz/K7edMPdpIJWTAiK/YPE=",
-      "resolved": "https://registry.npmjs.org/hammerjs/-/hammerjs-2.0.8.tgz",
-      "version": "2.0.8"
-    },
-    "parse5": {
-      "integrity": "sha512-ugq4DFI0Ptb+WWjAdOK16+u/nHfiIrcE+sh8kZMaM0WllQKLI9rOUq6c2b7cwPkXdzfQESqvoqK6ug7U/Yyzug==",
-      "optional": true,
-      "resolved": "https://registry.npmjs.org/parse5/-/parse5-5.1.1.tgz",
-      "version": "5.1.1"
-    },
-    "tslib": {
-      "integrity": "sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==",
-      "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.10.0.tgz",
-      "version": "1.10.0"
-    }
+    "@angular/animations": "9.1.0",
+    "@angular/cdk": "^9.2.4",
+    "@angular/common": "9.1.0",
+    "@angular/compiler": "9.1.0",
+    "@angular/core": "9.1.0",
+    "@angular/flex-layout": "^9.0.0-beta.31",
+    "@angular/forms": "9.1.0",
+    "@angular/platform-browser": "9.1.0",
+    "@angular/platform-browser-dynamic": "9.1.0",
+    "@angular/router": "9.1.0",
+    "@auth0/angular-jwt": "^4.0.0",
+    "@types/jquery": "^3.3.34",
+    "angular-in-memory-web-api": "0.9.0",
+    "angular-jwt": "github:auth0/angular-jwt",
+    "bootstrap": "^4.4.1",
+    "cm-chessboard": "^2.15.3",
+    "jasmine-core": "3.5.0",
+    "jasmine-marbles": "0.6.0",
+    "jquery": "^3.4.1",
+    "popper.js": "^1.16.1",
+    "rxjs": "6.5.5",
+    "tslib": "1.11.1",
+    "zone.js": "0.10.3"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint",
+    "e2e": "ng e2e"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^0.900.1",
+    "@angular/cli": "^9.0.0",
+    "@angular/compiler-cli": "^9.1.0",
+    "@angular/http": "^7.2.16",
+    "@angular/language-service": "^9.0.0",
+    "@types/jasmine": "~2.8.8",
+    "@types/jasminewd2": "~2.0.3",
+    "@types/node": "~8.9.4",
+    "codelyzer": "~4.5.0",
+    "jasmine-core": "~2.99.1",
+    "jasmine-spec-reporter": "~4.2.1",
+    "karma": "~3.0.0",
+    "karma-chrome-launcher": "~2.2.0",
+    "karma-coverage-istanbul-reporter": "~2.0.1",
+    "karma-jasmine": "~1.1.2",
+    "karma-jasmine-html-reporter": "^0.2.2",
+    "protractor": "~5.4.0",
+    "ts-node": "~7.0.0",
+    "tslint": "~5.11.0",
+    "typescript": "~3.8.3"
   }
 }

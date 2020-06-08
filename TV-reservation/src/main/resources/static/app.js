@@ -1,4 +1,5 @@
-'use strict';
+/* 'use strict';
+
 // Declare app level module which depends on views, and components
 angular
 		.module(
@@ -67,3 +68,4 @@ angular.module('reservationModule', []);
 angular.module('registerModule', []);
 angular.module('websocketModule', []);
 
+ */

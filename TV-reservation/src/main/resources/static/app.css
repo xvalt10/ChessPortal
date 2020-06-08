@@ -129,14 +129,11 @@ width:80%;
 
 
 #drawResignSection{
-	margin:10px 0px;
+	margin-bottom: 10px;
 }
 
 .square{
-	
- width:55px;
- height:55px
- 
+    
 }
 #annotatedMove:hover{cursor:pointer}
 
@@ -150,33 +147,44 @@ width:80%;
 }
 
 .promotionPieces{
-	border:1px solid gray;
+/* 	border:1px solid gray; */
 	margin-bottom:10px;
+	min-height:80px;
+	width:95%
 }
 
 .chessPiece{
-position:absolute;
+/*position:absolute;*/
 width:40px;
 height:40px;
 	top: 13%;left: 13%;
 	z-index: 1;
+	cursor: pointer;
 
 }
 
-.moveControlsWrapper{
-	display:flex;flex-direction: row; align-content: center; align-items:center;justify-content: center;
+.checkboxlabel{
+	margin-left:5px
 }
-.moveControlsWrapper img{
+
+.centeredFlexWrapper{
+	display:flex;
+	flex-direction: row;
+	 align-content: center; 
+	 align-items:center;
+	 justify-content: center;
+}
+.centeredFlexWrapper img{
 	max-height:50px;
 	margin:5px;
 
 }
-.moveControlsWrapper img{
+.centeredFlexWrapper img{
 	max-height:50px;
 	margin:5px;
 
 }
-.moveControlsWrapper img:hover{
+.centeredFlexWrapper img:hover{
 	cursor: pointer;
 
 }
@@ -184,14 +192,25 @@ height:40px;
 .playerNamesRow{
 	width: 100%;
 	margin-top: 1px;
+	margin-left: -15px;
+	margin-right: 15px;
 }
 
-.clockWrapper{
-	display:flex;flex-direction: column; justify-content: space-between; height: 440px;
+.centeredColumnWrapper{
+	display:flex;
+	flex-direction: column; 
+	justify-content: space-between; 
+	margin-bottom:10px
+	
+}
+
+.chessboardHeight{
+	height: 495px;
 }
 
 .clockRow{
-	flex: 0 0 50px;
+	flex: 0 0 80px;
+	
 }
 
 .clock{
@@ -208,25 +227,75 @@ height:40px;
 	color:black;
 }
 
-
 .notationWrapper{
 	width:95%;
 }
 
-.notationTable{
-	border:1px solid black;
-	width:95%;
-}
-.notationTableHeader td{
-	font-weight: bold;
-	max-height:10px;
+.notationRow{
+	flex: 1 1 200px;
 }
 
-.notationTable td{
+.notationHeaderTable{
+	margin-top:10px;
+	width:95%;
+	border:1px solid black;
+}
+.notationTable{
+	border:1px solid black;
+	width:99%;
+}
+
+
+.notationHeaderRow{
+/* display:block; */
+font-weight: bold;
+
+	
+}
+/* .notationHeaderTable tr{
+	width:100%
+}
+
+.notationHeaderTable td{
+	width:33%
+}
+
+.notationHeaderRow td{
+	width:33%
+} */
+
+
+.highlighted{
+	color:red;
+}
+
+.notationTable{
+	margin-left:1px;
+ 	max-height:220px; 
+	overflow-y: scroll;
+	
+}
+
+.notationTableHeader{
+	overflow-y: hidden;
+}
+
+.scrollableNotationContent tbody tr{
+	display:block;
+	width:100%;
+	max-height:20px
+}
+.scrollableNotationContent{
+   height:120px;
+   display:block;
+   overflow: auto;
+}
+/* .notationTable td, .notationHeaderRow td{
 	padding: 2px;
 	border:1px solid black;
-	width:33.3%;
-}
+ 	width:33%;
+	max-height:10px
+} */
 
 .mCSB_inside>.mCSB_container{
 	margin-right:0px
@@ -255,18 +324,49 @@ height:40px;
 	left: 0;
 }
 
+.flexWrapperCenteredItems{
+	display:flex;align-items: center;justify-content: center;
+}
+
 .chatWindow{
 	border:1px solid gray;
 	margin-bottom:5px;
 	padding:5px;
+	min-height: 100px;
+	border-radius: 5px !important;
+}
+
+.marginBottom{
+	margin-bottom: 10px;
+}
+
+.marginRight{
+	margin-right: 10px;
+}
+
+.sendChatMessageDiv{
+	width:100%;
+	display:flex;
+	align-items:stretch;
+	margin-top:10px
 }
 
 .chatMessageDiv{
 	margin-bottom:15px;
 }
 
+#chatmessage{
+	margin-left:5px;
+}
+
+#chatmessageInput{
+	flex: 1 1 50px;
+	margin-right: 10px;
+}
+
 .chatPostAuthor{
 	margin-bottom: 1px;
+	font-weight: bold;
 }
 
 .loader{
@@ -277,8 +377,14 @@ height:40px;
 	margin: 0 auto;
 }
 
-.svgOverChessboard{
-
+#newChessboardContainer{
+	float: left;
+    max-width: 500px;
+    max-height: 480px;
+    width: calc(100vw - 40px);
+    height: calc(95vw - 40px);
+    /* margin-right: 20px;*/
+    margin: 10px; 
 }
 
 /* LOADER 1 */
@@ -319,3 +425,128 @@ height:40px;
 		transform: rotate(360deg);
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* define height and width of scrollable area. Add 16px to width for scrollbar          */
+div.tableContainer {
+	clear: both;
+	border: 1px solid #963;
+	height: 285px;
+	overflow: auto;
+	width: 100%;
+}
+
+/* Reset overflow value to hidden for all non-IE browsers. */
+html>body div.tableContainer {
+	overflow: hidden;
+	width: 100%;
+}
+
+/* define width of table. IE browsers only                 */
+div.tableContainer table {
+	float: left;
+	/* width: 740px */
+}
+
+/* define width of table. Add 16px to width for scrollbar.           */
+/* All other non-IE browsers.                                        */
+html>body div.tableContainer table {
+	/* width: 756px */
+}
+
+/* set table header to a fixed position. WinIE 6.x only                                       */
+/* In WinIE 6.x, any element with a position property set to relative and is a child of       */
+/* an element that has an overflow property set, the relative value translates into fixed.    */
+/* Ex: parent element DIV with a class of tableContainer has an overflow property set to auto */
+
+thead.fixedHeader tr {
+	position: relative;
+}
+
+/* set THEAD element to have block level attributes. All other non-IE browsers            */
+/* this enables overflow to work on TBODY element. All other non-IE, non-Mozilla browsers */
+
+/* make the TH elements pretty */
+thead.fixedHeader th {
+	background: #C96;
+	border-left: 1px solid #EB8;
+	border-right: 1px solid #B74;
+	border-top: 1px solid #EB8;
+	font-weight: normal;
+	padding: 4px 3px;
+	text-align: left
+}
+
+html>body tbody.scrollContent {
+	/* display: block; */
+	height: 50px;
+	overflow: auto;
+	width: 100%
+}
+
+html>body thead.fixedHeader {
+	display: table;
+	overflow: auto;
+	width: 100%
+}
+
+/* make TD elements pretty. Provide alternating classes for striping the table */
+/* http://www.alistapart.com/articles/zebratables/                             */
+tbody.scrollContent td, tbody.scrollContent tr.normalRow td {
+	background: #FFF;
+	border-bottom: none;
+	border-left: none;
+	border-right: 1px solid #CCC;
+	border-top: 1px solid #DDD;
+	padding: 2px 3px 3px 4px
+}
+
+
+
+tbody.scrollContent tr.alternateRow td {
+	background: #EEE;
+	border-bottom: none;
+	border-left: none;
+	border-right: 1px solid #CCC;
+	border-top: 1px solid #DDD;
+	padding: 2px 3px 3px 4px
+}
+
+body {
+	background-color: #bdc3c7;
+  }
+  
+  .table-fixed {
+	width: 100%;
+	/* background-color: #f3f3f3; */
+  }
+  .table-fixed tbody {
+	height: 150px;
+	overflow-y: auto;
+	width: 100%;
+  }
+  .table-fixed thead, .table-fixed tbody, .table-fixed tr, .table-fixed td, .table-fixed th {
+	display: block;
+  }
+  .table-fixed tbody td {
+	float: left;
+  }
+  .table-fixed thead tr th {
+	float: left;
+
+	/* background-color: #f39c12;
+	border-color: #e67e22; */
+  }
+  
+	
