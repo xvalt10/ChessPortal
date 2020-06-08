@@ -4,6 +4,10 @@ import java.io.Serializable;
 
 public class Move implements Serializable {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 8200739043512976971L;
     int moveNumber;
     String whiteMove;
     String blackMove;

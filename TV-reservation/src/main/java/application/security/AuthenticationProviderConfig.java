@@ -1,14 +1,13 @@
 package application.security;
 
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
-
-import javax.sql.DataSource;
 
 @Configuration
 public class AuthenticationProviderConfig {
@@ -30,10 +29,12 @@ public class AuthenticationProviderConfig {
     public UserDetailsService userDetailsService(){
      JdbcDaoImpl jdbcImpl = new JdbcDaoImpl();
      jdbcImpl.setDataSource(dataSource);
-     jdbcImpl.setUsersByUsernameQuery("select username,password,enabled " +
+     jdbcImpl.setUsersByUsernameQuery(
+    		 "select username,password,enabled " +
              "from user_account " +
              "where username=?");
-     jdbcImpl.setAuthoritiesByUsernameQuery("select a.username, b.role " +
+     jdbcImpl.setAuthoritiesByUsernameQuery(
+    		 "select a.username, b.role " +
              "from user_account a, user_role b " +
              "where a.username=? and a.user_id=b.user_id");
      return jdbcImpl;

@@ -2,11 +2,9 @@ package application.sockets;
 
 import java.io.StringReader;
 
-
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.socket.CloseStatus;
@@ -14,29 +12,30 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import application.domain.Useraccount;
 import application.services.UserService;
 
 public class UserWebSocketServer extends TextWebSocketHandler {
 
 	@Autowired
 	private UserSessionHandler sessionHandler;
-	
+
 	@Autowired
 	private UserService userService;
 
-	public void afterConnectionEstablished(WebSocketSession session)
-			throws Exception {
-		
-		int myElo=userService.getUserAccount(session.getPrincipal().getName()).getElo();
-		String myUserName=session.getPrincipal().getName();
+	@Autowired
+	private TournamentHandler tournamentHandler;
 
-		sessionHandler.addSession(session, myUserName, myElo);
+	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+		Useraccount user = userService.getUserAccount(session.getPrincipal().getName());
+		sessionHandler.addSession(session, user);
+		System.out.println("Connection established - " + user.getUsername());
 
 	}
 
-	public void afterConnectionClosed(WebSocketSession session,
-			CloseStatus status) throws Exception {
-		System.out.println("Connection closed on websocket.Removing session.");
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+		System.out.println("Connection closed - " + session.getPrincipal().getName());
+		sessionHandler.informPlayerThatOponentDisconnected(session.getPrincipal().getName());
 		sessionHandler.removeSession(session);
 
 	}
@@ -44,11 +43,11 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 	@Override
 	public void handleTextMessage(WebSocketSession session, TextMessage message) {
 
-		try (JsonReader reader = Json.createReader(new StringReader(message
-				.getPayload()))) {
+		try (JsonReader reader = Json.createReader(new StringReader(message.getPayload()))) {
 			JsonObject jsonMessage = reader.readObject();
-			System.out.println(jsonMessage.toString());
-			System.out.println("Action:" + jsonMessage.get("action"));
+			System.out.println(
+					"Received message from " + session.getPrincipal().getName() + " : " + jsonMessage.toString());
+			// System.out.println("Action:" + jsonMessage.get("action"));
 
 			switch (jsonMessage.getString("action")) {
 			case "move":
@@ -67,16 +66,34 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 				sessionHandler.drawOfferReply(jsonMessage);
 				break;
 			case "gameResult":
-				sessionHandler.processGameResult(jsonMessage);break;
+				sessionHandler.processGameResult(jsonMessage);
+				break;
 			case "chatMessageLobby":
-				sessionHandler.sendChatMessage(jsonMessage);break;
+				sessionHandler.sendChatMessage(jsonMessage);
+				break;
 			case "queryPlayersOnline":
-				sessionHandler.getCountOfPlayersOnline(jsonMessage);break;
+				sessionHandler.getCountOfPlayersOnline(jsonMessage);
+				break;
 			case "getPlayersOnline":
-				sessionHandler.getAllPlayersOnline(jsonMessage);break;
+				sessionHandler.getAllPlayersOnline(jsonMessage);
+				break;
 			case "getGameInfo":
-					sessionHandler.getGameInfo(jsonMessage);break;
-
+				sessionHandler.getGameInfo(jsonMessage);
+				break;
+			case "offerRematch":
+				sessionHandler.offerRematch(jsonMessage);
+				break;
+			case "rematchOfferReply":
+				sessionHandler.processRematchOfferReply(jsonMessage);
+				break;
+			case "getTournamentInfo":
+				tournamentHandler.sendTournamentInfoToPlayer(jsonMessage.getString("tournamentId"),
+						jsonMessage.getString("username"));
+				break;
+			case "joinTournament":
+				tournamentHandler.joinTournament(jsonMessage.getString("tournamentId"),
+						jsonMessage.getString("username"));
+				break;
 			}
 
 		} catch (Exception e) {

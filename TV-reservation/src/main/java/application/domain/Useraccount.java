@@ -5,6 +5,7 @@ import java.io.Serializable;
 import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -32,24 +33,56 @@ public class Useraccount implements Serializable {
 
 	private String username;
 	
-	private int elo;
+	private int eloblitz;
+	
+	private int elorapid;
+	
+	private int elobullet;
+	
+	private int eloclassical;
 
-	public int getElo() {
-		return elo;
+	public int getEloblitz() {
+		return eloblitz;
 	}
 
-	public void setElo(int elo) {
-		this.elo = elo;
+	public void setEloblitz(int elo) {
+		this.eloblitz = elo;
 	}
+
+	public int getElorapid() {
+		return elorapid;
+	}
+
+	public void setElorapid(int elorapid) {
+		this.elorapid = elorapid;
+	}
+
+	public int getElobullet() {
+		return elobullet;
+	}
+
+	public void setElobullet(int elobullet) {
+		this.elobullet = elobullet;
+	}
+
+	public int getEloclassical() {
+		return eloclassical;
+	}
+
+	public void setEloclassical(int eloclassical) {
+		this.eloclassical = eloclassical;
+	}
+
+
 
 	//bi-directional many-to-one association to Timeslot
 	@OneToMany(mappedBy="userAccount")
-	@JsonBackReference
+	//@JsonManagedReference(value="useraccount-timeslots")
 	private List<Timeslot> timeSlots;
 
 	//bi-directional one-to-one association to UserRole
 	@OneToOne(mappedBy="userAccount")
-	@JsonBackReference
+	//@JsonManagedReference(value="useraccount-role")
 	private UserRole userRole;
 
 	public Useraccount() {

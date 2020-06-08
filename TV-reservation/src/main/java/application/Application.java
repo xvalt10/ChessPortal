@@ -49,7 +49,6 @@ public class Application {
 
 	@RequestMapping("/observe/{observedPlayer}/cancel")
 	public void stopObservingGameGame(@PathVariable String observedPlayer, Principal principal){
-		String observer = principal.getName();
 		Game game = userSessionHandler.findGameByPlayer(observedPlayer);
 		if(game != null){
 		game.getObservers().removeIf( player -> player.getUsername().equals(principal.getName()));}

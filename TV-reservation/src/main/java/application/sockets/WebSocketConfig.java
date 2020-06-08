@@ -13,12 +13,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(myHandler(), "/actions");
+        registry.addHandler(myHandler(), "/actions").setAllowedOrigins("http://localhost:4200");
     }
 
     @Bean
     public WebSocketHandler myHandler() {
         return new UserWebSocketServer();
     }
+    
+    
 
 }

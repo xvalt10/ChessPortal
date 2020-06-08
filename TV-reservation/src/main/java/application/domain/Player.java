@@ -8,6 +8,10 @@ import java.io.Serializable;
 @JsonIgnoreProperties(value = { "session" })
 public class Player implements Serializable {
 
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1742921267584361991L;
 	private String username;
 	private boolean isPlaying;
 	private boolean isSeeking;
@@ -16,7 +20,11 @@ public class Player implements Serializable {
 	private int minRatingForSeek;
 	private int maxRatingForSeek;
 	private transient WebSocketSession session;
-	private int elo;
+	private int eloblitz;
+	private int elobullet;
+	private int eloclassical;
+	private int elorapid;
+
 
 	public boolean isSeeking() {
 		return isSeeking;
@@ -24,11 +32,30 @@ public class Player implements Serializable {
 	public void setSeeking(boolean isSeeking) {
 		this.isSeeking = isSeeking;
 	}
-	public int getElo() {
-		return elo;
+	public int getEloblitz() {
+		return eloblitz;
 	}
-	public void setElo(int elo) {
-		this.elo = elo;
+	public void setEloblitz(int elo) {
+		this.eloblitz = elo;
+	}
+	
+	public int getElobullet() {
+		return elobullet;
+	}
+	public void setElobullet(int elobullet) {
+		this.elobullet = elobullet;
+	}
+	public int getEloclassical() {
+		return eloclassical;
+	}
+	public void setEloclassical(int eloclassical) {
+		this.eloclassical = eloclassical;
+	}
+	public int getElorapid() {
+		return elorapid;
+	}
+	public void setElorapid(int elorapid) {
+		this.elorapid = elorapid;
 	}
 	public boolean isPlaying() {
 		return isPlaying;

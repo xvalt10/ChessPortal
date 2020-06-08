@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -14,14 +13,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import application.domain.Timeslot;
 import application.domain.TimeSlotRepository;
-import application.domain.Useraccount;
+import application.domain.Timeslot;
 import application.domain.UserAccountRepository;
+import application.domain.Useraccount;
 
 @RestController
 @RequestMapping("/Reservation")

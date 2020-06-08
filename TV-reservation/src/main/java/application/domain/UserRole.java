@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 
@@ -20,12 +21,13 @@ public class UserRole implements Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int userroleId;
 
+	
 	private String role;
 
 	//bi-directional one-to-one association to Useraccount
 	@OneToOne
-	@JoinColumn(name="userId")
-	@JsonManagedReference
+	@JoinColumn(name="userId")	
+	@JsonBackReference
 	private Useraccount userAccount;
 
 	public UserRole() {

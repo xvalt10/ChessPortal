@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.math.BigDecimal;
@@ -35,7 +36,7 @@ public class Timeslot implements Serializable {
 	//bi-directional many-to-one association to Useraccount
 	@ManyToOne
 	@JoinColumn(name="userId")
-	@JsonManagedReference
+	@JsonBackReference
 	private Useraccount userAccount;
 
 	public Timeslot() {

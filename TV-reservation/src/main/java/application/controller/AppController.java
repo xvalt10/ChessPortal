@@ -1,22 +1,17 @@
 package application.controller;
 
-import java.security.Principal;
-import java.util.Base64;
-import java.util.Collection;
 
-import application.domain.Move;
+import application.domain.UserAccountRepository;
+import application.domain.Useraccount;
 import application.sockets.UserSessionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/")
@@ -25,10 +20,13 @@ public class AppController {
 
     UserDetailsService userDetailsService;
     UserSessionHandler userSessionHandler;
+    UserAccountRepository userAccountRepository;
+    
 
-    public AppController(UserDetailsService userDetailsService, UserSessionHandler userSessionHandler){
+    public AppController(UserDetailsService userDetailsService, UserSessionHandler userSessionHandler, UserAccountRepository userAccountRepository){
         this.userDetailsService = userDetailsService;
         this.userSessionHandler = userSessionHandler;
+        this.userAccountRepository = userAccountRepository;
     }
 	
 	@RequestMapping(method = RequestMethod.GET)
@@ -41,6 +39,7 @@ public class AppController {
 	    UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         return user.getUsername().equals(userDetails.getUsername()) && user.getPassword().equals(userDetails.getPassword());
     }
+    
 
 
 
