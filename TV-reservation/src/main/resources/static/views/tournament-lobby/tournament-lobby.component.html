@@ -1,0 +1,26 @@
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="row marginBottom">
+                <h5 class="marginRight" style="padding-top:8px" >Tournament {{time}} + {{increment}}</h5>
+                <button class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
+            </div>
+            <div class="row">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Player name</th>
+                            <th>Player elo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let player of tournamentPlayers">
+                            <td>{{player.username}}</td>
+                            <td>{{player.elobullet}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

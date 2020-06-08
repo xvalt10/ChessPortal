@@ -1,0 +1,42 @@
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+          User registration
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger" role="alert" *ngIf="backendError" >{{backendError}}</div>
+            <form [formGroup]="userRegistrationForm" (ngSubmit)="registerUser()">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" formControlName="username" class="form-control" [ngClass]="{ 'is-invalid': submitted && formControls.username.errors }" />
+                    <div *ngIf="submitted && formControls.username.errors" class="invalid-feedback">
+                        <div *ngIf="formControls.username.errors.required">Username is required</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" formControlName="password" class="form-control" [ngClass]="{ 'is-invalid': submitted && formControls.password.errors }" />
+                    <div *ngIf="submitted && formControls.password.errors" class="invalid-feedback">
+                        <div *ngIf="formControls.password.errors.required">Password is required</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password2">Confirm Password</label>
+                    <input type="password" formControlName="password2" class="form-control" [ngClass]="{ 'is-invalid': submitted && formControls.password2.errors }" />
+                    <div *ngIf="submitted && formControls.password2.errors" class="invalid-feedback">
+                        <div *ngIf="formControls.password2.errors.required">Password is required</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button [disabled]="loading" class="btn btn-primary">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                        Register user
+                    </button>
+                </div>
+            </form>
+        </div>
+      </div>
+
+    
+    </div>
+    

@@ -1,0 +1,187 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light marginBottom">
+    <a class="navbar-brand" href="#">Slovak Chess Server</a>
+    <button class="navbar-toggler" type="button" (click)="navbarCollapsed = !navbarCollapsed" data-toggle="collapse" data-target="#navbarSupportedContent" 
+    aria-controls="navbarSupportedContent" [attr.aria-expanded]="!navbarCollapsed" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarSupportedContent" [ngClass]="{'show':!navbarCollapsed}">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active"  *ngIf="!userLoggedIn()">
+            <a class="nav-link" routerLink="register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" routerLink="login" *ngIf="!userLoggedIn()">Login</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" routerLink="lobby">Play</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">Watch</a>
+        </li>
+        <li class="nav-item" *ngIf="userLoggedIn()">
+            <a class="nav-link" routerLink="analyzeGame">Analyse</a>
+        </li>
+       
+      </ul>
+      <form class="form-inline my-2 my-lg-0">
+       
+            <a class="nav-link marginRight" *ngIf="userLoggedIn()" style="cursor:pointer">
+                <span class="glyphicon glyphicon-user"></span>{{user}}
+            </a>
+         
+            <a *ngIf="userLoggedIn()"  (click)="logout()" style="cursor:pointer">
+                <span class="glyphicon glyphicon-log-out"></span> Log out
+            </a>
+  
+      </form>
+    </div>
+  </nav>
+<!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container" style="margin-bottom: 0px">
+ 
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"
+                    aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span> <span
+                    class="icon-bar"></span> <span class="icon-bar"></span> <span
+                    class="icon-bar"></span>
+            </button>
+
+            <a class="navbar-brand" href="#">ChessHeaven</a>
+        </div>
+
+        <div class="collapse navbar-collapse"
+             id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+
+                <li>
+                    <a href="#/register">Register</a>
+                </li>
+                <li ng-if="authenticated!==true">
+                    <a href="#/loginpage">Login</a>
+                </li>
+
+                <li ng-if="authenticated==true && userHasRole('ROLE_ADMIN')"><a
+                        href="#/admin">Admin Section</a></li>
+
+                <li class="dropdown" ng-if="authenticated==true">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">Chess<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#/playingHall">Play game</a></li>
+                        <li><a href="#/lobby">Lobby</a></li>
+                        <li><a routerLink="/analyzeGame">Analyse game</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li ng-if="authenticated==true">
+                    <a href="#/userProfile">
+                        <span class="glyphicon glyphicon-user"></span> {{user}}
+                    </a>
+                </li>
+
+                <li ng-if="authenticated==true">
+                    <a ng-click="logout()" style="cursor:pointer">
+                        <span class="glyphicon glyphicon-log-out"></span> Log out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    
+    </div>
+
+</nav> -->
+
+<div *ngIf="routerOnHomePage()"  class="container">
+    <div class="row">
+        <div class="col">
+            <h5>Scheduled tournaments</h5> <button>Join</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h5>Best players bullet</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Player name</th>
+                        <th>Player elo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let player of bestPlayersBullet">
+                        <td >{{player.username}}</td>
+                        <td >{{player.elobullet}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+        <div class="col">
+            <h5>Best players blitz</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th >Player name</th>
+                        <th >Player elo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let player of bestPlayersBlitz">
+                        <td >{{player.username}}</td>
+                        <td >{{player.eloblitz}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+        </div>
+        
+        <div class="col">
+            <h5>Best players rapid</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th >Player name</th>
+                        <th >Player elo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let player of bestPlayersRapid">
+                        <td >{{player.username}}</td>
+                        <td >{{player.elorapid}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="col">
+            <h5>Best players classical</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th >Player name</th>
+                        <th >Player elo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let player of bestPlayersClassical">
+                        <td >{{player.username}}</td>
+                        <td >{{player.eloclassical}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    
+</div>
+
+<router-outlet></router-outlet>
+

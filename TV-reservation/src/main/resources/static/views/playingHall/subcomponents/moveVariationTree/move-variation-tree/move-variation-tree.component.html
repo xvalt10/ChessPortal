@@ -1,0 +1,24 @@
+<div>
+    (<span *ngFor="let moveOfVariation of mainVariation.moves; index as $index" >
+        {{moveOfVariation.moveNumber}}. <span *ngIf="mainVariation.moves[0].whiteMove === '' && $index === 0">..</span>
+      
+        <a *ngIf="moveOfVariation.whiteMove" id="{{'moveOfVariationNo'+mainVariation.variationId+'White'+moveOfVariation.moveNumber}}" 
+        [ngClass] = "{'highlighted': mainVariation.variationId === moveToHighlight.variationId && 
+                                     moveOfVariation.moveNumber === moveToHighlight.moveNumber + 1 &&
+                                     true === moveToHighlight.whiteMove}"
+        (click)="redrawPosition(moveOfVariation.chessboardAfterWhiteMove, mainVariation.variationId )">{{moveOfVariation.whiteMove}} </a>
+          
+        <a *ngIf="moveOfVariation.blackMove" id="{{'moveOfVariationNo'+mainVariation.variationId+'Black'+moveOfVariation.moveNumber}}" 
+        [ngClass] = "{'highlighted': mainVariation.variationId === moveToHighlight.variationId && 
+                                     moveOfVariation.moveNumber === moveToHighlight.moveNumber + 1 &&
+                                     false === moveToHighlight.whiteMove}"
+        (click)="redrawPosition(moveOfVariation.chessboardAfterBlackMove, mainVariation.variationId )">{{moveOfVariation.blackMove}}</a>
+     
+        <span *ngFor="let subvariation of moveOfVariation.whiteMoveVariations">
+            <variation-tree [moveToHighlight]="moveToHighlight" [mainVariation]="subvariation" (positionToRedraw)="redrawPosition($event.fen, $event.variationId)"></variation-tree>
+        </span>
+        <span *ngFor="let subvariation of moveOfVariation.blackMoveVariations">
+            <variation-tree [moveToHighlight]="moveToHighlight" [mainVariation]="subvariation" (positionToRedraw)="redrawPosition($event.fen,$event.variationId)"></variation-tree>
+        </span>
+    </span>)
+</div>
