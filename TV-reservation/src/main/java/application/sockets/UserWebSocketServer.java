@@ -12,6 +12,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import application.domain.Player;
 import application.domain.Useraccount;
 import application.services.UserService;
 
@@ -27,7 +28,7 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 	private TournamentHandler tournamentHandler;
 
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-		Useraccount user = userService.getUserAccount(session.getPrincipal().getName());
+		Player user = userService.getUserAccount(session.getPrincipal().getName());
 		sessionHandler.addSession(session, user);
 		System.out.println("Connection established - " + user.getUsername());
 
@@ -79,6 +80,9 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 				break;
 			case "getGameInfo":
 				sessionHandler.getGameInfo(jsonMessage);
+				break;
+			case "playerLeftOngoingGame":
+				sessionHandler.informPlayerThatOponentDisconnected(session.getPrincipal().getName());
 				break;
 			case "offerRematch":
 				sessionHandler.offerRematch(jsonMessage);

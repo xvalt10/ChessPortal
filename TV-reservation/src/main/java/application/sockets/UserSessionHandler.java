@@ -1,6 +1,11 @@
 package application.sockets;
 
+import static application.util.GameUtil.getPlayerEloBasedOnGameTime;
+import static application.util.GameUtil.setPlayerEloBasedOnGameTime;
+
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,8 +14,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.spi.JsonProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +25,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import application.domain.Game;
+import application.domain.GameRepository;
 import application.domain.Move;
 import application.domain.Player;
+import application.domain.PlayerRepository;
+import application.domain.Tournament;
 import application.domain.Useraccount;
 import application.services.UserService;
 import application.util.GameTimeType;
+import application.util.JpaJsonConverter;
 
 @Component
 //@Singleton
@@ -31,44 +45,61 @@ public class UserSessionHandler {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	GameRepository gameRepository;
+	
+	@Autowired
+	PlayerRepository playerRepository;
+	
+	@Autowired
+	JpaJsonConverter jpaConverter;
+	
+	@Autowired
+	TournamentHandler tournamentHandler;
 
 	private final Map<String, Player> sessions = new ConcurrentHashMap<>();
 	private final Map<String, Game> games = new ConcurrentHashMap<>();
-	
+
 	public Player getPlayerByName(String username) {
 		return sessions.get(username);
 	}
 
-	public void addSession(WebSocketSession session, Useraccount userAccount) {
-		// System.out.println("Adding new session");
-		Player player = new Player();
-		String username = userAccount.getUsername();
-		player.setUsername(username);
+	public void addSession(WebSocketSession session, Player player) {
+		
 		player.setPlaying(false);
 		player.setSession(session);
-		// System.out.println("Session status:" + session.isOpen());
 
-		player.setElobullet(userAccount.getElobullet());
-		player.setEloblitz(userAccount.getEloblitz());
-		player.setElorapid(userAccount.getElorapid());
-		player.setEloclassical(userAccount.getEloclassical());
-		sessions.put(username, player);
+		sessions.put(player.getUsername(), player);
 
 		// System.out.println("Updating session completed." + sessions.size());
-
 	}
-	
+
 	public void informPlayerThatOponentDisconnected(String disconnectedPlayer) {
-		
+
 		Game game = findGameByPlayer(disconnectedPlayer);
-		if(game != null) {
-			String oponent = disconnectedPlayer.equals(game.getWhitePlayer().getUsername()) ? game.getBlackPlayer().getUsername():game.getWhitePlayer().getUsername();
+		if (game != null) {
+			Player player = sessions.get(disconnectedPlayer);
+			if (player != null) {
+				player.setPlaying(false);
+				player.setGameId(null);
+			}
+			String oponentName = disconnectedPlayer.equals(game.getWhitePlayer().getUsername())
+					? game.getBlackPlayer().getUsername()
+					: game.getWhitePlayer().getUsername();
+			Player oponent = sessions.get(oponentName);
 			JsonProvider provider = JsonProvider.provider();
-			JsonObject oponentDisconnectedMessage = provider.createObjectBuilder().add("action", "oponentDisconnected").add("oponent", oponent)
-					.build();
-			sendMessageToSession(sessions.get(oponent).getSession(), oponentDisconnectedMessage);
+			JsonObject oponentDisconnectedMessage = provider.createObjectBuilder().add("action", "oponentDisconnected")
+					.add("oponent", oponentName).build();
+			if (sessions.get(oponentName) != null) {
+				sendMessageToSession(oponent.getSession(), oponentDisconnectedMessage);
+			}
+			
+			if((player == null || !player.isPlaying()) && (oponent == null || !oponent.isPlaying())) {
+				games.remove(game.getGameId());
+			}
 		}
-		
+
 	}
 
 	public void removeSession(WebSocketSession session) {
@@ -124,88 +155,90 @@ public class UserSessionHandler {
 
 	public Game findGameByPlayer(String observedPlayer) {
 		return games.values().stream()
-				.filter(gameFromCollection -> gameFromCollection.getWhitePlayer().getUsername().equals(observedPlayer)
-						|| gameFromCollection.getBlackPlayer().getUsername().equals(observedPlayer))
+				.filter(gameFromCollection -> gameFromCollection.isOngoing()
+						&& (gameFromCollection.getWhitePlayer().getUsername().equals(observedPlayer)
+								|| gameFromCollection.getBlackPlayer().getUsername().equals(observedPlayer)))
 				.findFirst().orElse(null);
 	}
+	public Game findGameByGameId(String gameId) {
+		Game game = games.get(gameId);
+		
+		return (game != null && game.isOngoing()) ? game : null;
+	}
 
-	public void startGame(Player whitePlayer, Player blackPlayer, int time, int increment) {
-		Game newGame = new Game(whitePlayer, blackPlayer, time, increment);
-		List<String> gameIds = games.values().stream().filter(game->game.getWhitePlayer().getUsername().equals(whitePlayer.getUsername())||
-				game.getBlackPlayer().getUsername().equals(blackPlayer.getUsername())).map(Game::getGameId).collect(Collectors.toList());
+	public Game findTopRatedGameByType(GameTimeType gameTimeType) {
+		return games.values().stream().filter(game -> game.getGameTimeType().equals(gameTimeType) && game.isOngoing())
+				.max(Comparator.comparing(Game::getMaxPlayerRating)).orElse(null);
+	}
+
+	public String startGame(Player whitePlayer, Player blackPlayer, int time, int increment) {
+		Game newGame = new Game(whitePlayer, blackPlayer, time * 60, increment);
+		
+		newGame = gameRepository.save(newGame);
+		List<String> gameIds = games.values().stream()
+				.filter(game -> game.getWhitePlayer().getUsername().equals(whitePlayer.getUsername())
+						|| game.getBlackPlayer().getUsername().equals(blackPlayer.getUsername()))
+				.map(Game::getGameId).collect(Collectors.toList());
 		gameIds.forEach(gameId -> games.remove(gameId));
 		games.put(newGame.getGameId(), newGame);
 
-		JsonObject gameProperties = createGameIdMessage(newGame.getGameId());
+		JsonObject gameProperties = createGameIdMessage(newGame);
 
+		System.out.println("sendingMessage startGame to:" + whitePlayer.getUsername());
 		sendMessageToSession(whitePlayer.getSession(), gameProperties);
 
+		System.out.println("sendingMessage startGame to:" + blackPlayer.getUsername());
 		sendMessageToSession(blackPlayer.getSession(), gameProperties);
+		
+		whitePlayer.setGameId(newGame.getGameId());
+		blackPlayer.setGameId(newGame.getGameId());
 
 		whitePlayer.setPlaying(true);
 		blackPlayer.setPlaying(true);
+		
+		return newGame.getGameId();
 	}
 
-	private int getPlayerEloBasedOnGameTime(Player player, GameTimeType gameTimeType) {
-		int elo = 0;
-		switch (gameTimeType) {
-		case BULLET:
-			elo = player.getElobullet();
-			break;
-		case BLITZ:
-			elo = player.getEloblitz();
-			break;
-		case RAPID:
-			elo = player.getElorapid();
-			break;
-		case CLASSICAL:
-			elo = player.getEloclassical();
-			break;
-		}
-
-		return elo;
-	}
-
-	private void setPlayerEloBasedOnGameTime(Player player, GameTimeType gameTymeType, int elo) {
-
-		switch (gameTymeType) {
-		case BULLET:
-			player.setElobullet(elo);
-			break;
-		case BLITZ:
-			player.setEloblitz(elo);
-			break;
-		case RAPID:
-			player.setElorapid(elo);
-			break;
-		case CLASSICAL:
-			player.setEloclassical(elo);
-			break;
-		}
-
-	}
-
-	private JsonObject createGameIdMessage(String gameId) {
+	private JsonObject createGameIdMessage(Game game) {
 		JsonProvider provider = JsonProvider.provider();
-		JsonObject gameIdMessage = provider.createObjectBuilder().add("action", "startGame").add("gameId", gameId)
-				.build();
+		JsonObject gameIdMessage = provider.createObjectBuilder().add("action", "startGame")
+				.add("gameId", game.getGameId()).add("whitePlayer", game.getWhitePlayer().getUsername())
+				.add("blackPlayer", game.getBlackPlayer().getUsername()).build();
 		System.out.println("GameId message:" + gameIdMessage.toString());
 		return gameIdMessage;
 	}
 
 	private JsonObject createGameInfoMessage(Game game) {
-		JsonProvider provider = JsonProvider.provider();
-		JsonObject whitePlayer = provider.createObjectBuilder().add("username", game.getWhitePlayer().getUsername())
+		JsonObjectBuilder jsonObjectBuilder = JsonProvider.provider().createObjectBuilder();
+		JsonArrayBuilder movesArrayBuilder = JsonProvider.provider().createArrayBuilder();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		
+		for(Map.Entry<Integer,Move> entry: game.getAnnotatedMoves().entrySet()) {
+			try {
+				movesArrayBuilder.add(mapper.writeValueAsString(entry.getValue()));
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		JsonObject whitePlayer = jsonObjectBuilder.add("username", game.getWhitePlayer().getUsername())
 				.add("elo", getPlayerEloBasedOnGameTime(game.getWhitePlayer(), game.getGameTimeType())).build();
-		JsonObject blackPlayer = provider.createObjectBuilder().add("username", game.getBlackPlayer().getUsername())
-				.add("elo", getPlayerEloBasedOnGameTime(game.getBlackPlayer(), game.getGameTimeType())).build();
-		JsonObject addMessage = provider.createObjectBuilder().add("action", "gameInfo").add("whitePlayer", whitePlayer)
-				// .add("whitePlayerElo", game.getWhitePlayer().getElo())
-				.add("blackPlayer", blackPlayer)
-				// .add("blackPlayerElo", game.getBlackPlayer().getElo())
-				.add("time", game.getTime()).add("increment", game.getIncrement()).add("gameId", game.getGameId())
 
+		JsonObject blackPlayer = jsonObjectBuilder.add("username", game.getBlackPlayer().getUsername())
+				.add("elo", getPlayerEloBasedOnGameTime(game.getBlackPlayer(), game.getGameTimeType())).build();
+
+		JsonObject addMessage = jsonObjectBuilder
+				.add("action", "gameInfo")
+				.add("whitePlayer", whitePlayer)
+				.add("blackPlayer", blackPlayer)
+				.add("time", game.getTime())
+				.add("increment", game.getIncrement())
+				.add("gameId", game.getGameId())
+				.add("annotatedMoves", movesArrayBuilder)
 				.build();
+
 		System.out.println("Startgame message:" + addMessage.toString());
 		return addMessage;
 	}
@@ -232,11 +265,19 @@ public class UserSessionHandler {
 			} else if (messageAuthor.equals(game.getBlackPlayer().getUsername())) {
 				System.out.println("Sending response to Game Info Message to:" + game.getBlackPlayer().getUsername());
 				sendMessageToSession(game.getBlackPlayer().getSession(), gameProperties);
+				
+			} else {
+				Player observer = sessions.get(messageAuthor);
+				if (observer != null) {
+					game.getObservers().add(observer);
+					System.out.println("Sending response to Game Info Message to:" + observer.getUsername());
+					sendMessageToSession(observer.getSession(), gameProperties);
+				}
 			}
 		}
-
 	}
 
+	
 	public void offerDraw(JsonObject message) {
 		System.out.println("Offering draw.");
 		sendMessageToSession(sessions.get(message.getString("oponent")).getSession(), message);
@@ -246,11 +287,9 @@ public class UserSessionHandler {
 	public void drawOfferReply(JsonObject message) {
 		System.out.println("Replying to draw offer.");
 		String oponent = sessions.get(message.getString("oponent")).getUsername();
-		/*
-		 * Player player2 = sessions.get(message.getString("player")); boolean
-		 * drawAccepted = message.getBoolean("acceptDraw");
-		 */
+
 		sendMessageToSession(sessions.get(oponent).getSession(), message);
+
 		/*
 		 * if (drawAccepted) { System.out.println("Draw accepted. Ending game."); int
 		 * myNewElo = message.getInt("myNewElo"); int oponentsNewElo =
@@ -261,7 +300,13 @@ public class UserSessionHandler {
 
 	}
 
-	public void endGame(Game game, int eloAfterGameWhite, int eloAfterGameBlack) {
+	public void endGame(Game game, JsonObject message) {
+		
+		
+		int eloAfterGameWhite = message.getInt("whitePlayerElo");
+		int eloAfterGameBlack = message.getInt("blackPlayerElo");
+		String gameResult = message.getString("gameResult");
+		String annotatedMovesJson = message.getString("annotatedMoves");
 
 		Player whitePlayer = game.getWhitePlayer();
 		Player blackPlayer = game.getBlackPlayer();
@@ -270,13 +315,22 @@ public class UserSessionHandler {
 		setPlayerEloBasedOnGameTime(whitePlayer, gameTimeType, eloAfterGameWhite);
 		setPlayerEloBasedOnGameTime(blackPlayer, gameTimeType, eloAfterGameBlack);
 
-		userService.updateElo(userService.getUserAccount(whitePlayer.getUsername()).getUserId(), eloAfterGameWhite,
+		userService.updateElo(whitePlayer.getUsername(), eloAfterGameWhite,
 				gameTimeType);
-		userService.updateElo(userService.getUserAccount(blackPlayer.getUsername()).getUserId(), eloAfterGameBlack,
+		userService.updateElo(blackPlayer.getUsername(), eloAfterGameBlack,
 				gameTimeType);
 
+		whitePlayer.setGameId(null);
+		blackPlayer.setGameId(null);
 		whitePlayer.setPlaying(false);
 		blackPlayer.setPlaying(false);
+		
+		
+		game.setGameresult(gameResult);
+		game.setOngoing(false);
+		game.setMovesJson(annotatedMovesJson);
+		
+		gameRepository.save(game);
 
 		if (game != null) {
 			games.remove(game.getGameId());
@@ -286,27 +340,40 @@ public class UserSessionHandler {
 	public void processGameResult(JsonObject message) {
 
 		String gameId = message.getString("gameId");
+		String tournamentId = message.getString("tournamentId");
 		String oponent = message.getString("oponent");
-		int whitePlayerElo = message.getInt("whitePlayerElo");
-		int blackPlayerElo = message.getInt("blackPlayerElo");
+		String gameResult = message.getString("gameResult");
+					
 		Game game = games.get(gameId);
-
+		
 		if (game != null) {
-
-			endGame(game, whitePlayerElo, blackPlayerElo);
-
+			
+			endGame(game, message);
 			Set<String> usersToForwardMessageTo = game.getObservers().stream().map(Player::getUsername)
 					.collect(Collectors.toSet());
 			usersToForwardMessageTo.add(oponent);
 			sendMessageToMultipleUsers(usersToForwardMessageTo, message);
+			if(tournamentId != null) {
+				Tournament tournament = tournamentHandler.getTournament(tournamentId);
+				tournamentHandler.processTournamentGameResult(tournament, gameId, gameResult);
+				tournamentHandler.startNextRoundIfAllGamesFinished(tournament);
+			}
 		}
+		
+		
 	}
 
-	public void addObserverToGame(Game game, String observerName) {
+	public boolean addObserverToGame(Game game, String observerName) {
 		Player observer = sessions.get(observerName);
+		
+		boolean observerAddedSuccessfully = false;
+		
 		if (observer != null) {
 			game.getObservers().add(observer);
-		}
+			observerAddedSuccessfully = true;
+		} 
+		
+		return observerAddedSuccessfully;
 	}
 
 	public void makeMove(JsonObject message) {
@@ -314,11 +381,13 @@ public class UserSessionHandler {
 		boolean whiteMove = message.getBoolean("whiteMove");
 		String annotatedMove = message.getString("annotatedMove");
 		String chessboardAfterMove = message.getString("chessboardAfterMove");
-		String opponent = message.getString("oponent");
+		String opponent = null;
 		int whiteTime = message.getInt("whiteTime");
 		int blackTime = message.getInt("blackTime");
 
 		Game game = games.get(gameId);
+		game.getWhitePlayer().setTime(whiteTime);
+		game.getBlackPlayer().setTime(blackTime);
 
 		if (whiteMove) {
 			Move move = new Move();
@@ -328,7 +397,7 @@ public class UserSessionHandler {
 			move.setBlackTime(blackTime);
 			move.setWhiteTime(whiteTime);
 			move.setChessboardAfterWhiteMove(chessboardAfterMove);
-
+			opponent = game.getBlackPlayer().getUsername();
 			game.getAnnotatedMoves().put(moveNumber, move);
 		} else {
 			int moveNumber = game.getAnnotatedMoves().size();
@@ -337,9 +406,11 @@ public class UserSessionHandler {
 			move.setBlackTime(blackTime);
 			move.setWhiteTime(whiteTime);
 			move.setChessboardAfterBlackMove(chessboardAfterMove);
+			opponent = game.getWhitePlayer().getUsername();
 		}
 		Set<String> usersToForwardMessageTo = game.getObservers().stream().map(Player::getUsername)
 				.collect(Collectors.toSet());
+		System.out.println("Sending move to observers:"+usersToForwardMessageTo);
 		usersToForwardMessageTo.add(opponent);
 		sendMessageToMultipleUsers(usersToForwardMessageTo, message);
 
@@ -362,7 +433,9 @@ public class UserSessionHandler {
 			Player playerInfo = player.getValue();
 			JsonObject jsonPlayerObject = provider.createObjectBuilder().add("name", player.getKey())
 					.add("elo", playerInfo.getEloblitz()).add("isPlaying", playerInfo.isPlaying())
+					.add("gameId", playerInfo.getGameId() == null ? "" : playerInfo.getGameId() )
 					.add("isSeeking", playerInfo.isSeeking()).build();
+					
 			if (playerInfo.isPlaying()) {
 				numberOfPlayingPlayers++;
 			}
@@ -438,8 +511,9 @@ public class UserSessionHandler {
 
 	private void sendMessageToMultipleUsers(Set<String> users, JsonObject message) {
 		for (String user : users) {
-			if(sessions.get(user)!=null) {
-			sendMessageToSession(sessions.get(user).getSession(), message);}
+			if (sessions.get(user) != null) {
+				sendMessageToSession(sessions.get(user).getSession(), message);
+			}
 		}
 	}
 

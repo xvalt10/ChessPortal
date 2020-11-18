@@ -1,0 +1,84 @@
+<div class="wrap-whole">
+   
+        <section class="vertical-nav-bar col-2">
+            <div class="menu-container ">
+                
+                <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':showUserStatistics}" (click)="clickUserStatistics()">
+                    <a  >
+                        <i class="fa fa-home main-nav-icon"></i>
+                        <div>User statistics</div>
+                    </a>
+                </div>
+                <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':showGameHistory}" (click)="clickGameHistory()">
+                    <a >
+                        <i class="fa fa-home main-nav-icon"></i>
+                        <div>Game History</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="menu-container">
+                <!-- more links you can add -->
+            </div>
+        </section>
+
+    <div class="container">
+        <div *ngIf="showUserStatistics">
+            
+            <div class="row marginBottom">
+                
+                <div style="display:flex;flex-direction: column;">
+                    <span class="sectionTitle">Games statistics</span>
+                    <span>Games played: {{games.games.length}}</span>
+                    <span>Wins: {{games.wins}} ({{games.wins / games.games.length * 100 | number:'1.0-1'}}%)</span>
+                    <span>Losses: {{games.losses}}
+                        ({{games.losses / games.games.length * 100 | number:'1.0-1'}}%)</span>
+                    <span>Draws: {{games.draws}}
+                        ({{games.draws / games.games.length * 100 | number:'1.0-1'}}%)</span>
+                </div>
+            </div>
+            <div class="row">
+                <span class="sectionTitle">Rating progression</span>
+                </div>
+            <div class="row">                  
+                    <div class = "col-sm-6"><app-rating-chart ratingType='BLITZ'></app-rating-chart></div>
+                    <div class = "col-sm-6"><app-rating-chart ratingType='RAPID'></app-rating-chart></div>
+                    
+               
+            </div>
+        </div>
+        <div *ngIf="showGameHistory">
+            <div class="row marginBottom" style="border:1px solid black" *ngFor="let game of games.games">
+
+                <div class="col-sm-4">
+                    <chessboard [gamedata]="game" [color]="'w'" [mode]="'O'" [showClocks]=false></chessboard>
+                </div>
+
+                <div class="col-sm-8">
+                    <div class="row">
+                        <span>{{game.whitePlayer.username}} ({{game.whitePlayer.eloblitz}}) -
+                            {{game.blackPlayer.username}}
+                            ({{game.blackPlayer.eloblitz}}) </span>
+
+                    </div>
+                    <div class="row">
+                        <span>Game result: {{game.gameresult}}</span>
+                    </div>
+                    <div class="row">
+                        <span>Time: {{game.time/60}} + {{game.increment}}</span>
+                    </div>
+                    <div class="row">
+                        <span>Date: {{game.gameTimestamp | date:'dd.MM.yyyy HH:mm'}}</span>
+                    </div>
+                    <div class="row" style="margin-top:10px">
+                        <span>Moves:</span>
+                    </div>
+                    <div class="row">
+                        <span *ngFor="let move of game.annotatedMoves; index as moveNumber"
+                            style="margin-right:5px">{{moveNumber + 1}}. {{move.whiteMove}} {{move.blackMove}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

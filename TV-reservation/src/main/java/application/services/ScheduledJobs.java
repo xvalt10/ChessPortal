@@ -8,7 +8,11 @@ import java.util.Date;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +21,20 @@ import application.domain.TimeSlotRepository;
 
 @Component
 @Transactional
+@Configuration
 public class ScheduledJobs {
+	
+    @Bean
+    @Qualifier("tournamentScheduler")
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler(){
+        ThreadPoolTaskScheduler threadPoolTaskScheduler
+          = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.setPoolSize(5);
+        threadPoolTaskScheduler.setThreadNamePrefix(
+          "ThreadPoolTaskScheduler");
+        return threadPoolTaskScheduler;
+    }
+
 	
 	@Autowired
 	TimeSlotRepository timeslotRepository;

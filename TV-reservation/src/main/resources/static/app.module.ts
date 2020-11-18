@@ -1,5 +1,7 @@
 import { HttpModule } from '@angular/http';
 
+import { ChartsModule } from 'ng2-charts';
+
 import { JwtAuthenticationService } from './js/services/jwtAuthenticationService';
 import { AuthGuard } from './js/services/auth.guard';
 import { LoginComponent } from './views/login/login.component';
@@ -18,15 +20,25 @@ import { AuthInterceptor } from 'js/services/auth.interceptor';
 import { RegistrationComponent } from './views/registration/registration.component';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { TournamentLobbyComponent } from './views/tournament-lobby/tournament-lobby.component';
+import { WatchGamesComponent } from './views/watch-games/watch-games.component';
+import { ChessboardAndClockComponent } from './js/components/chessboard-and-clock/chessboard-and-clock.component';
+import { AnnotatedMovesComponent } from './js/components/annotated-moves/annotated-moves.component';
+import { ChessClockComponent } from './js/components/chess-clock/chess-clock.component';
+import { PositionSetupComponent } from './js/components/position-setup/position-setup.component';
+import { UserProfileComponent } from './js/components/user-profile/user-profile.component';
+import { RatingChartComponent } from './js/components/rating-chart/rating-chart.component';
 
 const appRoutes: Routes = [
     { path: 'analyzeGame', component: PlayingHall, canActivate: [AuthGuard]},
-    { path: 'playGame/:gameId', component: PlayingHall, canActivate: [AuthGuard]},
-    { path: 'observeGame/:observedPlayer', component: PlayingHall, canActivate: [AuthGuard]},
+    { path: 'game/:gameId/:action', component: PlayingHall, canActivate: [AuthGuard]},
+    { path: 'tournamentgame/:tournamentId/:gameId/:action', component: PlayingHall, canActivate: [AuthGuard]},
+    //{ path: 'observeGame/:gameId', component: PlayingHall, canActivate: [AuthGuard]},
     { path: 'register', component: RegistrationComponent},
+    { path: 'watchGames', component: WatchGamesComponent},
     { path: 'login', component: LoginComponent},
     { path: 'lobby', component: LobbyComponent, canActivate: [AuthGuard]},
     { path: 'tournament/:tournamentId', component: TournamentLobbyComponent, canActivate: [AuthGuard]},
+    { path: 'userprofile', component: UserProfileComponent},
     { path: '*', redirectTo:'index.html'} 
   ];
 
@@ -46,6 +58,7 @@ export function tokenGetter(){
     FlexLayoutModule,
     /* HttpModule, */
     HttpClientModule,
+ChartsModule,
   /*   HttpClientXsrfModule.withOptions({
       cookieName: 'XSRF-TOKEN',
       headerName: 'X-XSRF-TOKEN'
@@ -61,8 +74,10 @@ export function tokenGetter(){
 
 ],
   providers: [AuthGuard, JwtAuthenticationService, FormBuilder, {provide:HTTP_INTERCEPTORS,useClass : AuthInterceptor, multi: true}],
-  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent ],
+  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent, WatchGamesComponent, ChessboardAndClockComponent, AnnotatedMovesComponent, ChessClockComponent, PositionSetupComponent, UserProfileComponent, RatingChartComponent ],
   exports:      [ HomePageComponent ],
   bootstrap:    [ HomePageComponent ] 
 })
-export class AppModule { }
+export class AppModule { 
+
+}

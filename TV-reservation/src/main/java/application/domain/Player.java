@@ -1,31 +1,62 @@
 package application.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import application.util.GameColor;
+
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.Serializable;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 @JsonIgnoreProperties(value = { "session" })
+@Entity
+@Table(name="UserAccount")
 public class Player implements Serializable {
 
 	/**
 	 *
 	 */
 	private static final long serialVersionUID = 1742921267584361991L;
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private Long userId;
+	
 	private String username;
-	private boolean isPlaying;
-	private boolean isSeeking;
-	private int time;
-	private int increment;
-	private int minRatingForSeek;
-	private int maxRatingForSeek;
-	private transient WebSocketSession session;
-	private int eloblitz;
+	@JsonIgnore
+	private String password;
+    private int eloblitz;	
 	private int elobullet;
 	private int eloclassical;
 	private int elorapid;
-
-
+	
+    @Transient	
+	private String gameId;	
+	@Transient
+	private boolean isPlaying;
+	@Transient
+	private boolean isSeeking;
+	@Transient
+	private int time;
+	@Transient
+	private int increment;
+	@Transient
+	private int minRatingForSeek;	
+	@Transient
+	private int maxRatingForSeek;
+	@Transient
+	private GameColor lastGameColor;
+	@Transient
+	private transient WebSocketSession session;
+	
 	public boolean isSeeking() {
 		return isSeeking;
 	}
@@ -103,9 +134,57 @@ public class Player implements Serializable {
 		this.username = username;
 	}
 
+	public Long getUserId() {
+		return userId;
+	}
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public String getGameId() {
+		return gameId;
+	}
+	public void setGameId(String gameId) {
+		this.gameId = gameId;
+	}
+	
+	public GameColor getLastGameColor() {
+		return lastGameColor;
+	}
+	public void setLastGameColor(GameColor lastGameColor) {
+		this.lastGameColor = lastGameColor;
+	}
 	@Override
 	public String toString(){
-		return "isPlaying".concat(String.valueOf(isPlaying)).concat("Increment:").concat(String.valueOf(increment)).concat("Time:").concat(String.valueOf(time));
+		return this.getUsername();
+	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((username == null) ? 0 : username.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Player other = (Player) obj;
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
+			return false;
+		return true;
 	}
 	
 	

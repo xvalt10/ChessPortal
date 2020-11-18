@@ -45,7 +45,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 		if (jwtToken != null) {
 			UsernamePasswordAuthenticationToken authentication = getAuthentication(jwtToken);
 			SecurityContextHolder.getContext().setAuthentication(authentication);
-		}
+		}  
 
 		chain.doFilter(req, res);
 	}
@@ -58,15 +58,14 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 					.build()
 					.verify(jwtToken)
 					.getSubject();
-			
-			
-			
 
 			if (user != null) {
 				SimpleGrantedAuthority userrole = new SimpleGrantedAuthority("ROLE_USER");
 				List<SimpleGrantedAuthority> userroles = new ArrayList<>();
 				userroles.add(userrole);
 				authenticationToken = new UsernamePasswordAuthenticationToken(user, null, userroles);
+			} else {
+				System.out.println("User authorization failed.");
 			}
 		
 		return authenticationToken;

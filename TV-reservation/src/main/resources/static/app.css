@@ -155,18 +155,54 @@ width:80%;
 
 .chessPiece{
 /*position:absolute;*/
-width:40px;
-height:40px;
+width:45px;
+height:45px;
+    /*width:100%;*/
 	top: 13%;left: 13%;
 	z-index: 1;
 	cursor: pointer;
 
 }
 
-.checkboxlabel{
-	margin-left:5px
+.arrows{
+	height:40px;
+	width:40px;
 }
 
+.chessPiece:hover{
+	
+	border: 1px solid black;
+	background-color:#C96;
+}
+
+.chessboardOverlayPanel{
+	width:50%; margin: 0 auto;border:1px solid black;position: absolute; background-color:white;z-index: 1;
+}
+
+.alternativeMovesOverlayPanel{
+	margin: 0 auto;border:1px solid black;position: absolute; background-color:white; opacity: 0.8; z-index: 1
+}
+
+.alternativeMovesOverlayPanel table tr td:hover{
+	border: 1px solid black;
+	background-color:#C96;
+	cursor: pointer;
+}
+.alternativeMovesOverlayPanel table {
+	margin:0;
+}
+.checkboxlabel{
+	margin-left:5px;
+	margin-top:4px;
+	margin-right:10px;
+}
+
+.selectedTimeControl{
+	background-color:#007bff;
+}
+.notselectedTimeControl{
+	background-color:rgb(198, 224, 233);
+}
 .centeredFlexWrapper{
 	display:flex;
 	flex-direction: row;
@@ -174,6 +210,14 @@ height:40px;
 	 align-items:center;
 	 justify-content: center;
 }
+.startFlexWrapper{
+	display:flex;
+	flex-direction: row;
+	 align-content: center; 
+	 align-items:baseline;
+	 justify-content: flex-start;
+}
+
 .centeredFlexWrapper img{
 	max-height:50px;
 	margin:5px;
@@ -209,15 +253,26 @@ height:40px;
 }
 
 .clockRow{
-	flex: 0 0 80px;
+	/*flex: 0 0 80px;*/
 	
+}
+
+.clockPanel{
+	/*max-width: 500px;
+    width: calc(100vw - 40px);
+	margin:-10px auto;*/
+	display:flex;flex-direction:row;flex-wrap:nowrap;justify-content:space-between;border:1px solid black; padding:0px 5px;
+}
+
+.clockPanelItem{
+	line-height: 45px;
 }
 
 .clock{
 	font-size:30px;
 	text-align: center;
 	font-weight:bold;
-	border: 1px solid black;
+	
 }
 .clockActive{
 	color:green;
@@ -240,10 +295,7 @@ height:40px;
 	width:95%;
 	border:1px solid black;
 }
-.notationTable{
-	border:1px solid black;
-	width:99%;
-}
+
 
 
 .notationHeaderRow{
@@ -270,14 +322,18 @@ font-weight: bold;
 }
 
 .notationTable{
-	margin-left:1px;
+
  	max-height:220px; 
 	overflow-y: scroll;
+	overflow-x:hidden;
+	margin-right: -15px;
+	margin-left: -15px;
+	border:1px solid black;
 	
 }
 
 .notationTableHeader{
-	overflow-y: hidden;
+	/*overflow-y: hidden;*/
 }
 
 .scrollableNotationContent tbody tr{
@@ -288,7 +344,7 @@ font-weight: bold;
 .scrollableNotationContent{
    height:120px;
    display:block;
-   overflow: auto;
+  /* overflow: auto;*/
 }
 /* .notationTable td, .notationHeaderRow td{
 	padding: 2px;
@@ -328,13 +384,7 @@ font-weight: bold;
 	display:flex;align-items: center;justify-content: center;
 }
 
-.chatWindow{
-	border:1px solid gray;
-	margin-bottom:5px;
-	padding:5px;
-	min-height: 100px;
-	border-radius: 5px !important;
-}
+
 
 .marginBottom{
 	margin-bottom: 10px;
@@ -352,6 +402,7 @@ font-weight: bold;
 }
 
 .chatMessageDiv{
+	
 	margin-bottom:15px;
 }
 
@@ -369,6 +420,15 @@ font-weight: bold;
 	font-weight: bold;
 }
 
+.chatWindow{
+	border:1px solid gray;
+	/*margin-bottom:5px;*/
+	padding:5px;
+	height:200px; 
+	overflow-y: scroll;
+	border-radius: 5px !important;
+}
+
 .loader{
 	width: 30px;
 	height: 30px;
@@ -378,13 +438,16 @@ font-weight: bold;
 }
 
 #newChessboardContainer{
+	/*width:100%;
+	padding-top: 100%;*/
 	float: left;
     max-width: 500px;
     max-height: 480px;
     width: calc(100vw - 40px);
-    height: calc(95vw - 40px);
-    /* margin-right: 20px;*/
-    margin: 10px; 
+	height: calc(95vw - 40px);
+	margin: 10px 0px;
+	
+
 }
 
 /* LOADER 1 */
@@ -548,5 +611,239 @@ body {
 	/* background-color: #f39c12;
 	border-color: #e67e22; */
   }
+
+  /*Bootstrap sidebar*/
+
+/*
+    DEMO STYLE
+*/
+
+@import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #fafafa;
+}
+
+p {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1em;
+    font-weight: 300;
+    line-height: 1.7em;
+    color: #999;
+}
+
+a,
+a:hover,
+a:focus {
+    color: inherit;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.navbar {
+    padding: 15px 10px;
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 40px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-btn {
+    box-shadow: none;
+    outline: none !important;
+    border: none;
+}
+
+.line {
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px dashed #ddd;
+    margin: 40px 0;
+}
+
+/* ---------------------------------------------------
+    SIDEBAR STYLE
+----------------------------------------------------- */
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: #7386D5;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+#sidebar.active {
+    margin-left: -250px;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #6d7fcc;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+    border-bottom: 1px solid #47748b;
+}
+
+#sidebar ul p {
+    color: #fff;
+    padding: 10px;
+}
+
+#sidebar ul li a {
+    padding: 10px;
+    font-size: 1.1em;
+    display: block;
+}
+
+#sidebar ul li a:hover {
+    color: #7386D5;
+    background: #fff;
+}
+
+#sidebar ul li.active>a,
+a[aria-expanded="true"] {
+    color: #fff;
+    background: #6d7fcc;
+}
+
+a[data-toggle="collapse"] {
+    position: relative;
+}
+
+.dropdown-toggle::after {
+    display: block;
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+}
+
+ul ul a {
+    font-size: 0.9em !important;
+    padding-left: 30px !important;
+    background: #6d7fcc;
+}
+
+ul.CTAs {
+    padding: 20px;
+}
+
+ul.CTAs a {
+    text-align: center;
+    font-size: 0.9em !important;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+a.download {
+    background: #fff;
+    color: #7386D5;
+}
+
+a.article,
+a.article:hover {
+    background: #6d7fcc !important;
+    color: #fff !important;
+}
+
+/* ---------------------------------------------------
+    CONTENT STYLE
+----------------------------------------------------- */
+
+#content {
+    width: 100%;
+    padding: 0px 20px;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+.vertical-nav-bar {
+    display: flex;
+    flex: 0 0 100px;
+    flex-flow: column nowrap;
+    text-align: center;
+    z-index: 30;
+    border-right: 1px solid lightblue;
+    padding: 1rem 0 0 0;
+    justify-content: flex-start;
+}
+
+.menu-container {
+    display: flex;
+    flex-flow: column wrap;
+    justify-content: space-between;
+}
+.main-nav-link {
+    transition: opacity .2s, visibility .2s;
+    flex: 1 0 auto;
+    align-self: center;
+    display: flex;
+	position: relative;
+	
+}
+.main-nav-link a {
+    font-weight: 500;
+    font-size: 0.90rem;
+    letter-spacing: 0.04rem;
+    color: #03A9F4;
+    padding: 0.75rem 0.5rem;
+    text-transform: uppercase;
+    
+}
+
+.sectionTitle{
+	font-weight: 500;
+    font-size: 1.20rem;
+    letter-spacing: 0.04rem;
   
+    margin-bottom:10px;
+	text-transform: uppercase;
+	border-bottom:1px solid lightblue;
+}
+
+.main-nav-link:hover{
+  border-bottom:1px solid lightblue;
+  cursor:pointer
+}
+
+.main-nav-link-selected{
+	border-bottom:1px solid lightblue
+}
+
+
+
+.wrap-whole{
+	display:flex;
+	flex-flow:row nowrap;
+	justify-content:space-between;
+	height:100vh;
+  }
+
+/* ---------------------------------------------------
+    MEDIAQUERIES
+----------------------------------------------------- */
+
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -250px;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+    #sidebarCollapse span {
+        display: none;
+    }
+}
+   /*Bootstrap sidebar end*/
 	

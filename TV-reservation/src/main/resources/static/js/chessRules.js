@@ -215,6 +215,7 @@ var Chess = function(fen) {
       }
   
       turn = tokens[1];
+      console.log("Setting turn to:"+tokens[1])
   
       if (tokens[2].indexOf('K') > -1) {
         castling.w |= BITS.KSIDE_CASTLE;
@@ -493,6 +494,7 @@ var Chess = function(fen) {
       }
   
       var moves = [];
+
       var us = turn;
       var them = swap_color(us);
       var second_rank = {b: RANK_7, w: RANK_2};
@@ -922,6 +924,7 @@ var Chess = function(fen) {
         move_number++;
       }
       turn = swap_color(turn);
+      console.log("Setting turn to:"+turn)
     }
   
     function undo_move() {

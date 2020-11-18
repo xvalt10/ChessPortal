@@ -1,17 +1,21 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { WebSocketService } from './../../js/services/websocketService';
+import { GameService } from './../../js/services/game.service';
+
 import { Router } from '@angular/router';
 import { JwtAuthenticationService } from './../../js/services/jwtAuthenticationService';
-import { Component, OnInit } from '@angular/core';
+import { HttpService } from './../../js/services/http-service.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { map, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs'
 import { BASEURL } from '../../js/constants.js'
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     selector: 'homepage',
     templateUrl: 'homepage.html'
 })
 
-export class HomePageComponent implements OnInit {
+export class HomePageComponent implements OnInit, OnDestroy {
 
     navbarCollapsed: boolean = true;
     user: string;
@@ -19,71 +23,81 @@ export class HomePageComponent implements OnInit {
     bestPlayersBullet: any = [];
     bestPlayersRapid: any = [];
     bestPlayersClassical: any = [];
+    topBlitzGameId: any;
+    socket: WebSocket;
 
-    constructor(private authService: JwtAuthenticationService, private router: Router, private http: HttpClient) { }
-
-    getTopPlayers(gameTimetype: string) {
-        let apiURL = `${BASEURL}/users/top/${gameTimetype}`;
-        return this.http.get(apiURL)
-            .pipe(catchError(this.handleError))
+    constructor(private httpService:HttpService,private authService: JwtAuthenticationService, private router: Router, private http: HttpClient, private gameService: GameService, private webSocketService: WebSocketService) { }
+    ngOnDestroy(): void {
+        throw new Error('Method not implemented.');
     }
+
+
 
     routerOnHomePage() {
         return this.router.url === "/";
     }
 
-    handleError(error: HttpErrorResponse) {
-        let msg = '';
-        if (error.error instanceof ErrorEvent) {
-            // client-side error
-            msg = error.error.message;
-        } else {
-            // server-side error
-            if (error.error) {
-                msg = `Error Code: ${error.status}\nMessage: ${error.error.message}`;
-            } else {
-                msg = `Error Code: ${error.status}\nMessage: ${error.message}`;
-            }
-            /*             console.log(msg);
-                        console.log(error); */
-        }
-        return throwError(msg);
-    }
+
 
 
     ngOnInit() {
-        this.user = this.authService.authenticatedUser.username;
-        if (!this.user && localStorage.getItem('currentUser')) {
-            this.user = JSON.parse(localStorage.getItem('currentUser')).username;
-        }
+        //this.initialiseWebSockets();
+        this.user = this.authService.getUsername();
 
-        this.getTopPlayers('blitz').subscribe(data => {
+        this.gameService.gameResultSubscriber.subscribe(game => {
+            if (this.topBlitzGameId == game.gameId) {
+                this.topBlitzGameId = null;
+              
+            }
+        })
+
+        this.gameService.gameActionSubscriber.subscribe(game =>{
+            if(game.gameId === this.topBlitzGameId && (game.action === 'gameResult' || game.action === 'resign')){
+                this.topBlitzGameId = null;
+            }
+        })
+
+        this.httpService.getTopPlayers('blitz').subscribe(data => {
             console.log(data);
             this.bestPlayersBlitz = data;
         }, error => {
             console.log(error);
         });
 
-        this.getTopPlayers('bullet').subscribe(data => {
+        this.httpService.getTopPlayers('bullet').subscribe(data => {
             console.log(data);
             this.bestPlayersBullet = data;
         }, error => {
             console.log(error);
         });
 
-        this.getTopPlayers('rapid').subscribe(data => {
+        this.httpService.getTopPlayers('rapid').subscribe(data => {
             console.log(data);
             this.bestPlayersRapid = data;
         }, error => {
             console.log(error);
         });
-        this.getTopPlayers('classical').subscribe(data => {
+        this.httpService.getTopPlayers('classical').subscribe(data => {
             console.log(data);
             this.bestPlayersClassical = data;
         }, error => {
             console.log(error);
         });
+
+        // setInterval(() => {if(!this.topBlitzGameId){this.httpService.getTopGameId('blitz').subscribe(game => {
+        //     if (game) {
+        //         console.log("Starting to observe gameId:" + game['gameId']);
+        //         this.topBlitzGameId = game['gameId'];
+        //     }else{
+        //         this.topBlitzGameId = null;
+        //     }
+        //   }, error => {
+        //     console.log(error);
+        //   });}}, 1000);
+
     }
+
+   
 
     userLoggedIn() {
         return this.authService.isUserAuthenticated();

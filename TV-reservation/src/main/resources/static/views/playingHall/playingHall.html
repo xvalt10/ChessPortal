@@ -1,134 +1,37 @@
 <div class="container bordered">
     <div class="playerNamesRow">
         <div class="playersRow">
-            <div class="players col-md-12 alert-success" *ngIf="whitePlayerName">
+            <div class="players col-md-12 alert-primary" *ngIf="whitePlayerName">
                 {{whitePlayerName}}({{whitePlayerElo}}) -
-                {{blackPlayerName}}({{blackPlayerElo}}) <span *ngIf="gameResult">Game result: {{gameResult}}</span>
+                {{blackPlayerName}}({{blackPlayerElo}}) <span *ngIf="gameResult !== 'N\A'">Game result:
+                    {{gameResult}}</span>
             </div>
         </div>
     </div>
+
     <div class="row">
-        <div class="col-lg-6 col-md-12 col-sm-12">
-            <div class="row"
-                *ngIf="showPawnPromotionDiv==true && (mode=== chessboardUsageModes.PLAYING || mode=== chessboardUsageModes.ANALYZING)">
-                <div class="col promotionPieces">
-                    Which piece do you want to promote the pawn to?
-                    <table class="table">
-                        <tr>
-                            <td>
-                                <div style="position: relative">
-                                    <img class="chessPiece"
-                                        src="{{whitePlayer==true ? 'assets/images/pieces/WN.png' : 'assets/images/pieces/BN.png'}}"
-                                        (click)="promotePiece('n')" />
-                                </div>
-                            </td>
-                            <td>
-                                <div style="position: relative">
-                                    <img class="chessPiece"
-                                        src="{{whitePlayer==true ? 'assets/images/pieces/WB.png' : 'assets/images/pieces/BB.png'}}"
-                                        (click)="promotePiece('b')" />
-                                </div>
-                            </td>
-                            <td>
-                                <div style="position: relative">
-                                    <img class="chessPiece"
-                                        src="{{whitePlayer==true?'assets/images/pieces/WR.png':'assets/images/pieces/BR.png'}}"
-                                        (click)="promotePiece('r')" />
-                                </div>
-                            </td>
-                            <td>
-                                <div style="position: relative">
-                                    <img class="chessPiece"
-                                        src="{{whitePlayer==true?'assets/images/pieces/WQ.png':'assets/images/pieces/BQ.png'}}"
-                                        (click)="promotePiece('q')" />
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <div *ngIf="activeMedia==='sm'"  style="display:flex; align-items: center; justify-content: center; width:100%">
-                        <table class="clockSideSection" >
-                            <tr>
-                                <td *ngIf="!whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})
-                                    <span *ngIf="gameResult !== ''">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
-                                </td>
-                                <td *ngIf="whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})
-                                    <span *ngIf="gameResult !== ''" >{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td [ngClass]="{'clock':true, 'clockActive':whiteMove,  'clockNotActive':!whiteMove}"
-                                    *ngIf="!whitePlayer">
-                                    {{whiteClock}}
-                                </td>
-                                <td [ngClass]="{'clock':true, 'clockActive':!whiteMove, 'clockNotActive':whiteMove}"
-                                    *ngIf="whitePlayer">{{blackClock}}
-                                </td>
-                            </tr>
-    
-                        </table>
-                    </div>
-                    <div style="display:flex; align-items: center; justify-content: center; width:100%">
-                        <div id="newChessboardContainer"></div>
-                    </div>
-                    <div *ngIf="activeMedia==='sm'" style="display:flex; align-items: center; justify-content: center; width:100%">
-                    <table *ngIf="whitePlayerName && mode !== chessboardUsageModes.ANALYZING" class="marginBottom">
-                        <tr>
-                            <td *ngIf="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})
-                                <span *ngIf="gameResult !== ''">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
-                            </td>
-                            <td *ngIf="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})
-                                <span *ngIf="gameResult !== ''">{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td [ngClass]="{'clock':true, 'clockActive':whiteMove, 'clockNotActive':!whiteMove}"
-                                *ngIf="whitePlayer">
-                                {{whiteClock}}
-                            </td>
-                            <td [ngClass]="{'clock':true, 'clockActive':!whiteMove, 'clockNotActive':whiteMove}"
-                                *ngIf="!whitePlayer">
-                                {{blackClock}}
-                            </td>
-                        </tr>
-                    </table>
-                    </div>
-                </div>
-            </div>
-            <div class="row" *ngIf="mode === chessboardUsageModes.ANALYZING">
-                <div class="col">
-                    <div class="flexWrapperCenteredItems">
-                        <img src="assets/images/arrow-first-move.png" (click)="goToFirstMove()" />
-                        <img src="assets/images/arrow-previous-move.png" (click)="goToPreviousMove()" />
-                        <img src="assets/images/arrow-next-move.png" (click)="goToNextMove()" />
-                        <img src="assets/images/arrow-last-move.png" (click)="goToLastMove()" />
-                    </div>
-                </div>
-            </div>
+        <div class="col-lg-6 col-md-12 col-sm-12 centeredColumnWrapper">
+            <chessboard [gameId]="gameId" [color]="whitePlayer ? 'w': 'b'" [mode]="mode"></chessboard>
         </div>
-        <div  class="col-lg-6 col-md-12 col-sm-12 centeredColumnWrapper" [ngClass]="{centeredColumnWrapper:true,chessboardHeight:this.activeMedia === 'gt-sm'}">
-            <div class="row clockRow" *ngIf="whitePlayerName && mode !== chessboardUsageModes.ANALYZING && activeMedia!=='sm'">
+        <div class="col-lg-6 col-md-12 col-sm-12 centeredColumnWrapper" style="display:flex;flex-direction: column;justify-content: space-between;"
+            >
+            <div class="row clockRow"
+                [hidden]="!whitePlayerName || (mode !== chessboardUsageModes.PLAYING || activeMedia ==='sm')">
                 <div class="col-md-6">
                     <table class="clockSideSection">
                         <tr>
                             <td *ngIf="!whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})
-                                <span *ngIf="gameResult !== ''">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
                             </td>
                             <td *ngIf="whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})
-                                <span *ngIf="gameResult !== ''" >{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
                             </td>
                         </tr>
                         <tr>
-                            <td [ngClass]="{'clock':true, 'clockActive':whiteMove,  'clockNotActive':!whiteMove}"
-                                *ngIf="!whitePlayer">
-                                {{whiteClock}}
-                            </td>
-                            <td [ngClass]="{'clock':true, 'clockActive':!whiteMove, 'clockNotActive':whiteMove}"
-                                *ngIf="whitePlayer">{{blackClock}}
-                            </td>
+                            <chess-clock [gameId]="gameId" [color]="whitePlayer ? 'b': 'w'"
+                                [time]="whitePlayer ? blackTime : whiteTime" [increment]="increment" [mode]="mode"></chess-clock>
                         </tr>
 
                     </table>
@@ -137,151 +40,19 @@
 
                 </div>
             </div>
-            <div class=row *ngIf="mode === chessboardUsageModes.ANALYZING">
 
+            <div class="row" *ngIf="mode === chessboardUsageModes.PLAYING">
                 <div class="col">
-                    <!--Position setup-->
-                    <div class="row marginBottom">
-                        <div class="col">
-                            <button (click)="setupPosition()" class="btn btn-primary marginRight">Position
-                                setup</button>
-                            
-                            <button *ngIf="showPositionSetupDiv" (click)="finishPositionSetup()" class="btn btn-primary">Start analyzing</button>
-                        </div>
-                    </div>
-                    <div *ngIf="showPositionSetupDiv" >
-                        <div class="row">
-                            <div class="col">
-                                <div *ngIf="!currentPositionValid" class="alert alert-danger">The position you have setup is not valid.</div>
-                                <div class="alert alert-info">First mark the squares on the chessboard by right-click
-                                    and then click on the piece you want to place on the marked squares.</div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col" style="display:flex;justify-content: space-between;">
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/WP.png"
-                                        (click)="setPieceToMarkedSquares('wp')" />
-                                </div>
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/WN.png"
-                                        (click)="setPieceToMarkedSquares('wn')" />
-                                </div>
-
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/WB.png"
-                                        (click)="setPieceToMarkedSquares('wb')" />
-                                </div>
-
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/WR.png"
-                                        (click)="setPieceToMarkedSquares('wr')" />
-                                </div>
-
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/WQ.png"
-                                        (click)="setPieceToMarkedSquares('wq')" />
-                                </div>
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/WK.png"
-                                        (click)="setPieceToMarkedSquares('wk')" />
-                                </div>
-
-                                <div class="flexWrapperCenteredItems" >
-                                    <button (click)="setPieceToMarkedSquares(null)" class="btn btn-primary marginRight">Empty square</button>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="row marginBottom">
-                            <div class="col" style="display:flex;justify-content: space-between;">
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/BP.png"
-                                        (click)="setPieceToMarkedSquares('bp')" />
-                                </div>
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/BN.png"
-                                        (click)="setPieceToMarkedSquares('bn')" />
-                                </div>
-
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/BB.png"
-                                        (click)="setPieceToMarkedSquares('bb')" />
-                                </div>
-
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/BR.png"
-                                        (click)="setPieceToMarkedSquares('br')" />
-                                </div>
-
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/BQ.png"
-                                        (click)="setPieceToMarkedSquares('bq')" />
-                                </div>
-                                <div>
-                                    <img class="chessPiece" src="assets/images/pieces/BK.png"
-                                        (click)="setPieceToMarkedSquares('bk')" />
-                                </div>
-                                <div class="flexWrapperCenteredItems" >
-                                    <button *ngIf="showPositionSetupDiv" (click)="emptyBoard()" class="btn btn-primary marginRight">Empty board</button>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="row marginBottom">
-                            <div class="col">
-                                <input class="marginRight" type="radio" id="white" name="whosOnMove" (change)="updateActiveColor('w')" value="w">
-                                <label for="white" class="marginRight">White to move</label>
-                                <input class="marginRight" type="radio" id="black" name="whosOnMove" (change)="updateActiveColor('b')" value="b">
-                                <label for="black">Black to move</label>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <h5 class="margin-bottom-0">Castling rights</h5>
-                                <input type="checkbox" id="wshortcastle" name="whosOnMove" (change)="updateCastlingRights('K')" checked>
-                                <label for="wshortcastle" class="checkboxlabel">W 0-0</label><br>
-                                <input type="checkbox" id="wlongcastle" name="whosOnMove" (change)="updateCastlingRights('Q')" value="Q" checked>
-                                <label for="wlongcastle" class="checkboxlabel">W 0-0-0</label><br>
-                                <input type="checkbox" id="bshortcastle" name="whosOnMove" (change)="updateCastlingRights('k')" value="k" checked>
-                                <label for="bshortcastle" class="checkboxlabel">B 0-0</label><br>
-                                <input type="checkbox" id="blongcastle" name="whosOnMove" (change)="updateCastlingRights('q')" value="q" checked>
-                                <label for="blongcastle" class="checkboxlabel">B 0-0-0</label><br>
-                            </div>
-                        </div>
-                        <div class="row marginBottom">
-                            <div class="col">
-                                <div style="display:flex;justify-content: center;align-items: center;"> 
-                                <label for="moveNumberInput" class="checkboxlabel marginRight" style="margin-bottom: 0px;">Last move number:</label>
-                                <input type="text" #moveNumberInput id="moveNumberInput" (change)="updateMoveNumber(moveNumberInput.value)" value="0"  style="flex:1 1 50px">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row marginBottom">
-                            <div class="col">
-                                <div style="display:flex;justify-content: center;align-items: center;"> 
-                                <label for="fen" class="checkboxlabel marginRight" style="margin-bottom: 0px;">FEN:</label>
-                                <input type="text" id="fen" [(ngModel)]="currentPositionFEN" style="flex:1 1 50px">
-                                </div>
-                            </div>
-                        </div>
-                      
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col">
-                    <div class="row" *ngIf="oponentDisconnected && mode === chessboardUsageModes.PLAYING" class="alert alert-danger">
-                        <div class="col">
+                    <div class="row" 
+                        class="alert alert-danger" *ngIf="oponentDisconnected && mode === chessboardUsageModes.PLAYING">
+                        <div class="col" >
                             <span>Oponent disconnected</span>
                         </div>
                     </div>
-                    <div class="row" *ngIf="gameResult !== ''  && mode === chessboardUsageModes.PLAYING" class="alert alert-info">
+                    <div class="row" *ngIf="gameResult !== 'N\A' && mode === chessboardUsageModes.PLAYING"
+                        class="alert alert-info">
                         <div class="col">
-                            <span>Game has ended: {{gameResult}}</span>
+                            <span>Game has ended:{{gameResult}}</span>
                         </div>
                     </div>
                     <div *ngIf="drawOfferRejected && mode === chessboardUsageModes.PLAYING" class="alert alert-info">
@@ -296,7 +67,7 @@
                         <button (click)="drawOfferReply(true)" class="marginRight">Yes</button>
                         <button (click)="drawOfferReply(false)">No</button>
                     </div>
-                    <div *ngIf="rematchOfferReceived && gameResult !== ''" class="alert alert-info">
+                    <div *ngIf="rematchOfferReceived && gameResult !== 'N\A'" class="alert alert-info">
                         <span>{{oponent}} offered you a rematch. Do you want to accept ?</span>
                         <button (click)="replyToRematchOffer(true)" class="marginRight">Yes</button>
                         <button (click)="replyToRematchOffer(false)">No</button>
@@ -309,122 +80,69 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row" *ngIf="mode === chessboardUsageModes.PLAYING">
 
-                <div  [ngClass]="{col:true, centeredFlexWrapper:activeMedia === 'sm'}">
-                    <div *ngIf="mode === chessboardUsageModes.PLAYING" id="drawResignSection">
-
-                        <button *ngIf="playingGame" (click)="offerDraw()" class="btn btn-primary marginRight">Offer Draw</button>
-                        <button *ngIf="playingGame" (click)="resignButtonPressed = true" class="btn btn-primary marginRight">Resign</button>
-                        <button *ngIf="!playingGame" (click)="offerRematch()" class="btn btn-primary marginRight">Offer rematch</button>
-                        <button *ngIf="!playingGame" (click)="activateAnalysisMode()" class="btn btn-primary marginRight">Analyse</button>
-
+                <div [ngClass]="{col:true, centeredFlexWrapper:activeMedia === 'sm'}">
+                    <div  id="drawResignSection">
+                        <button *ngIf="playingGame" (click)="offerDraw()" class="btn btn-primary marginRight">Offer
+                            Draw</button>
+                        <button *ngIf="playingGame" (click)="resignButtonPressed = true"
+                            class="btn btn-primary marginRight">Resign</button>
+                        <button *ngIf="!playingGame" (click)="offerRematch()" class="btn btn-primary marginRight">Offer
+                            rematch</button>
+                        <button *ngIf="!playingGame" (click)="activateAnalysisMode()"
+                            class="btn btn-primary marginRight">Analyse</button>
                     </div>
-                   
+
                 </div>
             </div>
+            <app-position-setup *ngIf="mode === chessboardUsageModes.ANALYZING" ></app-position-setup>
+            <annotation-table [gameId]="gameId" *ngIf="!positionSetupActive" [annotatedMoves]="annotatedMoves" style="margin-top:10px" ></annotation-table>
 
-
-            <div class="row notationRow" *ngIf="annotatedMoves.length > 0 && !showPositionSetupDiv ">
-                <div class="col ">
-                    <div class="row">
-                        <div class="col">
-                            <div class="row">
-                                <div class="col ">
-                                    <div class="row border"
-                                        style="margin-left: -2px; margin-bottom: -2px; width: 99.5%;">
-                                        <div class="col">
-                                            <div class="row notationTableHeader">
-                                                <div class="col border border-dark ">Move no.</div>
-                                                <div class="col border border-dark border-left-0">White move</div>
-                                                <div class="col border border-dark border-left-0">Black move</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row notationTable" style="margin-left:0px">
-
-                                        <div class="col">
-                                            <div class="row border" *ngFor="let annotatedMove of annotatedMoves">
-                                                <div class="col" *ngIf="annotatedMove.chessboardAfterWhiteMove || annotatedMove.chessboardAfterBlackMove">
-                                                    <div class="row"  >
-                                                        <div class="col">{{annotatedMove.moveNumber}}</div>
-                                                        <div class="col"
-                                                            id="{{'annotatedMoveWhite'+annotatedMove.moveNumber}}"
-                                                            [ngClass]="{'annotatedMove':true,
-                                                     'highlighted':moveToHighlight.variationId === MAIN_LINE 
-                                                                && moveToHighlight.moveNumber+1===annotatedMove.moveNumber 
-                                                                && moveToHighlight.whiteMove === true}"
-                                                            (click)="redrawChessboard(annotatedMove.chessboardAfterWhiteMove,MAIN_LINE)">
-                                                            {{annotatedMove.whiteMove}}
-                                                        </div>
-                                                        <div class="col"
-                                                            id="{{'annotatedMoveBlack'+annotatedMove.moveNumber}}"
-                                                            [ngClass]="{'annotatedMove':true,
-                                                     'highlighted':moveToHighlight.variationId === MAIN_LINE && 
-                                                                   moveToHighlight.moveNumber+1===annotatedMove.moveNumber && 
-                                                                   moveToHighlight.whiteMove === false}"
-                                                            (click)="redrawChessboard(annotatedMove.chessboardAfterBlackMove,MAIN_LINE)">
-                                                            {{annotatedMove.blackMove}}
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row border border-dark"
-                                                        *ngFor="let variation of annotatedMove.whiteMoveVariations">
-                                                        <td colspan="3">
-                                                            <variation-tree [moveToHighlight]="moveToHighlight"
-                                                                [mainVariation]="variation"
-                                                                (positionToRedraw)="setupVariation($event)">
-                                                            </variation-tree>
-                                                        </td>
-                                                    </div>
-
-                                                    <div class="row border border-dark"
-                                                        *ngFor="let variation of annotatedMove.blackMoveVariations">
-                                                        <td colspan="3">
-                                                            <variation-tree [moveToHighlight]="moveToHighlight"
-                                                                [mainVariation]="variation"
-                                                                (positionToRedraw)="setupVariation($event)">
-                                                            </variation-tree>
-                                                        </td>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-       
-          
-      
-            <div *ngIf="activeMedia !== 'sm'" class="row clockRow">
+            <div [hidden]="activeMedia === 'sm'" class="row clockRow">
                 <div class="col-md-12">
-                    <table *ngIf="whitePlayerName && mode !== chessboardUsageModes.ANALYZING">
+                    <table [hidden]="!whitePlayerName || mode !== chessboardUsageModes.PLAYING">
                         <tr>
                             <td *ngIf="whitePlayer">{{whitePlayerName}} ({{whitePlayerElo}})
-                                <span *ngIf="gameResult !== ''">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
                             </td>
                             <td *ngIf="!whitePlayer">{{blackPlayerName}} ({{blackPlayerElo}})
-                                <span *ngIf="gameResult !== ''">{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
                             </td>
                         </tr>
                         <tr>
-                            <td [ngClass]="{'clock':true, 'clockActive':whiteMove, 'clockNotActive':!whiteMove}"
-                                *ngIf="whitePlayer">
-                                {{whiteClock}}
-                            </td>
-                            <td [ngClass]="{'clock':true, 'clockActive':!whiteMove, 'clockNotActive':whiteMove}"
-                                *ngIf="!whitePlayer">
-                                {{blackClock}}
-                            </td>
+                            <chess-clock [gameId]="gameId" [color]="whitePlayer ? 'w': 'b'"
+                                [time]="whitePlayer ? whiteTime : blackTime" [increment]="increment" [mode]="mode"></chess-clock>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+    <div class="row marginTop" *ngIf="matchScore.length > 0" >
+        <div class="col" style="padding:20px"> 
+        <h5>Overall score</h5>
+        <table class="table table-striped" style="padding:5px">
+            <thead>
+                <th>Player</th>
+                <th *ngFor="let gameResult of matchScore; index as i" style="max-width: 20px;">#{{i+1}}</th>
+            </thead>
+            <tr>
+                <td>{{user}}</td>
+                <td *ngFor="let gameResult of matchScore" style="max-width: 20px;">{{gameResult}}</td>
+            </tr>
+            <tr>
+                <td>{{oponent}}</td>
+                <td *ngFor="let gameResult of matchScore">{{gameResult === 1 ? 0 : gameResult === 0 ? 1 : 0.5}}</td>
+            </tr>
+        </table>
+    </div>
+    </div>
+
+
+
+
+
 </div>

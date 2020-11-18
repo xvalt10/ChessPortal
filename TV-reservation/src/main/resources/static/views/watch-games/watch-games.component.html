@@ -1,0 +1,50 @@
+<div class="wrap-whole">
+
+    <section class="vertical-nav-bar col-2">
+        <div class="menu-container ">
+
+            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='bullet'}"
+                (click)="observeGame('bullet')">
+                <a>
+                    <i class="fa fa-home main-nav-icon"></i>
+                    <div>Bullet</div>
+                </a>
+            </div>
+            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='blitz'}"
+                (click)="observeGame('blitz')">
+                <a>
+                    <i class="fa fa-home main-nav-icon"></i>
+                    <div>Blitz</div>
+                </a>
+            </div>
+            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='rapid'}"
+                (click)="observeGame('rapid')">
+                <a>
+                    <i class="fa fa-home main-nav-icon"></i>
+                    <div>Rapid</div>
+                </a>
+            </div>
+            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='classical'}"
+                (click)="observeGame('classical')">
+                <a>
+                    <i class="fa fa-home main-nav-icon"></i>
+                    <div>Classical</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <!-- more links you can add -->
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="col-4">
+            <div *ngIf="observedGameId" class="centeredColumnWrapper">
+                <span class="sectionTitle">TOP RATED {{this.selectedTimeControl}} GAME</span>
+                <chessboard *ngIf="observedGameId" [gameId]="observedGameId" [mode]="'O'" [color]="'w'"
+                    [message]="gameResultMessage"></chessboard>
+            </div>
+            <span *ngIf="!observedGameId">No {{selectedTimeControl}} game is currently in progress.</span>
+        </div>
+    </div>

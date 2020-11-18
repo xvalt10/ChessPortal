@@ -1,0 +1,81 @@
+<div class="container">
+    <div class="row" >
+       
+            <div class="centeredFlexWrapper" style="border:1px solid black; width:100%">
+                <img class="arrows" src="assets/images/arrow-first-move.png" (click)="goToFirstMove()" />
+                <img class="arrows" src="assets/images/arrow-previous-move.png" (click)="goToPreviousMove()" />
+                <img class="arrows" src="assets/images/arrow-next-move.png" (click)="goToNextMove()" />
+                <img class="arrows" src="assets/images/arrow-last-move.png" (click)="goToLastMove()" />
+            </div>
+   
+    </div>
+
+        
+            <div class="row">
+                <div class="col border border-dark " style="border-collapse: collapse;">Move no.
+                </div>
+                <div class="col border border-dark border-left-0">White move</div>
+                <div class="col border border-dark border-left-0">Black move</div>
+            </div>
+            <div #notationdiv class="notationTable">
+                <div *ngFor="let annotatedMove of annotatedMoves">
+                    <div class="row border"
+                        *ngIf="(annotatedMove.chessboardAfterWhiteMove && annotatedMove.whiteMove !== '') || (annotatedMove.chessboardAfterBlackMove && annotatedMove.blackMove !== '')">
+                        <div class="col">
+                            <div class="row">
+                                <div class="col">{{annotatedMove.moveNumber}}</div>
+                                <div class="col" id="{{'annotatedMoveWhite'+annotatedMove.moveNumber}}" [ngClass]="{'annotatedMove':true,
+                                                         'highlighted':moveToHighlight.variationId === MAIN_LINE 
+                                                                    && moveToHighlight.moveNumber+1===annotatedMove.moveNumber 
+                                                                    && moveToHighlight.whiteMove === true}"
+                                    (click)="annotateMoveOnClick(annotatedMove.chessboardAfterWhiteMove,MAIN_LINE)">
+                                    {{annotatedMove.whiteMove}}
+                                </div>
+                                <div class="col" id="{{'annotatedMoveBlack'+annotatedMove.moveNumber}}" [ngClass]="{'annotatedMove':true,
+                                                         'highlighted':moveToHighlight.variationId === MAIN_LINE && 
+                                                                       moveToHighlight.moveNumber+1===annotatedMove.moveNumber && 
+                                                                       moveToHighlight.whiteMove === false}"
+                                    (click)="annotateMoveOnClick(annotatedMove.chessboardAfterBlackMove,MAIN_LINE)">
+                                    {{annotatedMove.blackMove}}
+                                </div>
+                            </div>
+
+                            <div class="border border-dark"
+                                *ngFor="let variation of annotatedMove.whiteMoveVariations">
+                              
+                                    <variation-tree [moveToHighlight]="moveToHighlight" [mainVariation]="variation"
+                                        (positionToRedraw)="setupVariation($event)">
+                                    </variation-tree>
+                            
+                            </div>
+
+                            <div class="border border-dark"
+                                *ngFor="let variation of annotatedMove.blackMoveVariations">
+                              
+                                    <variation-tree [moveToHighlight]="moveToHighlight" [mainVariation]="variation"
+                                        (positionToRedraw)="setupVariation($event)">
+                                    </variation-tree>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row border"
+                    *ngFor="let number of ' '.repeat(noOfBlankRowsNeeded).split(''), let moveNumber = index;">
+                    <div class="col">
+                        <div class="row">
+                            <div class="col">{{annotatedMoves.length + moveNumber + 1}}</div>
+                            <div class="col"> </div>
+                            <div class="col"> </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+        </div>
+
+  

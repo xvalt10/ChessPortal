@@ -1,9 +1,15 @@
-<div class="container">
+<div class="container" *ngIf="tournament" >
     <div class="row">
         <div class="col">
-            <div class="row marginBottom">
-                <h5 class="marginRight" style="padding-top:8px" >Tournament {{time}} + {{increment}}</h5>
-                <button class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
+            <div class="marginBottom">
+
+                <div  class="centeredFlexWrapper" style="justify-content: space-evenly;">
+                    <h5 class="marginRight" style="padding-top:8px">Tournament {{tournament.time}} + {{tournament.increment}}</h5>
+                    <button *ngIf="tournament.tournamentState === 'NOT_STARTED'"  class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
+                    <h5 *ngIf="tournament.tournamentState === 'NOT_STARTED'" style="padding-top:8px">Starts in {{secondsTillStartString}}</h5>
+                    <h5 *ngIf="tournament.tournamentState === 'STARTED'" class="marginRight" style="padding-top:8px">Round {{tournament.currentRound}} in progress</h5>
+                    <h5 *ngIf="tournament.tournamentState === 'FINISHED'" class="marginRight" style="padding-top:8px">Tournament finished</h5>
+                </div>
             </div>
             <div class="row">
                 <table class="table table-bordered">
@@ -14,9 +20,47 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let player of tournamentPlayers">
+                        <tr *ngFor="let player of tournament.tournamentPlayers">
                             <td>{{player.username}}</td>
                             <td>{{player.elobullet}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row" *ngIf="tournament.pairings.length !== 0" >
+                <h5>Round {{tournament.currentRound}}</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>White</th>
+                            <th>Black</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let pairing of tournament.pairings">
+                            <td>{{pairing.whitePlayer.username}}</td>
+                            <td>{{pairing.blackPlayer.username}}</td>
+                            <td>{{pairing.gameResult}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row" *ngIf="tournament.currentRound !== 0" >
+                <h5>Standings after round {{tournament.currentRound}}</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Player name</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let player of tournament.tournamentPlayers">
+                            <td>{{player.username}}</td>
+                            <td>{{tournament.scores[player.username]}}</td>
                         </tr>
                     </tbody>
                 </table>

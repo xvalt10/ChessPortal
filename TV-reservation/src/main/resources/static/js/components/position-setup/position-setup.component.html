@@ -1,0 +1,131 @@
+<!--Position setup-->
+<div class="row marginBottom">
+    <div class="col">
+        <button (click)="setupPosition()" class="btn btn-primary marginRight">Position
+            setup</button>
+
+        <button *ngIf="showPositionSetupDiv" (click)="finishPositionSetup()" class="btn btn-primary">Start
+            analyzing</button>
+    </div>
+</div>
+<div *ngIf="showPositionSetupDiv">
+    <div class="row">
+        <div class="col">
+            <div *ngIf="!currentPositionValid" class="alert alert-danger">The position you have setup is not valid.
+            </div>
+            <div class="alert alert-info">First mark the squares on the chessboard by right-click
+                and then click on the piece you want to place on the marked squares.</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col" style="display:flex;justify-content: space-between;">
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/WP.png" (click)="setPieceToMarkedSquares('wp')" />
+            </div>
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/WN.png" (click)="setPieceToMarkedSquares('wn')" />
+            </div>
+
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/WB.png" (click)="setPieceToMarkedSquares('wb')" />
+            </div>
+
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/WR.png" (click)="setPieceToMarkedSquares('wr')" />
+            </div>
+
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/WQ.png" (click)="setPieceToMarkedSquares('wq')" />
+            </div>
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/WK.png" (click)="setPieceToMarkedSquares('wk')" />
+            </div>
+
+            <div class="flexWrapperCenteredItems">
+                <button (click)="setPieceToMarkedSquares(null)" class="btn btn-primary marginRight">Empty
+                    square</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row marginBottom">
+        <div class="col" style="display:flex;justify-content: space-between;">
+
+
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/BP.png" (click)="setPieceToMarkedSquares('bp')" />
+            </div>
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/BN.png" (click)="setPieceToMarkedSquares('bn')" />
+            </div>
+
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/BB.png" (click)="setPieceToMarkedSquares('bb')" />
+            </div>
+
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/BR.png" (click)="setPieceToMarkedSquares('br')" />
+            </div>
+
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/BQ.png" (click)="setPieceToMarkedSquares('bq')" />
+            </div>
+            <div>
+                <img class="chessPiece" src="assets/images/pieces/BK.png" (click)="setPieceToMarkedSquares('bk')" />
+            </div>
+            <div class="flexWrapperCenteredItems">
+                <button (click)="emptyBoard()" class="btn btn-primary marginRight">Empty
+                    board</button>
+            </div>
+        </div>
+
+    </div>
+    <div class="row marginBottom">
+        <div class="col">
+            <input class="marginRight" type="radio" id="white" name="whosOnMove" (change)="updateActiveColor('w')"
+                value="w" checked>
+            <label for="white" class="marginRight">White to move</label>
+            <input class="marginRight" type="radio" id="black" name="whosOnMove" (change)="updateActiveColor('b')"
+                value="b">
+            <label for="black">Black to move</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h5 class="margin-bottom-0">Castling rights</h5>
+            <div class="startFlexWrapper">
+                <input type="checkbox" id="wshortcastle" name="wshortcastle" (change)="updateCastlingRights('K')" checked>
+                <label for="wshortcastle" class="checkboxlabel">W 0-0</label><br>
+                <input type="checkbox" id="wlongcastle" name="whosOnMove" (change)="updateCastlingRights('Q')" value="Q"
+                    checked>
+                <label for="wlongcastle" class="checkboxlabel">W 0-0-0</label><br>
+                <input type="checkbox" id="bshortcastle" name="whosOnMove" (change)="updateCastlingRights('k')"
+                    value="k" checked>
+                <label for="bshortcastle" class="checkboxlabel">B 0-0</label><br>
+                <input type="checkbox" id="blongcastle" name="whosOnMove" (change)="updateCastlingRights('q')" value="q"
+                    checked>
+                <label for="blongcastle" class="checkboxlabel">B 0-0-0</label><br>
+            </div>
+        </div>
+    </div>
+    <div class="row marginBottom">
+        <div class="col">
+            <div style="display:flex;justify-content: center;align-items: center;">
+                <label for="moveNumberInput" class="checkboxlabel marginRight" style="margin-bottom: 0px;">Last
+                    move number:</label>
+                <input type="text" #moveNumberInput id="moveNumberInput"
+                    (change)="updateMoveNumber(moveNumberInput.value)" value="0" style="flex:1 1 50px">
+            </div>
+        </div>
+    </div>
+    <div class="row marginBottom">
+        <div class="col">
+            <div style="display:flex;justify-content: center;align-items: center;">
+                <label for="fen" class="checkboxlabel marginRight" style="margin-bottom: 0px;">FEN:</label>
+                <input type="text" id="fen" [(ngModel)]="currentPositionFEN" style="flex:1 1 50px">
+            </div>
+        </div>
+    </div>
+</div>

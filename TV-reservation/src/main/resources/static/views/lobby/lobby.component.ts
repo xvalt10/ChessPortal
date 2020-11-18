@@ -2,7 +2,7 @@ import { JwtAuthenticationService } from './../../js/services/jwtAuthenticationS
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { WebSocketService } from './../../js/services/websocketService';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy,ViewChild,ElementRef } from '@angular/core';
 import { Router } from '@angular/router'
 
 
@@ -17,6 +17,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
     private authenticationService:JwtAuthenticationService,
       private formBuilder: FormBuilder ) {
    }
+
+   @ViewChild('chatDiv') chatWindowDiv: ElementRef;
 
   chatMessage = { action: "chatMessageLobby", author: null, message:""};
 
@@ -33,6 +35,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
   seekingOponent = false;
   user = {};
 
+  fetchInitData:boolean = false;
+
   socket: WebSocket;
   queryPlayersInterval:any;
   seekOponentInterval:any;
@@ -46,16 +50,22 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.gameTimeFormSubmitted = false;
     this.gameTimeFormShown = false;
 
-    this.socket = this.websocketService.initWebSockets();
-    this.socket.onmessage = (message) => {this.onMessage(message)};
+    this.socket = this.websocketService.initWebSocket();
+    this.socket.onmessage = (message) => {
+      
+      this.onMessage(message)};
+    this.socket.onopen = () =>{
+      console.log("Socket opened.");
+      setTimeout(()=>{this.queryPlayersOnline()},10);
+    }
+  
     this.socket.onclose = () => {
       console.log("closing timer");
       this.cancelIntervals();
     };
     this.user = this.authenticationService.authenticatedUser;
-    this.queryPlayersOnline();
-    this.queryPlayersInterval = setInterval(()=>{this.queryPlayersOnline()}, 10000);
-
+    this.queryPlayersInterval = setInterval(()=>{this.queryPlayersOnline()}, 1000);
+    
   };
 
   ngOnDestroy():void{
@@ -69,6 +79,10 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.chatMessage.author = this.authenticationService.authenticatedUser;
     this.socket.send(JSON.stringify(this.chatMessage));
     this.chatMessage.message = "";
+
+    var elem = this.chatWindowDiv.nativeElement;
+    console.log("Scroll Height:" + elem.scrollHeight);
+    setInterval(()=>{elem.scrollTop = elem.scrollHeight+10},10);
   };
 
   config = {
@@ -105,7 +119,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       action: "seekOponent",
       user: this.authenticationService.authenticatedUser,
       time: parseInt(typeof time !== 'undefined' ? time
-        : this.gameTimeFormFields.initialtime.value),
+        : this.gameTimeFormFields.initialtime.value ),
       increment: parseInt(typeof increment !== 'undefined' ? increment
         : this.gameTimeFormFields.incrementpermove.value)
     };
@@ -123,15 +137,19 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
 
   queryPlayersOnline() {
-    console.log("Querying players online.");
+    console.log("Querying players online." + new Date().toLocaleDateString());
     if(this.socket.readyState === 1){
-    this.socket.send(JSON.stringify({ user: this.user, action: "getPlayersOnline" }));}
+      console.log("Socket ready." + new Date().toLocaleDateString());
+    this.socket.send(JSON.stringify({ user: this.user, action: "getPlayersOnline" }));
+    console.log("Message sent." + new Date().toLocaleDateString());
+    
+  }
 
   }
 
-  observeGame(playername: string) {
+  observeGame(gameId: string) {
     this.cancelIntervals();
-    this.router.navigate(['/observeGame/' + playername])
+    this.router.navigate(['/game/' + gameId + "/observe"]);
   };
 
   cancelIntervals() {
@@ -140,7 +158,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   onMessage(event: any) {
-    //console.log(event);
+    console.log(event);
     var data = JSON.parse(event.data);
     if (data.action === "chatMessageLobby") {
       this.displayChatMessage(data);
@@ -150,11 +168,12 @@ export class LobbyComponent implements OnInit, OnDestroy {
       this.playersOnline = data.players;
       this.countOfPlayersOnline = data.players.length;
       this.gamesInProgress = data.gamesInProgress;
+      this.fetchInitData = true
     }
     if (data.action === "startGame") {
       console.log(data);
       this.cancelIntervals();
-      this.router.navigate(['/playGame/' + data.gameId]);
+      this.router.navigate(['/game/' + data.gameId + "/play"]);
       console.log("Game started.")
     }
     if (data.action === "gameInfo") {

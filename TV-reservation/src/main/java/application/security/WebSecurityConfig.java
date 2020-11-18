@@ -56,16 +56,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 						"/*.js",
 						"/*.js.map", 
 						"/*.css",
-						"/users/top/*")
+						"/users/top/**",
+						"/users/**/ratinghistory/**",
+						"/games/**/**"
+						)
 
 
 				.permitAll()
-
+				//.antMatchers("/users/top/**").anonymous()
 				.antMatchers("/views/admin/admin.html").hasAnyRole("ADMIN")
 				.antMatchers("/index.html#/playingHall").hasAnyRole("ADMIN", "USER")
 				.antMatchers("/index.html#/lobby").hasAnyRole("ADMIN", "USER")
 				.antMatchers("/actions*").hasAnyRole("ADMIN", "USER")
 				.antMatchers("/observe/*").hasAnyRole("ADMIN", "USER")
+				.antMatchers("/extendtoken/*").hasAnyRole("ADMIN", "USER")
+				
 				.anyRequest().authenticated().and()
 				.logout()
 					.logoutUrl("/logout").deleteCookies("JSESSIONID").logoutSuccessUrl("/index.html")

@@ -1,0 +1,106 @@
+<div class="row" [hidden]="!_showClocks || (activeMedia !=='sm' && _mode !== chessboardUsageModes.OBSERVING)" style="margin-top:10px">
+    <div class="col">
+        <div class="clockPanel">
+
+            <div *ngIf="!whitePlayer" class="clockPanelItem">
+                <span>{{whitePlayerName}} ({{whitePlayerElo}})</span>
+                <span
+                    *ngIf="!playingGame">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+            </div>
+            <div *ngIf="whitePlayer" class="clockPanelItem">
+                <span>{{blackPlayerName}} ({{blackPlayerElo}})</span>
+                <span
+                    *ngIf="!playingGame">{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+            </div>
+
+            <div class="clockPanelItem">{{_message}}</div>
+
+
+            <chess-clock [gameId]="_gameId" [color]="whitePlayer ? 'b': 'w'" [time]="whitePlayer ? blackTime: whiteTime"
+                [increment]="increment">
+            </chess-clock>
+
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div style="display:flex; align-items: center; justify-content: center; width:100%">
+            <div class="alternativeMovesOverlayPanel"
+                *ngIf="showMoveAlternativesDiv === true && _mode=== chessboardUsageModes.ANALYZING">
+                <table class="table">
+                    <tr *ngFor="let alternativeMove of alternativeMoves">
+                        <td (click)="selectMove(alternativeMove)">{{alternativeMove.moveNotation}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="chessboardOverlayPanel"
+                *ngIf="showPawnPromotionDiv === true && (_mode === chessboardUsageModes.PLAYING || _mode=== chessboardUsageModes.ANALYZING)">
+                <div class="col promotionPieces">
+                    Promote the pawn to:
+                    <table class="table">
+                        <tr>
+                            <td>
+                                <div style="position: relative">
+                                    <img class="chessPiece"
+                                        src="{{whitePlayer==true ? 'assets/images/pieces/WN.png' : 'assets/images/pieces/BN.png'}}"
+                                        (click)="promotePiece('n')" />
+                                </div>
+                            </td>
+                            <td>
+                                <div style="position: relative">
+                                    <img class="chessPiece"
+                                        src="{{whitePlayer==true ? 'assets/images/pieces/WB.png' : 'assets/images/pieces/BB.png'}}"
+                                        (click)="promotePiece('b')" />
+                                </div>
+                            </td>
+                            <td>
+                                <div style="position: relative">
+                                    <img class="chessPiece"
+                                        src="{{whitePlayer==true?'assets/images/pieces/WR.png':'assets/images/pieces/BR.png'}}"
+                                        (click)="promotePiece('r')" />
+                                </div>
+                            </td>
+                            <td>
+                                <div style="position: relative">
+                                    <img class="chessPiece"
+                                        src="{{whitePlayer==true?'assets/images/pieces/WQ.png':'assets/images/pieces/BQ.png'}}"
+                                        (click)="promotePiece('q')" />
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div style="width:100%;display:inline-block;position:relative">
+                <div style="margin-top:100%;"></div>
+                <div #chessboardContainer style="position:absolute;top: 0;bottom: 0;left: 0;right: 0;">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div [hidden]="!_showClocks || (activeMedia!=='sm' && _mode !== chessboardUsageModes.OBSERVING)">
+    <div class="clockPanel marginBottom">
+        <div *ngIf="whitePlayer">
+            <span class="clockPanelItem">{{whitePlayerName}} ({{whitePlayerElo}})</span>
+            <span class="clockPanelItem"
+                *ngIf="!playingGame">{{whitePlayerEloChange >= 0 ? "+" + whitePlayerEloChange : whitePlayerEloChange}}</span>
+        </div>
+        <div *ngIf="!whitePlayer">
+            <span class="clockPanelItem">{{blackPlayerName}} ({{blackPlayerElo}}) </span>
+            <span class="clockPanelItem"
+                *ngIf="!playingGame">{{blackPlayerEloChange >= 0 ? "+" + blackPlayerEloChange : blackPlayerEloChange}}</span>
+
+        </div>
+
+        <div>
+            <chess-clock [gameId]="_gameId" [color]="whitePlayer ? 'w': 'b'" [time]="whitePlayer ? whiteTime: blackTime"
+                [increment]="increment"></chess-clock>
+        </div>
+
+
+    </div>
+</div>
