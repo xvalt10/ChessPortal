@@ -1,0 +1,154 @@
+<div class="wrap-whole">
+
+    <section class="vertical-nav-bar col-2">
+        <div class="menu-container ">
+            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':showUserProfile}"
+                (click)="clickUserProfile()">
+                <a>
+                    <i class="fa fa-home main-nav-icon"></i>
+                    <div>User profile</div>
+                </a>
+            </div>
+            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':showUserStatistics}"
+                (click)="clickUserStatistics()">
+                <a>
+                    <i class="fa fa-home main-nav-icon"></i>
+                    <div>User statistics</div>
+                </a>
+            </div>
+            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':showGameHistory}"
+                (click)="clickGameHistory()">
+                <a>
+                    <i class="fa fa-home main-nav-icon"></i>
+                    <div>Game History</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <!-- more links you can add -->
+        </div>
+    </section>
+
+    <div class="container">
+        <div *ngIf="showUserProfile">
+            <div class="row">
+                <div class="col">
+                    <form [formGroup]="userProfileForm" (ngSubmit)="updateUserProfile()">
+                        <div *ngIf="userProfileFormFeedbackMessage.message"
+                            [ngClass]="{
+                            'alert':true, 
+                            'alert-danger':userProfileFormFeedbackMessage.type==='error', 
+                            'alert-info':userProfileFormFeedbackMessage.type==='info'}">
+                            {{userProfileFormFeedbackMessage.message}}</div>
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <select formControlName="country" class="form-control">
+                                <option *ngFor="let countryCode of countryCodes" [value]="countryCode" [selected]="countryCode === userCountry">
+                                    {{countries[countryCode].name}}</option>
+                            </select>
+                            <!-- <div *ngIf="submitted && formControls.username.errors" class="invalid-feedback">
+                                <div *ngIf="formControls.username.errors.required">Username is required</div>
+                            </div> -->
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" formControlName="email" class="form-control"
+                                [ngClass]="{ 'is-invalid': userProfileFormSubmitted && formControls.email.errors }" />
+                            <!-- <div *ngIf="submitted && formControls.username.errors" class="invalid-feedback">
+                                <div *ngIf="formControls.username.errors.required">Username is required</div>
+                            </div> -->
+                        </div>
+                        <div class="marginBottom"
+                            style="display:flex;justify-content: flex-start; align-items: center;">
+                            <label for="useravatar" class="marginRight">User Avatar </label>
+                            <img id="useravatar" style="max-height:50px;max-width:50px" class="img img-fluid img-thumbnail rounded-circle marginRight"
+                                [src]="userImageURL " />
+                            <input style="display: none" type="file"
+                                (change)="onUserImageChanged($event)" #fileInput>
+                            <button type="button" class="btn btn-primary" (click)="fileInput.click()">Select file</button>
+                            <!-- <button class="btn btn-primary"(click)="uploadUserImage()">Upload!</button> -->
+                        </div>
+                        <div class="form-group">
+                            <button [disabled]="userProfileFormLoading" class="btn btn-primary">
+                                <span *ngIf="userProfileFormLoading"
+                                    class="spinner-border spinner-border-sm mr-1"></span>
+                                Update user profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+        </div>
+        <div *ngIf="showUserStatistics">
+
+            <div class="row marginBottom">
+                <div class="col">
+                    <span class="sectionTitle">Games statistics</span>
+                    <div style="display:flex;flex-direction: column;">
+
+                        <span>Games played: {{games.games.length}}</span>
+                        <span>Wins: {{games.wins}} ({{games.wins / games.games.length * 100 | number:'1.0-1'}}%)</span>
+                        <span>Losses: {{games.losses}}
+                            ({{games.losses / games.games.length * 100 | number:'1.0-1'}}%)</span>
+                        <span>Draws: {{games.draws}}
+                            ({{games.draws / games.games.length * 100 | number:'1.0-1'}}%)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <span class="sectionTitle">Rating progression</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <app-rating-chart ratingType='BLITZ'></app-rating-chart>
+                </div>
+                <div class="col-sm-6">
+                    <app-rating-chart ratingType='RAPID'></app-rating-chart>
+                </div>
+
+
+            </div>
+        </div>
+        <div *ngIf="showGameHistory">
+            <div class="row marginBottom" style="border:1px solid black" *ngFor="let game of games.games">
+
+                <div class="col-sm-4">
+                    <chessboard [gamedata]="game" [color]="'w'" [mode]="'O'" [showClocks]=false></chessboard>
+                </div>
+
+                <div class="col-sm-8">
+                    <div class="row">
+                        <span>{{game.whitePlayer.username}} ({{game.whitePlayer.eloblitz}}) -
+                            {{game.blackPlayer.username}}
+                            ({{game.blackPlayer.eloblitz}}) </span>
+
+                    </div>
+                    <div class="row">
+                        <span>Game result: {{game.gameresult}}</span>
+                    </div>
+                    <div class="row">
+                        <span>Time: {{game.time/60000}} + {{game.increment/1000}}</span>
+                    </div>
+                    <div class="row">
+                        <span>Date: {{game.gameTimestamp | date:'dd.MM.yyyy HH:mm'}}</span>
+                    </div>
+                    <div class="row" style="margin-top:10px">
+                        <span>Moves:</span>
+                    </div>
+                    <div class="row">
+                        <span *ngFor="let move of game.annotatedMoves; index as moveNumber"
+                            style="margin-right:5px">{{moveNumber + 1}}. {{move.whiteMove}} {{move.blackMove}}
+                        </span>
+                    </div>
+                    <div class="row">
+                        <button (click)="analyseGame(game.gameId)">Analyze game</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

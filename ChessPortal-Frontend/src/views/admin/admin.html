@@ -1,0 +1,40 @@
+<div class="container">
+<div class="formContainer">
+	<form name="formDeposit" novalidate>
+		<div class="form-group">
+			<h2>Admin Section</h2>
+		</div>
+
+		<div class="form-group" ng-if="message">
+
+			<div class="alert alert-success">{{message}}</div>
+			</div>
+
+			<div class="form-group">
+				<label for="username">Select user:</label> <select
+					ng-model="selectedUser"
+					ng-options="user.username for user in users" class="form-control">
+				</select>
+			</div>
+<div class="form-group" ng-if="selectedUser">
+			<label>Account balance:</label>
+			<input type="text" name="accountbalance"
+					id="sum" class="form-control" readonly value="{{selectedUser.accountbalance}} Euro"/>
+			</div>
+			<div class="form-group">
+				<label for="password">Amount:</label> <input type="text" name="sum"
+					id="sum" ng-model="amount" required class="form-control" />
+					 <label
+					ng-show="formLogin.pass.$error.required && pass"
+					ngclass="{'
+					text-danger': formLogin.pass.$error.required}">
+					Enter password.</label>
+			</div>
+			
+			<!-- <p ng-if="authenticationResult==0 && formLogin.uname && formLogin.pass">Wrong username or password </p> -->
+			<div class="form-group">
+				<button type="submit" ng-click="makeDeposit(selectedUser, amount)"
+					class="btn btn-primary">Deposit funds</button>
+			</div>
+		</div>
+		</div>

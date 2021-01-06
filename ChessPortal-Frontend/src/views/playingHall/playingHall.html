@@ -1,0 +1,186 @@
+<div class="container bordered">
+    <div class="playerNamesRow">
+        <div class="playersRow">
+            <div style="border-top-left-radius: 25px;border-top-right-radius: 25px;margin-top:0px" class="players col-md-12 alert alert-primary" *ngIf="whitePlayerName">
+                {{whitePlayerName}}({{whitePlayerElo}}) -
+                {{blackPlayerName}}({{blackPlayerElo}}) <span *ngIf="gameResult !== 'N\A'">Game result:
+                    {{gameResult}}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 col-md-12 col-sm-12 centeredColumnWrapper">
+            <chessboard [gameId]="gameId" [color]="whitePlayer ? 'w': 'b'" [mode]="mode"></chessboard>
+        </div>
+        <div class="col-lg-6 col-md-12 col-sm-12 centeredColumnWrapper"
+            style="display:flex;flex-direction: column;justify-content: space-between;">
+            <div class="row clockRow"
+                [hidden]="!whitePlayerName || (mode !== chessboardUsageModes.PLAYING || activeMedia ==='sm')">
+                <div class="col-md-6">
+                    <table class="clockSideSection">
+                        <tr>
+                            <td *ngIf="!whitePlayer"><span [ngClass]="['flag-icon', 'flag-icon-'+ whitePlayerCountry, 'flag-icon-squared']"></span><span> {{whitePlayerName}} ({{whitePlayerElo}})</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+                            </td>
+                            <td *ngIf="whitePlayer"><span [ngClass]="['flag-icon', 'flag-icon-'+ blackPlayerCountry, 'flag-icon-squared']"></span><span> {{blackPlayerName}} ({{blackPlayerElo}})</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <chess-clock [gameId]="gameId" [color]="whitePlayer ? 'b': 'w'"
+                                [time]="whitePlayer ? blackTime : whiteTime" [increment]="increment" [mode]="mode">
+                            </chess-clock>
+                        </tr>
+
+                    </table>
+                </div>
+                <div class="col-sm-6">
+
+                </div>
+            </div>
+
+            <div class="row" *ngIf="mode === chessboardUsageModes.PLAYING">
+                <div class="col">
+                    <div class="row" class="alert alert-danger"
+                        *ngIf="oponentDisconnected && mode === chessboardUsageModes.PLAYING">
+                        <div class="col">
+                            <div *ngIf="this.timeToReconnect && this.timeToReconnect > 0">
+                                <span>Oponent disconnected</span><br>
+                                <span>Waiting for oponent to
+                                    reconnect {{this.timeToReconnect}}</span>
+                            </div>
+                            <div *ngIf="this.timeToReconnect === 0">
+                                <span>Oponent didn't connect in time</span><br>
+                                <button
+                                    (click)="this.endGame(this.whitePlayer ? '1-0':'0-1');this.oponentDisconnected = false;">Claim
+                                    victory</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" *ngIf="gameResult !== 'N\A' && mode === chessboardUsageModes.PLAYING"
+                        class="alert alert-info">
+                        <div class="col">
+                            <span>Game has ended:{{gameResult}}</span>
+                        </div>
+                    </div>
+                    <div *ngIf="drawOfferRejected && mode === chessboardUsageModes.PLAYING" class="alert alert-info">
+                        <div>
+                            <span>{{oponent}} declined your draw offer.</span>
+                        </div>
+                    </div>
+                    <div *ngIf="drawOfferReceived && mode === chessboardUsageModes.PLAYING" class="alert alert-info">
+                        <div>
+                            <span>{{oponent}} offered you a draw. Do you want to accept?</span>
+                        </div>
+                        <button (click)="drawOfferReply(true)" class="marginRight">Yes</button>
+                        <button (click)="drawOfferReply(false)">No</button>
+                    </div>
+                    <div *ngIf="rematchOfferReceived && gameResult !== 'N\A'" class="alert alert-info">
+                        <span>{{oponent}} offered you a rematch. Do you want to accept ?</span>
+                        <button (click)="replyToRematchOffer(true)" class="marginRight">Yes</button>
+                        <button (click)="replyToRematchOffer(false)">No</button>
+                    </div>
+                    <div *ngIf="resignButtonPressed && mode === chessboardUsageModes.PLAYING" class="alert alert-info">
+                        <span>Do you really want to resign?</span>
+                        <button (click)="resign()" class="marginRight">Yes</button>
+                        <button (click)="resignButtonPressed = false">No</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" *ngIf="mode === chessboardUsageModes.PLAYING">
+
+                <div [ngClass]="{col:true, centeredFlexWrapper:activeMedia === 'sm'}">
+                    <div id="drawResignSection">
+                        <button *ngIf="playingGame" (click)="offerDraw()" class="btn btn-primary marginRight">Offer
+                            Draw</button>
+                        <button *ngIf="playingGame" (click)="resignButtonPressed = true"
+                            class="btn btn-primary marginRight">Resign</button>
+                        <button *ngIf="!playingGame" (click)="offerRematch()" class="btn btn-primary marginRight">Offer
+                            rematch</button>
+                        <button *ngIf="!playingGame" (click)="activateAnalysisMode()"
+                            class="btn btn-primary marginRight">Analyse</button>
+                        <button *ngIf="!playingGame" class="btn btn-primary marginRight"
+                            (click)="navigateToLobby()">Back to lobby</button>
+                    </div>
+
+                </div>
+            </div>
+            <app-position-setup *ngIf="mode === chessboardUsageModes.ANALYZING"></app-position-setup>
+            <div class="row" *ngIf="mode === chessboardUsageModes.ANALYZING">
+                <div class="col">
+                    <div  style="border:1px solid black;padding:5px; display:flex;flex-direction:column;">
+                        <div style="display:flex;align-items: center; flex-direction:row; justify-content:flex-start">
+                            <label for="engineToggle" class="marginRight">Engine analysis</label>
+                            <ng-toggle class="marginRight" id="engineToggle" [value]="false" [width]="55"
+                                [color]="{unchecked: '#939da2',checked: '#007bff'}"
+                                [labels]="{unchecked: 'OFF',checked: 'ON'}" (change)="toggleStartEngine($event)">
+                            </ng-toggle>
+                            <label *ngIf="this.engineOutput && this.engineOutput.line">{{this.engineOutput.search}}</label>
+                        </div>
+                        <div *ngIf="this.engineOutput && this.engineOutput.line"
+                            style="display:flex;align-items: center; flex-direction:row; justify-content:flex-start">
+                            <span class="badge badge-primary marginRight">Variation: </span>
+                            <span id="bestline">{{this.engineOutput.line}}</span>
+                        </div>
+                        <div *ngIf="this.engineOutput && this.engineOutput.line">
+                            <span class="badge badge-primary marginRight">Evaluation: </span>
+                            <span id="evaluation">{{this.engineOutput.score}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <annotation-table [gameId]="gameId" *ngIf="!positionSetupActive" [annotatedMoves]="annotatedMoves"
+                style="margin-top:10px;margin-bottom:auto"></annotation-table>
+
+            <div [hidden]="activeMedia === 'sm'" class="row clockRow">
+                <div class="col-md-12">
+                    <table [hidden]="!whitePlayerName || mode !== chessboardUsageModes.PLAYING">
+                        <tr>
+                            <td *ngIf="whitePlayer"><span [ngClass]="['flag-icon', 'flag-icon-'+ whitePlayerCountry, 'flag-icon-squared']"></span><span> {{whitePlayerName}} ({{whitePlayerElo}})</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{whitePlayerEloChange >= 0 ? "+"+whitePlayerEloChange : whitePlayerEloChange}}</span>
+                            </td>
+                            <td *ngIf="!whitePlayer"><span [ngClass]="['flag-icon', 'flag-icon-'+ blackPlayerCountry, 'flag-icon-squared']"></span><span> {{blackPlayerName}} ({{blackPlayerElo}})</span>
+                                <span
+                                    *ngIf="gameResult !== 'N\A'">{{blackPlayerEloChange >= 0 ? "+"+blackPlayerEloChange : blackPlayerEloChange}}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <chess-clock [gameId]="gameId" [color]="whitePlayer ? 'w': 'b'"
+                                [time]="whitePlayer ? whiteTime : blackTime" [increment]="increment" [mode]="mode">
+                            </chess-clock>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row marginTop" *ngIf="matchScore.length > 0">
+        <div class="col" style="padding:20px">
+            <h5>Overall score</h5>
+            <table class="table table-sm table-striped" style="padding:5px">
+                <thead>
+                    <th>Player</th>
+                    <th *ngFor="let gameResult of matchScore; index as i" style="max-width: 20px;">#{{i+1}}</th>
+                </thead>
+                <tr>
+                    <td>{{user}}</td>
+                    <td *ngFor="let gameResult of matchScore" style="max-width: 20px;">{{gameResult}}</td>
+                </tr>
+                <tr>
+                    <td>{{oponent}}</td>
+                    <td *ngFor="let gameResult of matchScore">{{gameResult === 1 ? 0 : gameResult === 0 ? 1 : 0.5}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
+
+
+
+</div>

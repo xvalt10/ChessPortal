@@ -1,0 +1,153 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary marginBottom">
+    <a class="navbar-brand" href="#">Slovak Chess Server</a>
+    <button class="navbar-toggler hvr-bounce-to-bottom" type="button"  data-toggle="collapse"
+        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+        aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent" >
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active" *ngIf="!userLoggedIn()">
+                <a data-toggle="collapse" data-target=".navbar-collapse" class="nav-link" routerLink="register">Register</a>
+            </li>
+            <li class="nav-item">
+                <a data-toggle="collapse" data-target=".navbar-collapse" class="nav-link" routerLink="login" *ngIf="!userLoggedIn()">Login</a>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">Play</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a data-toggle="collapse" data-target=".navbar-collapse" class="dropdown-item" routerLink="lobby">Lobby</a>
+                    <a data-toggle="collapse" data-target=".navbar-collapse" class="dropdown-item" routerLink="tournaments">Tournaments</a>
+                </div>
+            </li>
+
+
+            <li class="nav-item">
+                <a data-toggle="collapse" data-target=".navbar-collapse" class="nav-link" routerLink="watchGames">Watch</a>
+            </li>
+            <li class="nav-item" *ngIf="userLoggedIn()">
+                <a data-toggle="collapse" data-target=".navbar-collapse" class="nav-link" routerLink="analyzeGame">Analyse</a>
+            </li>
+         
+
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a data-toggle="collapse" data-target=".navbar-collapse" class="nav-link marginRight" *ngIf="userLoggedIn()" style="cursor:pointer"
+                        routerLink="userprofile">
+                        <span class="glyphicon glyphicon-user"></span>{{user}}</a>
+                </li>
+                <li class="nav-item">
+                    <a data-toggle="collapse" data-target=".navbar-collapse" class="nav-link" *ngIf="userLoggedIn()" (click)="logout()" style="cursor:pointer">
+                        <span class="glyphicon glyphicon-log-out"></span>Log out</a>
+                </li>
+            </ul>
+
+        </form>
+    </div>
+</nav>
+
+<div *ngIf="routerOnHomePage()" class="container">
+    <section class="jumbotron text-center">
+        <div class="container">
+            <h1>Welcome to the first Slovak chess server</h1>
+            <p class="lead text-muted">Play online games, compete in tournaments or simply enjoy to be a part of the
+                chess community</p>
+            <p>
+                <a href="#" class="btn btn-primary my-2">Main call to action</a>
+                <a href="#" class="btn btn-secondary my-2">Secondary action</a>
+            </p>
+        </div>
+    </section>
+
+    <div  class="row" *ngIf="topGames.BULLET || topGames.BLITZ || topGames.RAPID" >
+        <div class="col">
+            <h2>Top bullet game</h2>  
+            <chessboard *ngIf="topGames.BULLET"   [gameId]="topGames.BULLET" [mode]="'O'" [color]="'w'"></chessboard>
+            <span *ngIf="!topGames.BULLET" >No bullet game is currently in progress.</span>        
+        </div>
+        <div class="col">
+            <h2>Top blitz game</h2>
+            <chessboard *ngIf="topGames.BLITZ"   [gameId]="topGames.BLITZ" [mode]="'O'" [color]="'w'"></chessboard>
+            <span *ngIf="!topGames.BLITZ" >No blitz game is currently in progress.</span>
+        </div>
+        <div class="col">
+            <h2>Top rapid game</h2>
+            <chessboard *ngIf="topGames.RAPID"   [gameId]="topGames.RAPID" [mode]="'O'" [color]="'w'"></chessboard>
+            <span *ngIf="!topGames.RAPID" >No rapid game is currently in progress.</span>
+        </div>
+
+    </div>
+    <div class="card-deck mb-3 text-center">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">Bullet Leaderboard</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Player name</th>
+                            <th>Player elo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let player of bestPlayers.BULLET">
+                            <td>{{player.username}}</td>
+                            <td>{{player.elobullet}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">Blitz Leaderboard</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Player name</th>
+                            <th>Player elo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let player of bestPlayers.BLITZ">
+                            <td>{{player.username}}</td>
+                            <td>{{player.elobullet}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">Rapid Leaderboard</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Player name</th>
+                            <th>Player elo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let player of bestPlayers.RAPID">
+                            <td>{{player.username}}</td>
+                            <td>{{player.elobullet}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<router-outlet></router-outlet>

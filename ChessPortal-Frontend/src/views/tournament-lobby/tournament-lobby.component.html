@@ -1,0 +1,141 @@
+<div class="container" *ngIf="tournament">
+    <div class="row">
+        <div class="col">
+            <div class="marginBottom">
+                <div class="centeredFlexWrapper" style="justify-content: space-evenly;">
+                    <h5>{{tournament.tournamentName}}</h5>
+                    <h5 class="marginRight" style="padding-top:8px">Time control: {{tournament.time}} +
+                        {{tournament.increment}}</h5>
+                    <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===false"
+                        class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
+                    <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===true"
+                        class="btn btn-primary" (click)="leaveTournament()">Leave tournament</button>
+                    <h5 *ngIf="tournament.tournamentState === 'NOT_STARTED'" style="padding-top:8px">Starts in
+                        {{secondsTillStartString}}</h5>
+                    <h5 *ngIf="tournament.tournamentState === 'STARTED'" class="marginRight" style="padding-top:8px">
+                        <span class="badge badge-primary">Round {{tournament.currentRound}} in progress</span></h5>
+                    <h5 *ngIf="tournament.tournamentState === 'FINISHED'" class="marginRight" style="padding-top:8px">
+                        <span class="badge badge-success" >Tournament finished</span></h5>
+                    <h5 *ngIf="tournament.tournamentState === 'ABORTED'" class="marginRight" style="padding-top:8px">
+                        <span class="badge badge-warning" >Tournament has been aborted</span></h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="alert alert-info" *ngIf="tournament.tournamentState === 'FINISHED' ">Your final standing: #{{this.userscore.standing + 1}} out of {{this.tournament.tournamentPlayers.length}} players<br> Your final score: {{this.userscore.points}}/{{this.tournament.numberOfRounds}}</div>
+                    <div class="alert alert-info" *ngIf="byeReceived">You received a bye in round {{this.tournament.currentRound + 1}}</div>
+                </div>
+            </div>
+            <div class="row" *ngIf="tournament.tournamentPlayers.length > 0 && tournament.tournamentState === 'NOT_STARTED'">
+                <div class="col">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            <h4 class="my-0 font-weight-normal">Registered players</h4>
+                        </div>
+                        <div class="card-body">
+                            <div>
+                            <table class="table table-sm table-fixed" >
+                      <thead>
+                                    <tr>
+                                        <th class="col-6">Player name</th>
+                                        <th class="col-6">Player ELO</th>
+                                    </tr>
+                                </thead>
+                                <tbody >
+                                    <tr *ngFor="let player of tournament.tournamentPlayers">
+                                        <td class="col-6">{{player.username}}</td>
+                                        <td class="col-6">{{player.elobullet}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="row" *ngIf="tournament.pairings.length !== 0">
+                <div class="col">
+
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            <h4 class="my-0 font-weight-normal">Pairings - Round {{tournament.currentRound}}</h4>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-fixed">
+                                <thead>
+                                    <tr>
+                                        <th class="col-4">White</th>
+                                        <th class="col-4">Black</th>
+                                        <th class="col-4"> Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let pairing of currentPairings">
+                                        <td class="col-4">{{pairing.whitePlayer ? pairing.whitePlayer.username : 'BYE'}}</td>
+                                        <td class="col-4">{{pairing.blackPlayer ? pairing.blackPlayer.username : 'BYE'}}</td>
+                                        <td class="col-4"><span *ngIf="pairing.gameResult">{{pairing.gameResult}}</span> <button
+                                                *ngIf="!pairing.gameResult"
+                                                (click)="observeGame(pairing.gameId)">Observe
+                                                game</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+
+            <div *ngIf="currentPairings.length > 0">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h4 class="my-0 font-weight-normal">Top games - Round {{tournament.currentRound}}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div style="width:33%" *ngFor="let pairing of currentPairings">
+                            <chessboard [gameId]="pairing.gameId" [mode]="'O'" [color]="'w'"></chessboard>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="row" *ngIf="tournament.currentRound !== 0">
+                <div class="col">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            <h4 *ngIf="tournament.currentRound !== tournament.numberOfRounds"  class="my-0 font-weight-normal">Current standings (round {{tournament.currentRound}} ongoing)</h4>
+                            <h4 *ngIf="tournament.currentRound === tournament.numberOfRounds" class="my-0 font-weight-normal">Final standings</h4>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-fixed">
+                                <thead>
+                                    <tr>
+                                        <th class="col-4">Place</th>
+                                        <th class="col-4">Player name</th>
+                                        <th class="col-4">Points</th>
+                                    </tr>
+                                </thead>
+                                <tbody >
+                                    <tr *ngFor="let score of tournament.scores; let place = index">
+                                        <td class="col-4">{{place +1}}</td>
+                                        <td class="col-4">{{score.username}}</td>
+                                        <td class="col-4">{{score.points}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
