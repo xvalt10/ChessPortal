@@ -33,7 +33,8 @@ export class TournamentSummaryComponent implements OnInit {
     this.scheduleTournamentForm = this.formBuilder.group({
       tournamentname: ['', Validators.required],
       tournamenttype: ['', Validators.required],
-      timecontrol: ['', Validators.required],
+      time: ['', Validators.required],
+      increment:['',Validators.required],
       startDateTime: ['', Validators.required]
     });
 
@@ -61,13 +62,16 @@ export class TournamentSummaryComponent implements OnInit {
     let tournamentparams = {};
     tournamentparams['name'] = this.formControls.tournamentname.value;
     tournamentparams['type'] = this.formControls.tournamenttype.value;
-    tournamentparams['timecontrol'] = this.formControls.timecontrol.value;
+    tournamentparams['time'] = this.formControls.time.value;
+    tournamentparams['increment'] = this.formControls.increment.value;
 
     var localDate = new Date(Date.parse(this.formControls.startDateTime.value));
-    var now_utc = Date.UTC(localDate.getUTCFullYear(), localDate.getUTCMonth(), localDate.getUTCDate(),
-      localDate.getUTCHours(), localDate.getUTCMinutes(), localDate.getUTCSeconds());
+    // var now_utc = Date.UTC(localDate.getUTCFullYear(), localDate.getUTCMonth(), localDate.getUTCDate(),
+    //   localDate.getUTCHours(), localDate.getUTCMinutes(), localDate.getUTCSeconds());
+    //  let offsetToUTC= new Date().getTimezoneOffset() * 60000
 
-    tournamentparams['startDateTime'] = new Date(now_utc).getTime();
+    tournamentparams['startDateTime'] = localDate.getTime();
+    tournamentparams['offsetToUTC'] = new Date().getTimezoneOffset() * 60;
 
     this.httpService.scheduleTournament(tournamentparams).subscribe((response) => {
       this.scheduleTournamentForm.reset();
@@ -84,6 +88,10 @@ export class TournamentSummaryComponent implements OnInit {
         this.loading = false;
       });
     this.submitted = false;
+  }
+
+  convertUTCToLocalDate(utcDate:Date){
+    return new Date(utcDate.getTime() - (new Date().getTimezoneOffset() * 60000))
   }
 
 }

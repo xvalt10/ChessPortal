@@ -49,4 +49,21 @@ export class WebSocketService {
 		}
 	};
 
+
+	seekNewOponentCommand(time, increment, minRating?, maxRating?){
+		minRating = minRating || 0
+		maxRating = maxRating || 9999
+
+		const seekDetails = {
+			action: "seekOponent",
+			user: this.authenticationService.authenticatedUser,
+			time,
+			increment,
+			minRating,
+			maxRating
+		  };
+	  
+		  this.socket.send(JSON.stringify(seekDetails));
+	}
+
 }

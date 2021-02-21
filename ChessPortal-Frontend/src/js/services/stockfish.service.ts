@@ -137,9 +137,12 @@ export class StockfishService {
   }
 
   startPositionAnalysis(fen) {
-
+if(fen==='startpos'){
+  fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+}
     this.positionFen = fen;
     this.stockfish.postMessage("ucinewgame");
+  
     this.stockfish.postMessage(`position fen ${fen}`);
     this.stockfish.postMessage("go depth 15");
 
@@ -150,9 +153,12 @@ export class StockfishService {
     this.stockfish.postMessage("stop");
   }
 
-  stopEngine(){
+  stopEngine(resetGame:boolean){
     this.stockfish.postMessage("stop");
     this.stockfish.postMessage("quit");
+    if(resetGame){
+      this.game = new this.chessRules();
+    }
   }
 
 

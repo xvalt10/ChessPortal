@@ -1,50 +1,35 @@
-<div class="wrap-whole">
 
-    <section class="vertical-nav-bar col-2">
-        <div class="menu-container ">
+<div class="container">
 
-            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='bullet'}"
-                (click)="observeGame('bullet')">
-                <a>
-                    <i class="fa fa-home main-nav-icon"></i>
-                    <div>Bullet</div>
-                </a>
-            </div>
-            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='blitz'}"
-                (click)="observeGame('blitz')">
-                <a>
-                    <i class="fa fa-home main-nav-icon"></i>
-                    <div>Blitz</div>
-                </a>
-            </div>
-            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='rapid'}"
-                (click)="observeGame('rapid')">
-                <a>
-                    <i class="fa fa-home main-nav-icon"></i>
-                    <div>Rapid</div>
-                </a>
-            </div>
-            <div [ngClass]="{'main-nav-link':true,'main-nav-link-selected':this.selectedTimeControl==='classical'}"
-                (click)="observeGame('classical')">
-                <a>
-                    <i class="fa fa-home main-nav-icon"></i>
-                    <div>Classical</div>
-                </a>
-            </div>
-        </div>
+    <mat-sidenav-container style="height:100vh">
+        <mat-sidenav #sidenav mode="side" opened class="col-3" flex>
+            <mat-nav-list>
 
-        <div class="menu-container">
-            <!-- more links you can add -->
-        </div>
-    </section>
+                <mat-list-item> <a (click)="observeGame('bullet')">Bullet</a></mat-list-item>
+                <mat-list-item><a (click)="observeGame('blitz')">Blitz</a></mat-list-item>
+                <mat-list-item> <a (click)="observeGame('rapid')">Rapid</a></mat-list-item>
+                <mat-list-item><a (click)="observeGame('classical')">Classical</a></mat-list-item>
+               
+                
+<!--               
+                
+                <a mat-list-item (click)="sidenav.toggle()" href="" mat-list-item>Close</a> -->
 
-    <div class="container">
-        <div class="col-4">
-            <div *ngIf="observedGameId" class="centeredColumnWrapper">
-                <span class="sectionTitle">TOP RATED {{this.selectedTimeControl}} GAME</span>
-                <chessboard *ngIf="observedGameId" [gameId]="observedGameId" [mode]="'O'" [color]="'w'"
-                    [message]="gameResultMessage"></chessboard>
+            </mat-nav-list>
+        </mat-sidenav>
+        <mat-sidenav-content class="col-9">
+            <div class="container">
+                <div class="row">
+                <div class="col-5">
+                    <div *ngIf="observedGameId" class="centeredColumnWrapper">
+                        <span class="sectionTitle">TOP RATED {{this.selectedTimeControl}} GAME</span>
+                        <chessboard *ngIf="observedGameId" [gameId]="observedGameId" [mode]="'O'" [color]="'w'"
+                            [message]="gameResultMessage"></chessboard>
+                    </div>
+                    <span *ngIf="!observedGameId">No {{selectedTimeControl}} game is currently in progress.</span>
+                </div>
+                </div>
             </div>
-            <span *ngIf="!observedGameId">No {{selectedTimeControl}} game is currently in progress.</span>
-        </div>
-    </div>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>

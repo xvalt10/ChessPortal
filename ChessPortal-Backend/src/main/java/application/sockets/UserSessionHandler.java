@@ -524,6 +524,7 @@ public class UserSessionHandler {
 		try {
 			session.sendMessage(new TextMessage(message.toString()));
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			System.out.println("Caugh illegal state exception");
 			session = sessions.get(session.getPrincipal().getName()).getSession();
 			sendMessageToSession(session, message);

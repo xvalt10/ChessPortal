@@ -1,7 +1,9 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary marginBottom">
+
+
+<nav class="navbar navbar-expand-lg navbar-dark marginBottom" style="background-color:#3f51b5;padding:10px">
     <a class="navbar-brand" href="#">Slovak Chess Server</a>
-    <button class="navbar-toggler hvr-bounce-to-bottom" type="button"  data-toggle="collapse"
-        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+    <button class="navbar-toggler" type="button"  data-toggle="collapse"
+        data-target="#navbarSupportedContent" aria-controls="#navbarSupportedContent"
         aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -58,8 +60,8 @@
             <p class="lead text-muted">Play online games, compete in tournaments or simply enjoy to be a part of the
                 chess community</p>
             <p>
-                <a href="#" class="btn btn-primary my-2">Main call to action</a>
-                <a href="#" class="btn btn-secondary my-2">Secondary action</a>
+                <a routerLink="lobby" class="btn btn-primary my-2">Lobby</a>
+                <a routerLink="watchGames" class="btn btn-secondary my-2">Watch Games</a>
             </p>
         </div>
     </section>
@@ -150,4 +152,4 @@
 </div>
 
 
-<router-outlet></router-outlet>
+<router-outlet ></router-outlet>

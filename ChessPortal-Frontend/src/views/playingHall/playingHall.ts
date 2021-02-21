@@ -98,7 +98,7 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
 
     ngOnInit() {
         this.initialiseWebSockets();
-        this.engineService.initializeEngine();
+
 
         this.route.params.subscribe(params => {
             this.gameId = params['gameId'];
@@ -106,15 +106,16 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
             this.tournamentId = params['tournamentId'];
             this.determineInitialModeOfUsage(action);
             if (this.mode === CHESSBOARD_USAGE_MODES.ANALYZING) {
-               // this.engineService.initializeEngine();
+                this.engineAnalysisActivated = false;
+                this.engineService.initializeEngine();
                 this.gameService.engineOutputSubscriber.subscribe(engineOutput => {
 
                     this.engineOutput = engineOutput;
-                    if((this.lastMove && this.lastMove.moveColor === "w") && this.engineOutput.score.indexOf("mate") === -1){
+                    if ((this.lastMove && this.lastMove.moveColor === "w") && this.engineOutput.score.indexOf("mate") === -1) {
                         this.engineOutput.score = (+this.engineOutput.score * -1).toFixed(2);
                     }
                 });
-              
+
             }
             // this.whitePlayer = true;
             this.user = this.authenticationService.authenticatedUser.username;
@@ -130,7 +131,7 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
 
         this.gameService.gamePositionSubscriber.subscribe(gamePosition => {
             this.engineService.stopPositionAnalysis();
-                    this.engineService.startPositionAnalysis(gamePosition.positionAsFEN);
+            this.engineService.startPositionAnalysis(gamePosition.positionAsFEN);
         })
 
         this.gameService.gameDataSubscriber.subscribe(gameData => {
@@ -212,8 +213,8 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
                         this.drawOfferRejected = false;
                     }
                 }
-                if(this.mode === CHESSBOARD_USAGE_MODES.ANALYZING && this.engineAnalysisActivated){
-                
+                if (this.mode === CHESSBOARD_USAGE_MODES.ANALYZING && this.engineAnalysisActivated) {
+
                     this.engineService.stopPositionAnalysis();
                     this.engineService.startPositionAnalysis(playedMove.fen);
                 }
@@ -222,14 +223,18 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
 
     };
 
-    toggleStartEngine(event){
-        if(!event.target.checked){
-            this.engineService.stopEngine();
+    toggleStartEngine(event) {
+        if (!event.target.checked) {
+            this.engineService.stopEngine(false);
             this.engineAnalysisActivated = false;
         } else {
-            if(this.lastMove){
-                this.engineService.startPositionAnalysis(this.lastMove.fen); }
-            
+            if (this.lastMove) {
+                this.engineService.startPositionAnalysis(this.lastMove.fen);
+            }
+            else {
+                this.engineService.startPositionAnalysis("startpos");
+            }
+
             this.engineAnalysisActivated = true;
         }
     }
@@ -274,8 +279,8 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
             };
 
             this.socket.send(JSON.stringify(playerLeftGameMessage));
-        } else{
-            this.engineService.stopEngine();
+        } else {
+            this.engineService.stopEngine(true);
         }
     }
 

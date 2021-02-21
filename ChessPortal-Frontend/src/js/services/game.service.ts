@@ -136,8 +136,14 @@ export class GameService {
 
   convertUTCDateToLocalDate(offsetDateTimeObject){
     console.log(offsetDateTimeObject);
-    let utcDate = new Date(offsetDateTimeObject.year, offsetDateTimeObject.monthValue - 1, offsetDateTimeObject.dayOfMonth, offsetDateTimeObject.hour, offsetDateTimeObject.minute, offsetDateTimeObject.second);
-    let localDate = new Date(utcDate.getTime() - (new Date().getTimezoneOffset() * 60000));
+    let utcDate;
+    if(offsetDateTimeObject.year){
+     utcDate = new Date(offsetDateTimeObject.year, offsetDateTimeObject.monthValue - 1, offsetDateTimeObject.dayOfMonth, offsetDateTimeObject.hour, offsetDateTimeObject.minute, offsetDateTimeObject.second);
+    }else{
+     utcDate = new Date(Date.parse(offsetDateTimeObject));
+    }
+    let localDateOffset = new Date().getTimezoneOffset() * 60000
+    let localDate = new Date(utcDate.getTime() - localDateOffset);
     return localDate;
   }
 

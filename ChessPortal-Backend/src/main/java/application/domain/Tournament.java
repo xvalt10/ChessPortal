@@ -1,11 +1,14 @@
 package application.domain;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import application.tournaments.PairingsGenerator;
 import application.tournaments.RoundRobinPairingsGenerator;
@@ -23,6 +26,7 @@ public class Tournament {
 
 	private String tournamentName;
 
+	@JsonIgnore
 	private PairingsGenerator pairingGenerator;
 
 	private int increment;
@@ -33,7 +37,9 @@ public class Tournament {
 
 	private int currentRound;
 
-	private OffsetDateTime startDateTime;
+	private LocalDateTime utcStartDateTime;
+	
+	
 
 	private TournamentType tournamentType;
 
@@ -43,7 +49,7 @@ public class Tournament {
 
 	private Map<String, Score> scores;
 
-	public Tournament(String tournamentName, int time, int increment, OffsetDateTime startDateTime,
+	public Tournament(String tournamentName, int time, int increment, LocalDateTime startDateTime,
 			TournamentType tournamentType) {
 		this.tournamentId = UUID.randomUUID().toString();
 		this.tournamentName = tournamentName;
@@ -51,7 +57,7 @@ public class Tournament {
 		this.increment = increment;
 		this.tournamentPlayers = new ArrayList<>();
 		this.playersInLobby = new ArrayList<>();
-		this.startDateTime = startDateTime;
+		this.utcStartDateTime = startDateTime;
 		this.tournamentType = tournamentType;
 		switch (this.tournamentType) {
 		case SWISS:
@@ -99,12 +105,12 @@ public class Tournament {
 		this.tournamentId = tournamentId;
 	}
 
-	public OffsetDateTime getStartDateTime() {
-		return startDateTime;
+	public LocalDateTime getUtcStartDateTime() {
+		return utcStartDateTime;
 	}
 
-	public void setStartDateTime(OffsetDateTime startDateTime) {
-		this.startDateTime = startDateTime;
+	public void setUtcStartDateTime(LocalDateTime startDateTime) {
+		this.utcStartDateTime = startDateTime;
 	}
 
 	public TournamentType getTournamentType() {

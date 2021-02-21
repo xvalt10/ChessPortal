@@ -43,7 +43,7 @@ public class Pairing {
 	}
 	@Override
 	public String toString() {
-		return "W: " + (whitePlayer==null ? "BYE" : whitePlayer.getUsername()) + " B: " + (blackPlayer==null ? "BYE" : blackPlayer.getUsername());
+		return "W: " + (whitePlayer==null ? "BYE" : whitePlayer.getUsername() + " Points: "+whitePlayer.getScore().getPoints()) + " B: " + (blackPlayer==null ? "BYE" : blackPlayer.getUsername()+" Points: "+blackPlayer.getScore().getPoints());
 	}
 
 }

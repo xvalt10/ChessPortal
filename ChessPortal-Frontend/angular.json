@@ -32,10 +32,11 @@
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/app.css",
+              
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/cm-chessboard/styles/cm-chessboard.css",
-              "node_modules/flag-icon-css/css/flag-icon.min.css"
+              "node_modules/flag-icon-css/css/flag-icon.min.css",
+              "src/app.css"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",

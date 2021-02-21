@@ -1,0 +1,67 @@
+<h2>Start new game</h2>
+<form [formGroup]="gameTimeForm" (ngSubmit)="seekOponent()">
+    <div class="form-group">
+        <label for="initialtime">Initial Time</label>
+        <input type="number" formControlName="initialtime" class="form-control"
+            [ngClass]="{ 'is-invalid': gameTimeFormSubmitted && gameTimeFormFields.initialtime.errors }" />
+        <div *ngIf="gameTimeFormSubmitted && gameTimeFormFields.initialtime.errors"
+            class="invalid-feedback">
+            <div *ngIf="gameTimeFormFields.initialtime.errors.required">Initial
+                time is
+                required
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="incrementpermove">Increment per move</label>
+        <input type="number" formControlName="incrementpermove"
+            class="form-control"
+            [ngClass]="{ 'is-invalid': gameTimeFormSubmitted && gameTimeFormFields.incrementpermove.errors }" />
+        <div *ngIf="gameTimeFormSubmitted && gameTimeFormFields.incrementpermove.errors"
+            class="invalid-feedback">
+            <div *ngIf="gameTimeFormFields.incrementpermove.errors.required">
+                Increment per
+                move
+                is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="minRating">Oponent min rating - {{minRating}}</label>
+        <mat-slider 
+         #minRatingSlider class="form-control" name="minRating"
+        thumbLabel
+        [value]="minRating"
+        tickInterval="100"
+        min="1000"
+        max="3000" (change)="minRating = minRatingSlider.value"></mat-slider>
+        <div *ngIf="gameTimeFormSubmitted && gameTimeFormFields.minRating.errors"
+            class="invalid-feedback">
+            <div *ngIf="gameTimeFormFields.minRating.errors.required">
+                Increment per
+                move
+                is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="maxRating">Oponent max rating - {{maxRating}}</label>
+        <mat-slider #maxRatingSlider class="form-control"
+        thumbLabel
+        [value]="maxRating"
+        tickInterval="100"
+        min="1000"
+        max="3000" (change)="maxRating = maxRatingSlider.value"></mat-slider>
+      
+    </div>
+    <div class="centeredFlexWrapper">
+        <button class="btn btn btn-primary marginRight">
+            <span *ngIf="waitingToBePaired" 
+                class="spinner-border spinner-border-sm mr-1"></span>
+            Find oponent
+        </button>
+        <button class="btn btn btn-primary" (click)="close()" >
+            Close
+        </button>
+    </div>
+   
+
+</form>

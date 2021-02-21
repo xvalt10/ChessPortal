@@ -2,23 +2,50 @@
     <div class="row">
         <div class="col">
             <div class="marginBottom">
-                <div class="centeredFlexWrapper" style="justify-content: space-evenly;">
-                    <h5>{{tournament.tournamentName}}</h5>
-                    <h5 class="marginRight" style="padding-top:8px">Time control: {{tournament.time}} +
-                        {{tournament.increment}}</h5>
-                    <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===false"
-                        class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
-                    <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===true"
-                        class="btn btn-primary" (click)="leaveTournament()">Leave tournament</button>
-                    <h5 *ngIf="tournament.tournamentState === 'NOT_STARTED'" style="padding-top:8px">Starts in
-                        {{secondsTillStartString}}</h5>
-                    <h5 *ngIf="tournament.tournamentState === 'STARTED'" class="marginRight" style="padding-top:8px">
-                        <span class="badge badge-primary">Round {{tournament.currentRound}} in progress</span></h5>
-                    <h5 *ngIf="tournament.tournamentState === 'FINISHED'" class="marginRight" style="padding-top:8px">
-                        <span class="badge badge-success" >Tournament finished</span></h5>
-                    <h5 *ngIf="tournament.tournamentState === 'ABORTED'" class="marginRight" style="padding-top:8px">
-                        <span class="badge badge-warning" >Tournament has been aborted</span></h5>
+                <div class="row">
+                    <div class="col">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">         
+                            <div class="centeredFlexWrapper" style="justify-content: space-around;">
+                                <h2 style="padding-top:8px">{{tournament.tournamentName}}</h2>
+                                <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===false"
+                                    class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
+                                <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===true"
+                                    class="btn btn-primary" (click)="leaveTournament()">Leave tournament</button>
+                                <h2 *ngIf="tournament.tournamentState === 'NOT_STARTED'" style="padding-top:8px">Starts in
+                                    {{secondsTillStartString}}</h2>
+                                <h2 *ngIf="tournament.tournamentState === 'STARTED'" class="marginRight" style="padding-top:8px">
+                                    <span class="badge badge-primary">Round {{tournament.currentRound}} in progress</span></h2>
+                                <h2 *ngIf="tournament.tournamentState === 'FINISHED'" class="marginRight" style="padding-top:8px">
+                                    <span class="badge badge-success" >Tournament finished</span></h2>
+                                <h2 *ngIf="tournament.tournamentState === 'ABORTED'" class="marginRight" style="padding-top:8px">
+                                    <span class="badge badge-warning" >Tournament has been aborted</span></h2>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div>
+                            <table class="table table-sm table-fixed" >      
+                                <tbody >
+                                    <tr>
+                                        <td class="col-6"><b>Tournament name:</b></td>
+                                        <td class="col-6">{{tournament.tournamentName}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-6"><b>Time control:</b></td>
+                                        <td class="col-6">{{tournament.time}} + {{tournament.increment}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-6"><b>Start date:</b></td>
+                                        <td class="col-6">{{tournament.utcStartDateTime.toString() | date:'dd.MM.yyyy HH:mm'}}</td>
+                                    </tr>                           
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
                 </div>
+
+         
             </div>
             <div class="row">
                 <div class="col">

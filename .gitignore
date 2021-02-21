@@ -3,3 +3,4 @@ ChessPortal-Frontend/node_modules/
 .settings/
 .vscode/
 .tern-project
+.angulardoc.json

@@ -5,26 +5,21 @@
             Games in progress: {{gamesInProgress}}
         </div>
         <div class="col-md-10">
-
-
             <div class="row marginBottom">
                 <div class="col">
                     <div>
-                        <h4>Lobby</h4>
+                        <h2>Lobby</h2>
                     </div>
                 </div>
-
             </div>
 
             <div class="row marginBottom">
                 <div class="col">
-
                     <div class="card">
                         <div class="card-header">
                             Seek oponent
                         </div>
                         <div class="card-body">
-
                             <p class="card-text"> Select the game time and wait to be paired with an oponent
                             </p>
 
@@ -64,48 +59,6 @@
                                     (click)="seekOponent(45,45)" id="seek1">45+45</div>
                                 <div type="submit" style="text-align:center" class="col btn btn-primary "
                                     (click)="showSeekForm()" id="seek2">Other
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <div *ngIf="gameTimeFormShown==true">
-                                    <form [formGroup]="gameTimeForm" (ngSubmit)="seekOponent()">
-                                        <div class="form-group">
-                                            <label for="initialtime">Initial Time</label>
-                                            <input type="text" formControlName="initialtime" class="form-control"
-                                                [ngClass]="{ 'is-invalid': gameTimeFormSubmitted && gameTimeFormFields.initialtime.errors }" />
-                                            <div *ngIf="gameTimeFormSubmitted && gameTimeFormFields.initialtime.errors"
-                                                class="invalid-feedback">
-                                                <div *ngIf="gameTimeFormFields.initialtime.errors.required">Initial
-                                                    time is
-                                                    required
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="incrementpermove">Increment per move</label>
-                                            <input type="incrementpermove" formControlName="incrementpermove"
-                                                class="form-control"
-                                                [ngClass]="{ 'is-invalid': gameTimeFormSubmitted && gameTimeFormFields.incrementpermove.errors }" />
-                                            <div *ngIf="gameTimeFormSubmitted && gameTimeFormFields.incrementpermove.errors"
-                                                class="invalid-feedback">
-                                                <div *ngIf="gameTimeFormFields.incrementpermove.errors.required">
-                                                    Increment per
-                                                    move
-                                                    is required</div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <button class="btn btn btn-primary">
-                                                <span *ngIf="seekingOponent"
-                                                    class="spinner-border spinner-border-sm mr-1"></span>
-                                                Find oponent
-                                            </button>
-                                        </div>
-                                    </form>
-
-
                                 </div>
                             </div>
                         </div>

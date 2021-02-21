@@ -109,6 +109,7 @@ export class AnnotatedMovesComponent implements OnInit {
             console.log("Clearing annotated moves.");
 
             this.annotatedMoves = [];
+            this.addBlankRowsIfNeeded();
             this.currentVariation = null;
             this.variations = new Map();
             this.variationId = 0;

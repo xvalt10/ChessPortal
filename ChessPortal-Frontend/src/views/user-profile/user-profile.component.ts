@@ -5,6 +5,7 @@ import { JwtAuthenticationService } from './../../js/services/jwtAuthenticationS
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import {countries} from 'countries-list'
+import { PageEvent } from '@angular/material/paginator';
 //import {Country} from '@angular-material-extensions/select-country';
 
 @Component({
@@ -15,6 +16,9 @@ import {countries} from 'countries-list'
 export class UserProfileComponent implements OnInit {
 
   games:any;
+  gamesOnPage:any;
+  gamesPageSize:number;
+
   showUserStatistics:boolean;
   showGameHistory:boolean;
   showUserProfile:boolean;
@@ -38,6 +42,7 @@ export class UserProfileComponent implements OnInit {
     this.userProfileFormFeedbackMessage = {};
     this.userProfileFormFeedbackMessage.type = null;
     this.userProfileFormFeedbackMessage.message = null;
+    this.gamesPageSize = 6;
    }
 
   ngOnInit(): void {
@@ -60,10 +65,12 @@ export class UserProfileComponent implements OnInit {
 
     this.httpService.getGamesByPlayer(this.username).subscribe(data => {       
       this.games = data;
+     // this.games.games = this.games.games.slice(1,10);
       console.log(this.games);
       this.games.games.forEach(game => {
         game.annotatedMoves = JSON.parse(game.movesJson);
       });
+      this.gamesOnPage = this.games.games.slice(0,this.gamesPageSize);
       this.showUserProfile = true
       console.log(this.games);
     });
@@ -145,6 +152,15 @@ export class UserProfileComponent implements OnInit {
   onUserImageChanged(event){
 
     this.userImageFile = event.target.files[0]
+  }
+
+  loadGames(pageEvent:PageEvent){
+
+    const startElement = pageEvent.pageIndex * pageEvent.pageSize;
+    const endElement = Math.min(startElement + pageEvent.pageSize, pageEvent.length)
+
+    this.gamesOnPage = this.games.games.slice(startElement, endElement);
+
   }
 
   // onCountrySelected($event: Country){

@@ -1,5 +1,5 @@
-import { HttpModule } from '@angular/http';
 
+import { NewGameDialogComponent } from './js/components/new-game-dialog/new-game-dialog.component';
 import { ChartsModule } from 'ng2-charts';
 import {  NgToggleModule  } from 'ng-toggle-button';
 //import { MatSelectCountryModule } from '@angular-material-extensions/select-country'; 
@@ -31,6 +31,18 @@ import { UserProfileComponent } from './views/user-profile/user-profile.componen
 import { RatingChartComponent } from './js/components/rating-chart/rating-chart.component';
 import { TournamentSummaryComponent } from './views/tournament-summary/tournament-summary.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatSidenavModule } from  '@angular/material/sidenav';
+import { MatListModule} from  '@angular/material/list';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import { NgxMatDatetimePickerModule, NgxMatTimepickerModule,  } from '@angular-material-components/datetime-picker';
+import { NgxMatMomentModule } from '@angular-material-components/moment-adapter';
+import { MatInputModule } from '@angular/material/input';
+import {MatDialogModule} from "@angular/material/dialog";
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSlider, MatSliderModule} from '@angular/material/slider';
+import {MatCardModule} from '@angular/material/card';
+
 
 const appRoutes: Routes = [
     { path: 'analyzeGame', component: PlayingHall, canActivate: [AuthGuard]},
@@ -74,6 +86,18 @@ NgToggleModule,
     }), */
     RouterModule.forRoot(appRoutes),
 BrowserAnimationsModule, 
+MatSidenavModule,
+    MatListModule,
+    NgxMatTimepickerModule,
+    NgxMatDatetimePickerModule,
+    MatFormFieldModule,
+    MatDatepickerModule,
+    NgxMatMomentModule,
+    MatInputModule,
+    MatDialogModule,
+    MatSliderModule,
+    MatPaginatorModule,
+    MatCardModule
    /*  JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,
@@ -84,8 +108,9 @@ BrowserAnimationsModule,
 
 ],
   providers: [AuthGuard, JwtAuthenticationService, FormBuilder, {provide:HTTP_INTERCEPTORS,useClass : AuthInterceptor, multi: true}],
-  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent, WatchGamesComponent, ChessboardAndClockComponent, AnnotatedMovesComponent, ChessClockComponent, PositionSetupComponent, UserProfileComponent, RatingChartComponent, TournamentSummaryComponent ],
-  exports:      [ HomePageComponent ],
+  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent, WatchGamesComponent, ChessboardAndClockComponent, AnnotatedMovesComponent, ChessClockComponent, PositionSetupComponent, UserProfileComponent, RatingChartComponent, TournamentSummaryComponent, NewGameDialogComponent ],
+  exports:      [ HomePageComponent],
+  entryComponents:[NewGameDialogComponent],
   bootstrap:    [ HomePageComponent ] 
 })
 export class AppModule { 

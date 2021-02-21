@@ -1,20 +1,32 @@
 package application.tournaments;
 
+import static application.util.GameColor.BLACK;
+import static application.util.GameColor.WHITE;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+
+import org.javatuples.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import application.domain.Pairing;
 import application.domain.Player;
 import application.domain.Score;
 import application.domain.Tournament;
+import application.util.FloatStatus;
+import application.util.GameColor;
+import application.util.PairingNotPossibleException;
 
 public class SwissSystemPairingsGenerator implements PairingsGenerator {
+
+	private static final Logger log = LoggerFactory.getLogger(SwissSystemPairingsGenerator.class);
 
 	/**
 	 * The following rules are valid for each Swiss system unless explicitly stated
@@ -91,99 +103,228 @@ public class SwissSystemPairingsGenerator implements PairingsGenerator {
 	public List<Pairing> generatePairings(Tournament tournament, int round) {
 		//
 		List<Pairing> pairings = new ArrayList<>();
+
 		List<Player> tournamentPlayers = tournament.getTournamentPlayers();
+
+		tournamentPlayers.forEach(player -> {
+			player.setAlreadyPaired(false);
+			if (round == 1) {
+				player.setColorSequence("");
+				player.setColorBalance(0);
+				player.setByeInRound(0);
+				player.setScore(new Score(player.getUsername()));
+			}
+		});
+
 		int playersCount = tournamentPlayers.size();
-		
-		tournamentPlayers.forEach(player -> player.setAlreadyPaired(false));
-		if(playersCount % 2 != 0) {
-			List<Player> tournamentPlayersWithoutBye = tournament.getTournamentPlayers().stream().filter(player-> player.isByeInCurrentRound()==false).collect(Collectors.toList());
-			Player playerWithBye = tournamentPlayers.get(ThreadLocalRandom.current().nextInt(0, tournamentPlayersWithoutBye.size()));
-			playerWithBye.setByeInCurrentRound(true);
-			playerWithBye.setAlreadyPaired(true);
+		Player playerWithBye = null;
+		if (playersCount % 2 != 0) {
+			playerWithBye = getPlayerWithBye(tournamentPlayers, round);
+
 		}
 
-		Map<Float, List<Player>> playersGroupedByPoints = tournamentPlayers.stream()
-				.collect(
-					Collectors.groupingBy(tplayer -> tplayer.getScore().getPoints(), 
-					TreeMap::new, 
-					Collectors.toList()));
+		if (round == 1) {
 
-		for (Player player : tournamentPlayers) {
-			Player oponent = null;
-			float playerScore = player.getScore().getPoints();
-			while (oponent == null) {
+			pairings = generatePairingsForRoundOne(tournamentPlayers);
+		} else {
+			List<ScoreGroup> scoreGroups = groupPlayersByTheirScores(tournamentPlayers);
+			SwissSystemPairingContext pairingContext = new SwissSystemPairingContext(round, false, scoreGroups);
+			scoreGroups.forEach(sg -> sg.setSwissSystemPairingContext(pairingContext));
+			pairings = generatePairingsAfterRoundOne(round, pairingContext);
 
-				List<Player> playersWithSameScore = playersGroupedByPoints.get(playerScore);
-				if (playersWithSameScore != null) {
-
-					List<Player> forbiddenPlayers = forbiddenPairings(player, playersWithSameScore);
-					List<Player> candidateOponents = playersWithSameScore.stream()
-							.filter(playerInGroup -> player.getPreviousOponents().contains(playerInGroup))
-							.filter(playerInGroup -> playerInGroup.getUsername().equals(player.getUsername()))
-							.filter(playerInGroup -> !playerInGroup.isAlreadyPaired())
-							.filter(playerInGroup -> forbiddenPlayers.contains(playerInGroup))
-							.collect(Collectors.toList());
-
-					if (player.getColorBalance() > 0) {
-						candidateOponents = candidateOponents.stream()
-								.filter(playerInGroup -> playerInGroup.getColorSequence().endsWith("b"))
-								.collect(Collectors.toList());
-						// candidateOponents
-					} else if (player.getColorBalance() < 0) {
-						candidateOponents = candidateOponents.stream()
-								.filter(playerInGroup -> playerInGroup.getColorSequence().endsWith("w"))
-								.collect(Collectors.toList());
-					}
-
-					if (!candidateOponents.isEmpty()) {
-						oponent = candidateOponents.get(0);
-						player.setAlreadyPaired(true);
-						player.getPreviousOponents().add(oponent);
-						
-						oponent.setAlreadyPaired(true);
-						oponent.getPreviousOponents().add(player);
-						
-						Pairing pairing = new Pairing();
-						pairing.setBlackPlayer(player.getColorBalance() > 0 ? player : oponent);
-						pairing.setWhitePlayer(player.getColorBalance() > 0 ? oponent : player);
-						pairing.setRound(round);
-						pairings.add(pairing);
-					} 
-				}
-				if (playerScore == 0) {
-					if (oponent == null) {
-						throw new RuntimeException("No oponent found for:" + player.getUsername());
-					}
-					break;
-				} else {
-					playerScore -= 0.5f;
-				}
-			}
 		}
 
 		return pairings;
 	}
 
-	private List<Player> forbiddenPairings(Player player, List<Player> playersInScoreGroup) {
-		List<Player> forbiddenPairings = new ArrayList<>();
+	private List<Pairing> generatePairingsAfterRoundOne(int round, SwissSystemPairingContext pairingContext) {
 
-		forbiddenPairings.addAll(player.getPreviousOponents());
-		if (player.getColorBalance() == 2) {
-			forbiddenPairings.addAll(playersInScoreGroup.stream().filter(player2 -> player2.getColorBalance() == 2)
-					.collect(Collectors.toList()));
-		} else if (player.getColorBalance() == -2) {
-			forbiddenPairings.addAll(playersInScoreGroup.stream().filter(player2 -> player2.getColorBalance() == -2)
-					.collect(Collectors.toList()));
+		Map<ScoreGroup, List<Pair<Player, Player>>> pairsByScoreGroup = new HashMap<>();
+		log.info("Generating pairings for round {}", round);
+		for (ScoreGroup scoreGroup : pairingContext) {
+			
+			try {
+				log.info("\n");
+				log.info("Generating pairings for score group {}", scoreGroup.score);
+				scoreGroup.generatePairings(pairingContext);
+				pairsByScoreGroup.put(scoreGroup, scoreGroup.getPairings());
+				pairingContext.increaseIndex();
+				log.info("\n");
+			} catch (PairingNotPossibleException e) {
+				log.warn(e.getMessage());
+				if(e.getMessage().contains("Backtracking")) {
+				//	log.info("Removing pairings for score group {}", pairingContext.getCurrentScoreGroup().score);
+				//	log.info("Removing pairings for score group {}", pairingContext.getPreviousScoreGroup().score);
+					pairsByScoreGroup.remove(pairingContext.getCurrentScoreGroup());
+					pairsByScoreGroup.remove(pairingContext.getPreviousScoreGroup());
+				}
+			}
 		}
-		if (player.getColorSequence().equals("ww")) {
-			forbiddenPairings.addAll(playersInScoreGroup.stream()
-					.filter(player2 -> player2.getColorSequence().equals("ww")).collect(Collectors.toList()));
-		} else if (player.getColorSequence().equals("bb")) {
-			forbiddenPairings.addAll(playersInScoreGroup.stream()
-					.filter(player2 -> player2.getColorSequence().equals("bb")).collect(Collectors.toList()));
-		}
-		return forbiddenPairings;
+		List<Pair<Player, Player>> pairs = new ArrayList<>();
+		pairsByScoreGroup.values().forEach(pairsForScoreGroup -> pairs.addAll(pairsForScoreGroup));
+		
+		log.info("Pairs count {}", pairs.size());
+		
+		return pairs.stream().map(pair -> assignColoursAndFinalizePairing(pair, round))
+				.collect(Collectors.toList());
+	}
 
+	private Pairing assignColoursAndFinalizePairing(Pair<Player, Player> pair, int round) {
+		Player player1 = pair.getValue0();
+		Player player2 = pair.getValue1();
+
+		GameColor player1ExpectedColor = player1.getExpectedColor();
+		GameColor player2ExpectedColor = player2.getExpectedColor();
+
+		if (Math.abs(player1.getColorBalance()) > Math.abs(player2.getColorBalance())) {
+			return createPairing(round, player1, player2, player1ExpectedColor);
+		} else if (Math.abs(player1.getColorBalance()) < Math.abs(player2.getColorBalance())) {
+			return createPairing(round, player2, player1, player2ExpectedColor);
+		} else if (player1.getPoints() > player2.getPoints()) {
+			return createPairing(round, player1, player2, player1ExpectedColor);
+		} else if (player1.getPoints() < player2.getPoints()) {
+			return createPairing(round, player2, player1, player2ExpectedColor);
+		} else {
+			return createPairing(round, player2, player1, player2ExpectedColor);
+		}
+
+	}
+
+	private List<Pairing> generatePairingsForRoundOne(List<Player> tournamentPlayers) {
+		List<Pairing> pairings = new ArrayList<>();
+		for (Player player : tournamentPlayers) {
+			if (player.isAlreadyPaired()) {
+				continue;
+			}
+			List<Player> candidateOponents = tournamentPlayers.stream()
+					.filter(player2 -> !player.getUsername().equals(player2.getUsername()))
+					.filter(player2 -> !player2.isAlreadyPaired()).collect(Collectors.toList());
+
+			Player oponent = candidateOponents.get(candidateOponents.size() - 1);
+			GameColor playerColorInThisRound;
+
+			if (Math.random() >= 0.5) {
+				playerColorInThisRound = WHITE;
+			} else {
+				playerColorInThisRound = BLACK;
+			}
+
+			Pairing pairing = createPairing(1, player, oponent, playerColorInThisRound);
+			pairings.add(pairing);
+		}
+		return pairings;
+	}
+
+	private Player getPlayerWithBye(List<Player> tournamentPlayers, int round) {
+
+		List<Player> tournamentPlayersWithoutBye = tournamentPlayers.stream()
+				.filter(player -> player.getByeInRound() == 0).collect(Collectors.toList());
+		Player playerWithBye = tournamentPlayers
+				.get(ThreadLocalRandom.current().nextInt(0, tournamentPlayersWithoutBye.size()));
+		playerWithBye.setByeInRound(round);
+		playerWithBye.setAlreadyPaired(true);
+
+		return playerWithBye;
+	}
+
+	private Pairing createPairing(int round, Player player, Player oponent, GameColor playerColor) {
+
+		player.setAlreadyPaired(true);
+		player.getPreviousOponents().add(oponent);
+
+		oponent.setAlreadyPaired(true);
+		oponent.getPreviousOponents().add(player);
+
+		if (oponent.getPoints() > player.getPoints()) {
+			player.setFloatStatus(FloatStatus.UP);
+			oponent.setFloatStatus(FloatStatus.DOWN);
+		} else if (oponent.getPoints() < player.getPoints()) {
+			player.setFloatStatus(FloatStatus.DOWN);
+			oponent.setFloatStatus(FloatStatus.UP);
+		} else {
+			player.setFloatStatus(FloatStatus.NONE);
+			oponent.setFloatStatus(FloatStatus.NONE);
+		}
+
+		Pairing pairing = new Pairing();
+
+		switch (playerColor) {
+		case WHITE:
+			pairing.setWhitePlayer(player);
+			pairing.setBlackPlayer(oponent);
+
+			player.addColorToColorSequence(WHITE.getColorAbbreviation());
+			oponent.addColorToColorSequence(BLACK.getColorAbbreviation());
+
+			player.setColorBalance(player.getColorBalance() + 1);
+			oponent.setColorBalance(oponent.getColorBalance() - 1);
+			break;
+		case BLACK:
+			pairing.setWhitePlayer(oponent);
+			pairing.setBlackPlayer(player);
+
+			oponent.addColorToColorSequence(WHITE.getColorAbbreviation());
+			player.addColorToColorSequence(BLACK.getColorAbbreviation());
+
+			oponent.setColorBalance(oponent.getColorBalance() + 1);
+			player.setColorBalance(player.getColorBalance() - 1);
+			break;
+		case BYE:
+			break;
+		}
+
+		pairing.setRound(round);
+		log.info("Round {} - Pairing: {}", round, pairing);
+		return pairing;
+	}
+
+	private List<ScoreGroup> groupPlayersByTheirScores(List<Player> players) {
+		List<ScoreGroup> scoregroups = new ArrayList<>();
+		Map<Float, List<Player>> playersGroupedByPoints = players.stream()
+				.collect(Collectors.groupingBy(tplayer -> tplayer.getPoints(), TreeMap::new, Collectors.toList()));
+		scoregroups = playersGroupedByPoints.entrySet().stream()
+				.map(entry -> new ScoreGroup(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+		Collections.reverse(scoregroups);
+		return scoregroups;
+	}
+
+	private List<Player> getPlayersByColorInLastRound(List<Player> players, GameColor gamecolor) {
+		return players.stream()
+				.filter(playerInGroup -> playerInGroup.getColorSequence().endsWith(gamecolor.getColorAbbreviation()))
+				.collect(Collectors.toList());
+	}
+
+	private List<Player> getPlayersWhoCanHaveSpecifiedColorInNextRound(List<Player> players, GameColor gamecolor) {
+
+		if (gamecolor == WHITE) {
+			return players.stream()
+					.filter(playerInGroup -> !"ww".equals(playerInGroup.getColorSequence())
+							&& playerInGroup.getColorBalance() < 2)
+					.sorted((player1, player2) -> Integer.compare(player2.getColorBalance(), player1.getColorBalance()))
+					.collect(Collectors.toList());
+		} else {
+			return players.stream()
+					.filter(playerInGroup -> !"bb".equals(playerInGroup.getColorSequence())
+							&& playerInGroup.getColorBalance() > -2)
+					.sorted((player1, player2) -> Integer.compare(player1.getColorBalance(), player2.getColorBalance()))
+					.collect(Collectors.toList());
+		}
+
+	}
+
+	private void switchPlayers(List<Player> playersWithoutOponent, List<Pairing> pairings) {
+
+		if (playersWithoutOponent.stream().allMatch(player -> player.getColorSequence().equals("ww"))) {
+			List<Player> players = pairings.stream().map(Pairing::getBlackPlayer)
+					.sorted((Player player1, Player player2) -> Float.compare(player2.getPoints(), player1.getPoints()))
+					.collect(Collectors.toList());
+
+			for (Player player3 : players) {
+				// List<Players> players.stream().filter(player2 ->
+				// !player3.getPreviousOponents().contains(player2))
+			}
+
+		}
 	}
 
 }

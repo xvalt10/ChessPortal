@@ -112,21 +112,21 @@
             <app-position-setup *ngIf="mode === chessboardUsageModes.ANALYZING"></app-position-setup>
             <div class="row" *ngIf="mode === chessboardUsageModes.ANALYZING">
                 <div class="col">
-                    <div  style="border:1px solid black;padding:5px; display:flex;flex-direction:column;">
+                    <div style="border:1px solid black;padding:5px; display:flex;flex-direction:column;height:105px">
                         <div style="display:flex;align-items: center; flex-direction:row; justify-content:flex-start">
                             <label for="engineToggle" class="marginRight">Engine analysis</label>
                             <ng-toggle class="marginRight" id="engineToggle" [value]="false" [width]="55"
                                 [color]="{unchecked: '#939da2',checked: '#007bff'}"
                                 [labels]="{unchecked: 'OFF',checked: 'ON'}" (change)="toggleStartEngine($event)">
                             </ng-toggle>
-                            <label *ngIf="this.engineOutput && this.engineOutput.line">{{this.engineOutput.search}}</label>
+                            <label *ngIf="this.engineAnalysisActivated && this.engineOutput.search">{{this.engineOutput.search}}</label>
                         </div>
-                        <div *ngIf="this.engineOutput && this.engineOutput.line"
+                        <div *ngIf="this.engineAnalysisActivated"
                             style="display:flex;align-items: center; flex-direction:row; justify-content:flex-start">
                             <span class="badge badge-primary marginRight">Variation: </span>
                             <span id="bestline">{{this.engineOutput.line}}</span>
                         </div>
-                        <div *ngIf="this.engineOutput && this.engineOutput.line">
+                        <div *ngIf="this.engineAnalysisActivated">
                             <span class="badge badge-primary marginRight">Evaluation: </span>
                             <span id="evaluation">{{this.engineOutput.score}}</span>
                         </div>

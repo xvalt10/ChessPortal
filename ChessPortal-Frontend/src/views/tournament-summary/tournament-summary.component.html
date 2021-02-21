@@ -1,12 +1,13 @@
 <div class="container">
   <div class="row marginBottom">
-    <button class="btn btn-primary"*ngIf="showForm === false"  (click)="this.showForm = true;this.showSummary = false;">Start new tournament</button>
+    <button class="btn btn-primary" *ngIf="showForm === false"
+      (click)="this.showForm = true;this.showSummary = false;">Start new tournament</button>
   </div>
 
   <div class="row">
     <div *ngIf="backendError" class="alert alert-danger">{{backendError}}</div>
     <form *ngIf="showForm===true" [formGroup]="scheduleTournamentForm" (ngSubmit)="scheduleTournament()">
-      <h3>Schedule new tournament</h3>
+      <h2>Schedule new tournament</h2>
       <div class="form-group">
         <label for="tournamentname">Tournament name</label>
         <input type="text" formControlName="tournamentname" class="form-control"
@@ -17,10 +18,18 @@
       </div>
       <div class="form-group">
         <label for="time">Time control</label>
-        <input type="text" formControlName="timecontrol" class="form-control"
-          [ngClass]="{ 'is-invalid': submitted && formControls.timecontrol.errors }" />
-        <div *ngIf="submitted && formControls.timecontrol.errors" class="invalid-feedback">
-          <div *ngIf="formControls.timecontrol.errors.required">Time control is required</div>
+        <input type="number" formControlName="time" class="form-control"
+          [ngClass]="{ 'is-invalid': submitted && formControls.time.errors }" />
+        <div *ngIf="submitted && formControls.time.errors" class="invalid-feedback">
+          <div *ngIf="formControls.time.errors.required">Time control is required</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="increment">Time control</label>
+        <input type="number" formControlName="increment" class="form-control"
+          [ngClass]="{ 'is-invalid': submitted && formControls.increment.errors }" />
+        <div *ngIf="submitted && formControls.increment.errors" class="invalid-feedback">
+          <div *ngIf="formControls.time.increment.required">Time control is required</div>
         </div>
       </div>
       <div class="form-group">
@@ -34,38 +43,51 @@
           <label for="swiss">swiss</label>
         </div>
         <div *ngIf="submitted && formControls.tournamenttype.errors" class="invalid-feedback">
-          <div *ngIf="formControls.tournamenttype.errors.required">Start datetime is required</div>
+          <div *ngIf="formControls.tournamenttype.errors.required">Tournament type is required</div>
         </div>
       </div>
       <div class="form-group">
         <label for="startDateTime">Start datetime</label>
-        <input type="datetime-local" formControlName="startDateTime" class="form-control"
-          [ngClass]="{ 'is-invalid': submitted && formControls.startDateTime.errors }" />
+<div>
+        <mat-form-field name="startDateTime">
+          <input matInput [ngxMatDatetimePicker]="picker" placeholder="Choose a date" [formControl]="formControls.startDateTime">
+          <mat-datepicker-toggle matSuffix [for]="picker">
+          </mat-datepicker-toggle>
+          <ngx-mat-datetime-picker #picker [stepHour]="true" [stepMinute]="true">
+          </ngx-mat-datetime-picker>
+        </mat-form-field>
+
+        <!-- <input type="datetime-local" formControlName="startDateTime" class="form-control"
+          [ngClass]="{ 'is-invalid': submitted && formControls.startDateTime.errors }" /> -->
         <div *ngIf="submitted && formControls.startDateTime.errors" class="invalid-feedback">
           <div *ngIf="formControls.startDateTime.errors.required">Start datetime is required</div>
         </div>
+      </div>
       </div>
       <div class="form-group">
         <button [disabled]="loading" class="btn btn-primary marginRight">
           <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
           Schedule tournament
         </button>
-        <button (click)="showForm = false;showSummary = true;"  class="btn btn-primary">
-          
+        <button (click)="showForm = false;showSummary = true;" class="btn btn-primary">
+
           Back
         </button>
       </div>
     </form>
   </div>
   <div class="row" *ngIf="showSummary===true">
-    <h2>Scheduled tournaments</h2>
-    <table class="table table-striped table-sm">
+    <div>
+      <h2>Scheduled tournaments</h2>
+      <h4 *ngIf="!scheduledTournaments || scheduledTournaments.length == 0">No tournaments scheduled currently.</h4>
+    </div>
+    <table class="table table-striped table-sm" *ngIf="scheduledTournaments && scheduledTournaments.length > 0">
       <thead>
         <tr>
           <th>Tournament Name</th>
           <th>Time Control</th>
           <th>Type</th>
-          <th># of players</th>
+          <th>Players registered</th>
           <th>Start date</th>
           <th></th>
         </tr>
@@ -76,7 +98,7 @@
           <td>{{tournament.time}}+{{tournament.increment}}</td>
           <td>{{tournament.tournamentType}}</td>
           <td>{{tournament.tournamentPlayers.length}}</td>
-          <td>{{tournament.startDateTime | date:'dd.MM.yyyy HH:mm:ss'}}</td>
+          <td>{{gameService.convertUTCDateToLocalDate(tournament.utcStartDateTime) | date: 'dd.MM.yyyy HH:mm'}}</td>
           <td><button (click)="navigateToLobby(tournament.tournamentId)">Lobby</button></td>
         </tr>
       </tbody>

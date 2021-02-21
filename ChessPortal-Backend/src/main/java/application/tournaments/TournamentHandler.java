@@ -1,8 +1,12 @@
 package application.tournaments;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,22 +40,30 @@ public class TournamentHandler {
 	int tournamentId = 1;
 
 	Map<String, Tournament> tournaments = new ConcurrentHashMap<>();
-
-
 	
+	public TournamentHandler() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public TournamentHandler(UserSessionHandler userSessionHandler,
 			@Qualifier("tournamentScheduler") ThreadPoolTaskScheduler taskScheduler) {
 		this.userSessionHandler = userSessionHandler;
 		this.tournamentScheduler = taskScheduler;
-		//createTournament(5, 0, OffsetDateTime.now().plusMinutes(2), ROUND_ROBIN);
-		//createTournament(10, 0, OffsetDateTime.now().plusHours(2), ROUND_ROBIN);
-		//createTournament(15, 0, OffsetDateTime.now().plusDays(2), ROUND_ROBIN);
+		// createTournament(5, 0, OffsetDateTime.now().plusMinutes(2), ROUND_ROBIN);
+		// createTournament(10, 0, OffsetDateTime.now().plusHours(2), ROUND_ROBIN);
+		// createTournament(15, 0, OffsetDateTime.now().plusDays(2), ROUND_ROBIN);
 	}
 
-	public void createTournament(String tournamentName, int time, int increment, OffsetDateTime startDateTime, TournamentType tournamentType) {
-		Tournament tournament = new Tournament(tournamentName,time, increment, startDateTime, tournamentType);
+	public void createTournament(String tournamentName, int time, int increment, LocalDateTime utcTime,
+			TournamentType tournamentType) {
+		Tournament tournament = new Tournament(tournamentName, time, increment, utcTime, tournamentType);
 		tournaments.put(tournament.getTournamentId(), tournament);
-		tournamentScheduler.schedule(() -> startTournament(tournament), startDateTime.toInstant());
+
+		Date convertedDate = Date.from(utcTime.plusSeconds(OffsetDateTime.now().getOffset().getTotalSeconds())
+				.atZone(ZoneId.systemDefault()).toInstant());
+
+		tournamentScheduler.schedule(() -> startTournament(tournament), convertedDate);
+
 	}
 
 	public void joinTournament(String tournamentId, String username) {
@@ -96,15 +108,18 @@ public class TournamentHandler {
 				Score whitePlayerScore = scores.get(whitePlayerName);
 				Score blackPlayerScore = scores.get(blackPlayerName);
 				if (gameResult.contains("1/2")) {
-					whitePlayerScore.setPoints(whitePlayerScore.getPoints() + 0.5f);					blackPlayerScore.setPoints(blackPlayerScore.getPoints() + 0.5f);
+					whitePlayerScore.setPoints(whitePlayerScore.getPoints() + 0.5f);
+					blackPlayerScore.setPoints(blackPlayerScore.getPoints() + 0.5f);
 
-				} else if (gameResult.contains("1-0")) {				
+				} else if (gameResult.contains("1-0")) {
 					whitePlayerScore.setPoints(whitePlayerScore.getPoints() + 1);
 				} else if (gameResult.contains("0-1")) {
 					blackPlayerScore.setPoints(blackPlayerScore.getPoints() + 1);
 				}
 				scores.put(whitePlayerName, whitePlayerScore);
 				scores.put(blackPlayerName, blackPlayerScore);
+				whitePlayer.setScore(whitePlayerScore);
+				blackPlayer.setScore(blackPlayerScore);
 				pairing.setGameResult(gameResult);
 			}
 
@@ -218,11 +233,6 @@ public class TournamentHandler {
 		}
 
 	}
-
-
-
-
-
 
 	public Tournament getTournament(String tournamentId) {
 		return tournaments.get(tournamentId);

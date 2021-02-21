@@ -3,9 +3,13 @@ package application.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import application.util.FloatStatus;
 import application.util.GameColor;
 
 import org.springframework.web.socket.WebSocketSession;
+
+import static application.util.GameColor.BLACK;
+import static application.util.GameColor.WHITE;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -67,11 +71,39 @@ public class Player implements Serializable {
 	@Transient
 	private List<Player> previousOponents = new ArrayList<>();
 	@Transient
-	private boolean alreadyPaired;	
+	private boolean alreadyPaired;
 	@Transient
-	private boolean byeInCurrentRound;
+	private int byeInRound = 0;
 	@Transient
 	private Score score;
+	@Transient
+	private FloatStatus floatStatus;
+
+	public FloatStatus getFloatStatus() {
+		return floatStatus;
+	}
+
+	public void setFloatStatus(FloatStatus floatStatus) {
+		if (floatStatus != FloatStatus.NONE) {
+			this.floatStatus = floatStatus;
+		} else {
+			int playerfloatStatusAsInt = floatStatus.getStatus();
+			if(playerfloatStatusAsInt < 0) {
+				playerfloatStatusAsInt += 1;
+			} else if (playerfloatStatusAsInt > 0) {
+				playerfloatStatusAsInt -= 1;
+			}
+			
+			FloatStatus[] floatStatusArray = FloatStatus.values();
+			for (int i = 0; i < floatStatusArray.length; i++) {
+				if(floatStatusArray[i].getStatus() == playerfloatStatusAsInt) {
+					this.floatStatus = floatStatusArray[i];
+					break;
+				}
+			}
+		}
+
+	}
 
 	public boolean isSeeking() {
 		return isSeeking;
@@ -198,6 +230,10 @@ public class Player implements Serializable {
 		return score;
 	}
 
+	public float getPoints() {
+		return this.score.getPoints();
+	}
+
 	public void setScore(Score score) {
 		this.score = score;
 	}
@@ -231,6 +267,10 @@ public class Player implements Serializable {
 	}
 
 	public void setColorSequence(String colorSequence) {
+		this.colorSequence = colorSequence;
+	}
+
+	public void addColorToColorSequence(String colorSequence) {
 		if (this.colorSequence == null || this.colorSequence.isEmpty()) {
 			this.colorSequence = colorSequence;
 		} else {
@@ -238,7 +278,7 @@ public class Player implements Serializable {
 			this.colorSequence = this.colorSequence.substring(this.colorSequence.length() - 2);
 		}
 	}
-	
+
 	public List<Player> getPreviousOponents() {
 		return previousOponents;
 	}
@@ -265,15 +305,42 @@ public class Player implements Serializable {
 
 	@Override
 	public String toString() {
-		return this.getUsername();
+
+		return this.getUsername() + " PT: " + this.getPoints() + " CB: " + this.getColorBalance() + " CS: "
+				+ this.getColorSequence();
 	}
 
-	public boolean isByeInCurrentRound() {
-		return byeInCurrentRound;
+	public int getByeInRound() {
+		return byeInRound;
 	}
 
-	public void setByeInCurrentRound(boolean byeInCurrentRound) {
-		this.byeInCurrentRound = byeInCurrentRound;
+	public void setByeInRound(int byeInRound) {
+		this.byeInRound = byeInRound;
+	}
+
+	public GameColor getExpectedColor() {
+		GameColor playerColorInCurrentRound = null;
+		if (colorBalance > 0) {
+			playerColorInCurrentRound = BLACK;
+		} else if (colorBalance < 0) {
+			playerColorInCurrentRound = WHITE;
+		} else if (colorSequence.endsWith(WHITE.getColorAbbreviation())) {
+			playerColorInCurrentRound = BLACK;
+		} else if (colorSequence.endsWith(BLACK.getColorAbbreviation())) {
+			playerColorInCurrentRound = WHITE;
+		}
+
+//		else {
+//			log.warn("Randomly picking color for player {}",player);
+//			if (Math.random() >= 0.5) {
+//				playerColorInCurrentRound = WHITE;
+//			} else {
+//				playerColorInCurrentRound = BLACK;
+//			}
+//		}
+
+		return playerColorInCurrentRound;
+
 	}
 
 	@Override

@@ -13,7 +13,7 @@ interface Tournament{
     tournamentState: any;
     numberOfRounds: number;
     currentRound: number;
-    startDateTime;
+    utcStartDateTime;
     increment: number;
     tournamentType: string;
     pairings: any[];
@@ -89,7 +89,9 @@ break;
     this.tournament= JSON.parse(messageData.tournament);
     this.tournament.tournamentPlayers = this.tournament.tournamentPlayers.filter(player => player);
         
-    let tournamentStartDateTime: Date = this.gameService.convertUTCDateToLocalDate(this.tournament.startDateTime);
+    let tournamentStartDateTime: Date = this.gameService.convertUTCDateToLocalDate(this.tournament.utcStartDateTime);
+    this.tournament.utcStartDateTime = tournamentStartDateTime;
+    
 
     this.secondsTillStart = Math.round((tournamentStartDateTime.getTime() - new Date().getTime()) / 1000);
     this.currentPairings = this.tournament.pairings.filter(pairing => pairing.round === this.tournament.currentRound);
