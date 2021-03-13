@@ -106,15 +106,7 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
             this.tournamentId = params['tournamentId'];
             this.determineInitialModeOfUsage(action);
             if (this.mode === CHESSBOARD_USAGE_MODES.ANALYZING) {
-                this.engineAnalysisActivated = false;
-                this.engineService.initializeEngine();
-                this.gameService.engineOutputSubscriber.subscribe(engineOutput => {
-
-                    this.engineOutput = engineOutput;
-                    if ((this.lastMove && this.lastMove.moveColor === "w") && this.engineOutput.score.indexOf("mate") === -1) {
-                        this.engineOutput.score = (+this.engineOutput.score * -1).toFixed(2);
-                    }
-                });
+                this.activateAnalysisMode();
 
             }
             // this.whitePlayer = true;
@@ -223,6 +215,18 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
 
     };
 
+    private activateAnalysisMode() {
+        this.engineAnalysisActivated = false;
+        this.engineService.initializeEngine();
+        this.gameService.engineOutputSubscriber.subscribe(engineOutput => {
+
+            this.engineOutput = engineOutput;
+            if ((this.lastMove && this.lastMove.moveColor === "w") && this.engineOutput.score.indexOf("mate") === -1) {
+                this.engineOutput.score = (+this.engineOutput.score * -1).toFixed(2);
+            }
+        });
+    }
+
     toggleStartEngine(event) {
         if (!event.target.checked) {
             this.engineService.stopEngine(false);
@@ -292,10 +296,7 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
         );
     };
 
-    activateAnalysisMode() {
-        this.mode = this.chessboardUsageModes.ANALYZING;
-        this.gameService.emitGameAction({ gameId: this.gameId, action: "startGameAnalysis", gamedata: [] });
-    };
+    
 
     updatePlayerElos(gameResultWhite, gameResultBlack) {
 
@@ -447,13 +448,7 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
         this.sendGameResult();
     };
 
-    offerRematch() {
-        let offerRematchMessage = {
-            action: "offerRematch",
-            oponent: this.whitePlayer ? this.blackPlayerName : this.whitePlayerName
-        }
-        this.socket.send(JSON.stringify(offerRematchMessage));
-    };
+   
 
     replyToRematchOffer(acceptOffer: boolean) {
         if (acceptOffer) {

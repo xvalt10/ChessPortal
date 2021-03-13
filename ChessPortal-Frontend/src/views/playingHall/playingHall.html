@@ -99,10 +99,6 @@
                             Draw</button>
                         <button *ngIf="playingGame" (click)="resignButtonPressed = true"
                             class="btn btn-primary marginRight">Resign</button>
-                        <button *ngIf="!playingGame" (click)="offerRematch()" class="btn btn-primary marginRight">Offer
-                            rematch</button>
-                        <button *ngIf="!playingGame" (click)="activateAnalysisMode()"
-                            class="btn btn-primary marginRight">Analyse</button>
                         <button *ngIf="!playingGame" class="btn btn-primary marginRight"
                             (click)="navigateToLobby()">Back to lobby</button>
                     </div>
@@ -119,14 +115,14 @@
                                 [color]="{unchecked: '#939da2',checked: '#007bff'}"
                                 [labels]="{unchecked: 'OFF',checked: 'ON'}" (change)="toggleStartEngine($event)">
                             </ng-toggle>
-                            <label *ngIf="this.engineAnalysisActivated && this.engineOutput.search">{{this.engineOutput.search}}</label>
+                            <label *ngIf="this.engineAnalysisActivated && this.engineOutput">{{this.engineOutput.search}}</label>
                         </div>
-                        <div *ngIf="this.engineAnalysisActivated"
+                        <div *ngIf="this.engineAnalysisActivated && this.engineOutput && this.engineOutput.line"
                             style="display:flex;align-items: center; flex-direction:row; justify-content:flex-start">
                             <span class="badge badge-primary marginRight">Variation: </span>
                             <span id="bestline">{{this.engineOutput.line}}</span>
                         </div>
-                        <div *ngIf="this.engineAnalysisActivated">
+                        <div *ngIf="this.engineAnalysisActivated && this.engineOutput && this.engineOutput.score">
                             <span class="badge badge-primary marginRight">Evaluation: </span>
                             <span id="evaluation">{{this.engineOutput.score}}</span>
                         </div>
@@ -159,7 +155,7 @@
             </div>
         </div>
     </div>
-    <div class="row marginTop" *ngIf="matchScore.length > 0">
+    <div class="row marginTop" *ngIf="matchScore.length > 0 && mode !== chessboardUsageModes.PLAYING">
         <div class="col" style="padding:20px">
             <h5>Overall score</h5>
             <table class="table table-sm table-striped" style="padding:5px">

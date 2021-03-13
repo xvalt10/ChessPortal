@@ -45,6 +45,21 @@ public class TournamentService {
 		TournamentType tournamentType = TournamentType.valueOf(String.valueOf(tournamentDetails.get("type")));
 		
 		long startDateTimeMillis = (Long)tournamentDetails.get("startDateTime");
+		LocalDateTime utcStartTime = convertMillisToUTCDateTime(tournamentDetails, startDateTimeMillis);
+		
+		if(tournamentType==TournamentType.ARENA) {
+			long endDateTimeMillis = tournamentDetails.get("startDateTime") != null ? (Long)tournamentDetails.get("startDateTime") : 0;			
+			LocalDateTime utcEndTime = convertMillisToUTCDateTime(tournamentDetails, endDateTimeMillis);
+			tournamentHandler.createTournament(tournamentName,time,increment, utcStartTime, utcEndTime,tournamentType);
+		}else {
+			tournamentHandler.createTournament(tournamentName,time,increment, utcStartTime, null,tournamentType);
+		}
+		return tournamentHandler.getTournamentsByState("NOT_STARTED");
+		
+		
+	}
+
+	private LocalDateTime convertMillisToUTCDateTime(Map<String, Object> tournamentDetails, long startDateTimeMillis) {
 		Date date = new Date(startDateTimeMillis);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -52,14 +67,9 @@ public class TournamentService {
 		int offSetSeconds = (int)tournamentDetails.get("offsetToUTC"); 
 		ZoneOffset clientZoneOffset = ZoneOffset.ofTotalSeconds(-1*offSetSeconds);
 		
-		
 		OffsetDateTime offsetDateTime= OffsetDateTime.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), 0, 0, clientZoneOffset);
 		
 		LocalDateTime utcStartTime = LocalDateTime.ofInstant(offsetDateTime.toInstant(), ZoneId.of("UTC"));
-		
-		tournamentHandler.createTournament(tournamentName,time,increment, utcStartTime, tournamentType);
-		return tournamentHandler.getTournamentsByState("NOT_STARTED");
-		
-		
+		return utcStartTime;
 	}
 }

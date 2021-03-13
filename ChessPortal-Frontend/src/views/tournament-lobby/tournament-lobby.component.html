@@ -12,7 +12,7 @@
                                     class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
                                 <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===true"
                                     class="btn btn-primary" (click)="leaveTournament()">Leave tournament</button>
-                                <h2 *ngIf="tournament.tournamentState === 'NOT_STARTED'" style="padding-top:8px">Starts in
+                                <h2 *ngIf="tournament.tournamentState === 'NOT_STARTED'" style="padding-top:8px">Starts in <br>
                                     {{secondsTillStartString}}</h2>
                                 <h2 *ngIf="tournament.tournamentState === 'STARTED'" class="marginRight" style="padding-top:8px">
                                     <span class="badge badge-primary">Round {{tournament.currentRound}} in progress</span></h2>

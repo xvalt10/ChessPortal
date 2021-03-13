@@ -1,6 +1,6 @@
 package application.util;
 
 public enum TournamentType {
-	ROUND_ROBIN,SWISS;
+	ROUND_ROBIN,SWISS,ARENA;
 
 }

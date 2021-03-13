@@ -41,9 +41,9 @@ public class TournamentHandler {
 
 	Map<String, Tournament> tournaments = new ConcurrentHashMap<>();
 	
-	public TournamentHandler() {
+//	public TournamentHandler() {
 		// TODO Auto-generated constructor stub
-	}
+//	}
 
 	public TournamentHandler(UserSessionHandler userSessionHandler,
 			@Qualifier("tournamentScheduler") ThreadPoolTaskScheduler taskScheduler) {
@@ -54,15 +54,18 @@ public class TournamentHandler {
 		// createTournament(15, 0, OffsetDateTime.now().plusDays(2), ROUND_ROBIN);
 	}
 
-	public void createTournament(String tournamentName, int time, int increment, LocalDateTime utcTime,
+	public void createTournament(String tournamentName, int time, int increment, LocalDateTime utcStartTime,LocalDateTime utcEndTime,
 			TournamentType tournamentType) {
-		Tournament tournament = new Tournament(tournamentName, time, increment, utcTime, tournamentType);
+		Tournament tournament = new Tournament(tournamentName, time, increment, utcStartTime, tournamentType);
 		tournaments.put(tournament.getTournamentId(), tournament);
 
-		Date convertedDate = Date.from(utcTime.plusSeconds(OffsetDateTime.now().getOffset().getTotalSeconds())
+		Date convertedDate = Date.from(utcStartTime.plusSeconds(OffsetDateTime.now().getOffset().getTotalSeconds())
 				.atZone(ZoneId.systemDefault()).toInstant());
 
 		tournamentScheduler.schedule(() -> startTournament(tournament), convertedDate);
+		if(utcEndTime != null) {
+			
+		}
 
 	}
 
@@ -196,7 +199,7 @@ public class TournamentHandler {
 			Player blackPlayer = pairing.getBlackPlayer();
 			if (whitePlayer != null && blackPlayer != null) {
 				String gameId = userSessionHandler.startGame(pairing.getWhitePlayer(), pairing.getBlackPlayer(),
-						tournament.getTime() * 60, tournament.getIncrement());
+						tournament.getTime() * 60_000, tournament.getIncrement()*1000);
 				whitePlayer.setColorBalance(whitePlayer.getColorBalance() + 1);
 				whitePlayer.setColorSequence("w");
 				blackPlayer.setColorBalance(blackPlayer.getColorBalance() - 1);

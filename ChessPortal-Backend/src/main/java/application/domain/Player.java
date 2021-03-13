@@ -67,7 +67,7 @@ public class Player implements Serializable {
 	@Transient
 	private int colorBalance;
 	@Transient
-	private String colorSequence;
+	private String colorSequence = "";
 	@Transient
 	private List<Player> previousOponents = new ArrayList<>();
 	@Transient
@@ -88,15 +88,15 @@ public class Player implements Serializable {
 			this.floatStatus = floatStatus;
 		} else {
 			int playerfloatStatusAsInt = floatStatus.getStatus();
-			if(playerfloatStatusAsInt < 0) {
+			if (playerfloatStatusAsInt < 0) {
 				playerfloatStatusAsInt += 1;
 			} else if (playerfloatStatusAsInt > 0) {
 				playerfloatStatusAsInt -= 1;
 			}
-			
+
 			FloatStatus[] floatStatusArray = FloatStatus.values();
 			for (int i = 0; i < floatStatusArray.length; i++) {
-				if(floatStatusArray[i].getStatus() == playerfloatStatusAsInt) {
+				if (floatStatusArray[i].getStatus() == playerfloatStatusAsInt) {
 					this.floatStatus = floatStatusArray[i];
 					break;
 				}
@@ -231,7 +231,11 @@ public class Player implements Serializable {
 	}
 
 	public float getPoints() {
-		return this.score.getPoints();
+		if (this.score == null) {
+			return 0;
+		} else {
+			return this.score.getPoints();
+		}
 	}
 
 	public void setScore(Score score) {

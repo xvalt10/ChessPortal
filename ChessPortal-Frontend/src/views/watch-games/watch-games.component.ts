@@ -11,7 +11,7 @@ export class WatchGamesComponent implements OnInit {
   constructor(private httpService:HttpService, private gameService:GameService) { 
 
   }
-
+annotatedMoves =[];
   observedGameId:null;
   gameResultMessage:string;
   selectedTimeControl:string;
@@ -42,8 +42,10 @@ export class WatchGamesComponent implements OnInit {
     this.httpService.getTopGameId(gameType).subscribe(game => {
       if (game) {
           console.log("Starting to observe gameId:" + game['gameId']);
+          this.annotatedMoves =[];
           this.observedGameId = game['gameId'];
       }else{
+        
           this.observedGameId = null;
       }
     }, error => {

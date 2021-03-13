@@ -42,6 +42,7 @@ import {MatDialogModule} from "@angular/material/dialog";
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatSlider, MatSliderModule} from '@angular/material/slider';
 import {MatCardModule} from '@angular/material/card';
+import {MatTableModule} from '@angular/material/table';
 
 
 const appRoutes: Routes = [
@@ -97,7 +98,8 @@ MatSidenavModule,
     MatDialogModule,
     MatSliderModule,
     MatPaginatorModule,
-    MatCardModule
+    MatCardModule,
+    MatTableModule
    /*  JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,

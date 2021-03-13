@@ -1,5 +1,4 @@
-
-<div class="container">
+<div>
 
     <mat-sidenav-container style="height:100vh">
         <mat-sidenav #sidenav mode="side" opened class="col-3" flex>
@@ -9,25 +8,41 @@
                 <mat-list-item><a (click)="observeGame('blitz')">Blitz</a></mat-list-item>
                 <mat-list-item> <a (click)="observeGame('rapid')">Rapid</a></mat-list-item>
                 <mat-list-item><a (click)="observeGame('classical')">Classical</a></mat-list-item>
-               
-                
-<!--               
-                
-                <a mat-list-item (click)="sidenav.toggle()" href="" mat-list-item>Close</a> -->
+
+
+                <!-- <a mat-list-item (click)="sidenav.toggle()" href="" mat-list-item>Close</a> -->
 
             </mat-nav-list>
         </mat-sidenav>
         <mat-sidenav-content class="col-9">
             <div class="container">
                 <div class="row">
-                <div class="col-5">
-                    <div *ngIf="observedGameId" class="centeredColumnWrapper">
-                        <span class="sectionTitle">TOP RATED {{this.selectedTimeControl}} GAME</span>
-                        <chessboard *ngIf="observedGameId" [gameId]="observedGameId" [mode]="'O'" [color]="'w'"
-                            [message]="gameResultMessage"></chessboard>
+                    <div class="col-5">
+                        <span class="sectionTitle">TOP RATED {{this.selectedTimeControl}} GAME</span><br>
+                        <span *ngIf="!observedGameId">No {{selectedTimeControl}} game is currently in progress.</span>
                     </div>
-                    <span *ngIf="!observedGameId">No {{selectedTimeControl}} game is currently in progress.</span>
                 </div>
+                <div class="row">
+                    <div class="col-5">
+                        <div *ngIf="observedGameId" class="centeredColumnWrapper">
+
+                            <chessboard *ngIf="observedGameId" [gameId]="observedGameId" [mode]="'O'" [color]="'w'"
+                                [message]="gameResultMessage"></chessboard>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-5 col-sm-12">
+                        <div  style="display:flex;flex-direction: column;min-height: 100%;">
+                            <div style="flex:1"></div>
+                            
+                           <annotation-table [gameId]="observedGameId" *ngIf="observedGameId"
+                                [annotatedMoves]="annotatedMoves" style="margin-top:10px;margin-bottom:auto;flex:0;">
+                            </annotation-table>
+                            <div style="flex:1"></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </mat-sidenav-content>

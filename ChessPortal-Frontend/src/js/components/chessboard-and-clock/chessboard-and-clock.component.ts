@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { WebSocketService } from './../../services/websocketService';
 import { JwtAuthenticationService } from './../../services/jwtAuthenticationService';
 import { GameService } from './../../services/game.service';
-import { Component, OnInit, Input, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 
 import { Chessboard, COLOR, MOVE_INPUT_MODE, INPUT_EVENT_TYPE, MARKER_TYPE, PIECE } from "../../components/cm-chessboard/Chessboard.js";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -16,7 +16,7 @@ import {EngineOutput} from '../../services/stockfish.service'
     templateUrl: './chessboard-and-clock.component.html',
     styleUrls: ['./chessboard-and-clock.component.css']
 })
-export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
+export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDestroy {
 
     constructor(private screenSizeObserver: MediaObserver, private router: Router, private http: HttpClient, private gameService: GameService, private route: ActivatedRoute, private authService: JwtAuthenticationService, private websocketService: WebSocketService) {
         this.chess = new this.chessRules();
@@ -24,7 +24,7 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
         this.heightOfEngineScoreDivBlack = 50;
         this.heightOfEngineScoreDivWhite= 50
     }
-
+  
     _gameId: string;
     _gamedata: any;
     _mode: string;
@@ -95,6 +95,7 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
 
     playingGame: boolean;
     seekingOponent: boolean;
+    seekOponentInterval = null;
     oponent: string;
 
     time: number;
@@ -124,9 +125,11 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
     blackTime: number;
 
     gameResult = null;
+    gameResultMessage = null;
 
     showPawnPromotionDiv = false;
     showMoveAlternativesDiv = false;
+    showGameResultDiv = false;
     alternativeMoves = [];
 
     engineOutput:EngineOutput;
@@ -201,6 +204,11 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
         });
     }
 
+    ngOnDestroy(): void {
+        clearInterval(this.seekOponentInterval);
+    }
+
+
 
     initialiseEventSubscription() {
         this.gameService.gamePositionSubscriber.subscribe(gamePosition => {
@@ -236,6 +244,15 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
 
         this.gameService.gameResultSubscriber.subscribe(gameResult => {
             if (gameResult.gameId === this._gameId) {
+                this.gameResult = gameResult.gameResult;
+                if((this.gameResult.indexOf("1-0") !== -1 && this.whitePlayer) || 
+                (this.gameResult.indexOf("0-1") !== -1 && !this.whitePlayer)){
+                   this.gameResultMessage = "Congratulation you won the game.";
+                }else if(this.gameResult.indexOf("1/2") !== -1){
+                    this.gameResultMessage = "Game ended with a draw.";
+                }else{
+                    this.gameResultMessage = "You have lost the game.";
+                }
                 this.playingGame = false;
                 this.whitePlayerElo = gameResult.whitePlayerElo;
                 this.blackPlayerElo = gameResult.blackPlayerElo;
@@ -565,6 +582,23 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
 
     };
 
+    offerRematch() {
+        let offerRematchMessage = {
+            action: "offerRematch",
+            oponent: this.whitePlayer ? this.blackPlayerName : this.whitePlayerName
+        }
+        this.socket.send(JSON.stringify(offerRematchMessage));
+    };
+
+    seekOponent(time, increment): void {
+        this.seekOponentInterval = setInterval(() => { this.websocketService.seekNewOponentCommand(time, increment) }, 1000);
+        this.seekingOponent = true;
+      }
+
+      analyzeGame() {        
+        this.router.navigateByUrl(`/game/${this.route.snapshot.paramMap.get("gameId")}/analyze`);
+    };
+
     getGameResult(validMove) {
         if (this.chess.in_stalemate()) {
             return "1/2 (stalemate)";
@@ -713,7 +747,8 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit {
 
         }
 
-
+        clearInterval(this.seekOponentInterval);
+        this.seekingOponent=false;
         this.playingGame = true;
     }
 

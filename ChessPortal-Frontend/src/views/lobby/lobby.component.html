@@ -135,7 +135,7 @@
                                 <div id="chatPost" *ngFor="let message of messages.slice().reverse()">
 
                                     <label class="chatPostAuthor" for="message">{{message.date | date:'H:mm' }}</label>
-                                    <div [ngStyle]="{'background':chatMessageColor}" class="circle" style="text-align:center;margin-right:5px;margin-left:5px">{{message.author.toUpperCase().substr(0,1)}}</div>
+                                    <div [ngStyle]="{'background':message.color}" class="circle" style="text-align:center;margin-right:5px;margin-left:5px">{{message.author.toUpperCase().substr(0,1)}}</div>
                                     <span class="chatPostAuthor">{{message.author}}:</span>
                                     <span id="chatmessage">{{message.message}}</span>
                                 </div>

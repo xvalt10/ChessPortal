@@ -23,7 +23,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   @ViewChild('chatDiv') chatWindowDiv: ElementRef;
 
-  chatMessage = { action: "chatMessageLobby", author: null, message: "" };
+  chatMessage = { action: "chatMessageLobby", author: null, message: "", color: "" };
 
 
 
@@ -65,7 +65,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       this.cancelIntervals();
     };
     this.user = this.authenticationService.authenticatedUser;
-    this.chatMessageColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+    this.chatMessage.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
     this.queryPlayersInterval = setInterval(() => { this.queryPlayersOnline() }, 1000);
 
   };
