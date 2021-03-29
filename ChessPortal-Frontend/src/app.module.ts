@@ -23,6 +23,7 @@ import { RegistrationComponent } from './views/registration/registration.compone
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { TournamentLobbyComponent } from './views/tournament-lobby/tournament-lobby.component';
 import { WatchGamesComponent } from './views/watch-games/watch-games.component';
+import {NewsComponent} from "./views/news/news.component";
 import { ChessboardAndClockComponent } from './js/components/chessboard-and-clock/chessboard-and-clock.component';
 import { AnnotatedMovesComponent } from './js/components/annotated-moves/annotated-moves.component';
 import { ChessClockComponent } from './js/components/chess-clock/chess-clock.component';
@@ -44,6 +45,11 @@ import {MatSlider, MatSliderModule} from '@angular/material/slider';
 import {MatCardModule} from '@angular/material/card';
 import {MatTableModule} from '@angular/material/table';
 
+import {MatCkeditorModule, MatContenteditableModule} from 'mat-contenteditable';
+import {CKEditorModule} from "@ckeditor/ckeditor5-angular";
+import {MatButtonModule} from "@angular/material/button";
+import {MatSelectModule} from "@angular/material/select";
+
 
 const appRoutes: Routes = [
     { path: 'analyzeGame', component: PlayingHall, canActivate: [AuthGuard]},
@@ -55,6 +61,7 @@ const appRoutes: Routes = [
     { path: 'register', component: RegistrationComponent},
     { path: 'watchGames', component: WatchGamesComponent},
     { path: 'login', component: LoginComponent},
+    { path: 'news', component: NewsComponent},
     { path: 'lobby', component: LobbyComponent, canActivate: [AuthGuard]},
 
     { path: 'userprofile', component: UserProfileComponent},
@@ -70,47 +77,53 @@ export function tokenGetter(){
 }
 
 @NgModule({
-  imports:      [
-    BrowserModule,
-    FormsModule,
-    ReactiveFormsModule, 
-    FlexLayoutModule,
-    /* HttpModule, */
-    HttpClientModule,
-ChartsModule,
-NgToggleModule,
+    imports: [
+        CKEditorModule,
+        MatContenteditableModule,
+        BrowserModule,
+        FormsModule,
+        ReactiveFormsModule,
+        FlexLayoutModule,
+        /* HttpModule, */
+        HttpClientModule,
+        ChartsModule,
+        NgToggleModule,
 //MatSelectCountryModule.forRoot('en'),
 
-  /*   HttpClientXsrfModule.withOptions({
-      cookieName: 'XSRF-TOKEN',
-      headerName: 'X-XSRF-TOKEN'
-    }), */
-    RouterModule.forRoot(appRoutes),
-BrowserAnimationsModule, 
-MatSidenavModule,
-    MatListModule,
-    NgxMatTimepickerModule,
-    NgxMatDatetimePickerModule,
-    MatFormFieldModule,
-    MatDatepickerModule,
-    NgxMatMomentModule,
-    MatInputModule,
-    MatDialogModule,
-    MatSliderModule,
-    MatPaginatorModule,
-    MatCardModule,
-    MatTableModule
-   /*  JwtModule.forRoot({
-      config: {
-        tokenGetter: tokenGetter,
-        //whitelistedDomains: ["localhost:8082"],
-       // blacklistedRoutes: ["example.com/examplebadroute/"]
-      }
-    }) */
+        /*   HttpClientXsrfModule.withOptions({
+            cookieName: 'XSRF-TOKEN',
+            headerName: 'X-XSRF-TOKEN'
+          }), */
+        RouterModule.forRoot(appRoutes),
+        BrowserAnimationsModule,
+        MatSidenavModule,
+        MatListModule,
+        NgxMatTimepickerModule,
+        NgxMatDatetimePickerModule,
+        MatFormFieldModule,
+        MatDatepickerModule,
+        NgxMatMomentModule,
+        MatInputModule,
+        MatDialogModule,
+        MatSliderModule,
+        MatPaginatorModule,
+        MatCardModule,
+        MatTableModule,
+        CKEditorModule,
+        MatCkeditorModule,
+        MatButtonModule,
+        MatSelectModule,
+        /*  JwtModule.forRoot({
+           config: {
+             tokenGetter: tokenGetter,
+             //whitelistedDomains: ["localhost:8082"],
+            // blacklistedRoutes: ["example.com/examplebadroute/"]
+           }
+         }) */
 
-],
+    ],
   providers: [AuthGuard, JwtAuthenticationService, FormBuilder, {provide:HTTP_INTERCEPTORS,useClass : AuthInterceptor, multi: true}],
-  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent, WatchGamesComponent, ChessboardAndClockComponent, AnnotatedMovesComponent, ChessClockComponent, PositionSetupComponent, UserProfileComponent, RatingChartComponent, TournamentSummaryComponent, NewGameDialogComponent ],
+  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent, WatchGamesComponent, ChessboardAndClockComponent, AnnotatedMovesComponent, ChessClockComponent, PositionSetupComponent, UserProfileComponent, RatingChartComponent, TournamentSummaryComponent, NewGameDialogComponent, NewsComponent ],
   exports:      [ HomePageComponent],
   entryComponents:[NewGameDialogComponent],
   bootstrap:    [ HomePageComponent ] 

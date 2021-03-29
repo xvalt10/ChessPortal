@@ -1,0 +1,36 @@
+<div class="container">
+    <div class="row">
+        <div class="col">
+<form [formGroup]="categoryForm" (ngSubmit)="onFormSubmit()">
+    <h2>Add new articlefdfdfd</h2>
+    <mat-form-field appearance="fill">
+        <mat-label>Article Title</mat-label>
+        <input matInput>
+    </mat-form-field><br>
+    <mat-form-field appearance="fill">
+        <mat-label>Category</mat-label>
+        <mat-select>
+            <mat-option value="one">First option</mat-option>
+            <mat-option value="two">Second option</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field style="width:100%">
+        <ckeditor matCkeditor  [(ngModel)]="editorData" [editor]="editor"  [config]="editorConfig"
+         formControlName="catContent"></ckeditor>
+    </mat-form-field>
+
+    <button mat-flat-button type="submit" [disabled]="!categoryForm.valid" color="primary">Save</button>
+
+</form>
+    </div>
+        <div id="div2"></div>
+        <div id="div1" class="col" #chessboardDiv >
+
+            <chessboard id="chessboardDiv" [gameId]="gameId" [color]="'w'" [mode]="'A'"></chessboard>
+            <button mat-flat-button color="primary" (click)="addDiagram()">Add Diagram</button>
+            <div>{{editorData}}</div>
+        </div>
+
+    </div>
+
+</div>

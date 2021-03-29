@@ -25,6 +25,7 @@ export class AwsService {
       
     });
     this.s3client = new S3();
+
   }
 
   base64encode(data){

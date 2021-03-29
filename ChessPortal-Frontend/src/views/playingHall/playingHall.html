@@ -9,11 +9,11 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-6 col-md-12 col-sm-12 centeredColumnWrapper">
+    <div class="row centeredFlexWrapper">
+        <div class="col-lg-7 col-md-10 col-sm-12 centeredColumnWrapper">
             <chessboard [gameId]="gameId" [color]="whitePlayer ? 'w': 'b'" [mode]="mode"></chessboard>
         </div>
-        <div class="col-lg-6 col-md-12 col-sm-12 centeredColumnWrapper"
+        <div class="col-lg-5 col-md-12 col-sm-12 centeredColumnWrapper"
             style="display:flex;flex-direction: column;justify-content: space-between;">
             <div class="row clockRow"
                 [hidden]="!whitePlayerName || (mode !== chessboardUsageModes.PLAYING || activeMedia ==='sm')">

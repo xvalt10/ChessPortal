@@ -12,6 +12,7 @@ export interface PlayedMove {
   whiteTime: number;
   blackTime: number;
   moveReceived: boolean;
+  piecesSvg: string;
 }
 
 interface GamePosition {

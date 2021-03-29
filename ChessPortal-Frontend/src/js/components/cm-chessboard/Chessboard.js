@@ -97,6 +97,10 @@ export class Chessboard {
 
     // API //
 
+    getPieceGroup(){
+        return this.view.piecesGroup;
+    }
+
     setPiece(square, piece) {
         return new Promise((resolve) => {
             this.initialization.then(() => {

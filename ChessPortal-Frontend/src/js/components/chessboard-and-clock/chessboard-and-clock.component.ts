@@ -9,7 +9,7 @@ import { Chessboard, COLOR, MOVE_INPUT_MODE, INPUT_EVENT_TYPE, MARKER_TYPE, PIEC
 import { ActivatedRoute, Router } from "@angular/router";
 import { CHESSBOARD_USAGE_MODES, BASEURL } from "../../../js/constants.js";
 import { withLatestFrom, retryWhen, delay, tap } from 'rxjs/operators';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+
 import {EngineOutput} from '../../services/stockfish.service'
 @Component({
     selector: 'chessboard',
@@ -537,7 +537,7 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
             this.svgChessboard.addMarker(validMove.from, MARKER_TYPE.move);
             this.svgChessboard.addMarker(validMove.to, MARKER_TYPE.move);
 
-            this.gameService.emitPlayedMove({ gameId: this._gameId, moveNotation, moveColor: validMove.color, fen: currentPositionAsFEN, gameResult: this.gameResult, sendMoveToOponent, whiteTime: validMove.whiteTime ? validMove.whiteTime : this.whiteTime, blackTime: validMove.blackTime ? validMove.blackTime : this.blackTime, moveReceived: !sendMoveToOponent });
+            this.gameService.emitPlayedMove({ gameId: this._gameId, moveNotation, moveColor: validMove.color, fen: currentPositionAsFEN, gameResult: this.gameResult, sendMoveToOponent, whiteTime: validMove.whiteTime ? validMove.whiteTime : this.whiteTime, blackTime: validMove.blackTime ? validMove.blackTime : this.blackTime, moveReceived: !sendMoveToOponent, piecesSvg: this.svgChessboard.getPieceGroup().innerHTML });
             this.whiteMove = !this.whiteMove;
             this.playSoundAfterMove();
         });

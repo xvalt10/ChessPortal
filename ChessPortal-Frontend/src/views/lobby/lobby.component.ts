@@ -84,6 +84,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   sendChatMessage() {
     this.chatMessage.author = this.authenticationService.authenticatedUser;
+    this.socket = this.websocketService.initWebSocket();
     this.socket.send(JSON.stringify(this.chatMessage));
     this.chatMessage.message = "";
 
