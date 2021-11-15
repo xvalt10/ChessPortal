@@ -26,6 +26,7 @@
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     <a data-toggle="collapse" data-target=".navbar-collapse" class="dropdown-item" routerLink="lobby">Lobby</a>
                     <a data-toggle="collapse" data-target=".navbar-collapse" class="dropdown-item" routerLink="tournaments">Tournaments</a>
+                    <a data-toggle="collapse" data-target=".navbar-collapse" class="dropdown-item" routerLink="simul">Simul</a>
                 </div>
             </li>
 
@@ -57,7 +58,7 @@
 </nav>
 
 <div *ngIf="routerOnHomePage()" class="container">
-    <section class="jumbotron text-center">
+    <section class="jumbotron text-center" style="height:200px;padding:2rem 1rem">
         <div class="container">
             <h1>Welcome to the first Slovak chess server</h1>
             <p class="lead text-muted">Play online games, compete in tournaments or simply enjoy to be a part of the
@@ -65,7 +66,29 @@
             <p>
                 <a routerLink="lobby" class="btn btn-primary my-2">Lobby</a>
                 <a routerLink="watchGames" class="btn btn-secondary my-2">Watch Games</a>
+
+
             </p>
+        </div>
+    </section>
+
+    <section>
+
+        <div class="marginBottom">
+            <mat-card class="example-card">
+                <mat-card-header>
+                    <mat-card-title>Current news</mat-card-title>
+                    <mat-card-subtitle>What's going on in the chess world</mat-card-subtitle>
+                </mat-card-header>
+
+               <mat-card-content>
+                   <mat-action-list>
+                       <mat-list-item *ngFor="let article of articles" (click)="router.navigateByUrl('/articles/'+article.articleId)"><h4>{{article.title}}</h4><mat-divider></mat-divider></mat-list-item>
+                   </mat-action-list>
+                </mat-card-content>
+
+            </mat-card>
+
         </div>
     </section>
 
@@ -124,7 +147,7 @@
                     <tbody>
                         <tr *ngFor="let player of bestPlayers.BLITZ">
                             <td>{{player.username}}</td>
-                            <td>{{player.elobullet}}</td>
+                            <td>{{player.eloblitz}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -145,7 +168,7 @@
                     <tbody>
                         <tr *ngFor="let player of bestPlayers.RAPID">
                             <td>{{player.username}}</td>
-                            <td>{{player.elobullet}}</td>
+                            <td>{{player.elorapid}}</td>
                         </tr>
                     </tbody>
                 </table>

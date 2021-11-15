@@ -63,7 +63,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 						"/users/top/**",
 						"/users/**/ratinghistory/**",
 						"/games/**/**",
+						"/articles/**/**",
 						"/tournaments/**/**",
+						"/simuls/**/**",
 						"/tournaments/type/**"
 						)
 

@@ -22,6 +22,7 @@ interface GamePosition {
 }
 
 interface ClockEvent {
+  gameId: string;
   color: string;
   time: number;
 }

@@ -32,6 +32,7 @@ public class Application {
 	GameRepository gameRepository;
 
 	public static void main(String[] args) {
+
 		SpringApplication.run(Application.class, args);
 	}
 

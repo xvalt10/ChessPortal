@@ -7,19 +7,22 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { GameService } from './../../js/services/game.service';
 
 interface Tournament{
-    tournamentPlayers: any[];
+    players: any[];
     time: number;
-    tournamentId: any;
-    tournamentState: any;
+    id: any;
+    state: any;
     numberOfRounds: number;
     currentRound: number;
     utcStartDateTime;
     increment: number;
-    tournamentType: string;
+    type: string;
     pairings: any[];
     scores: any[];
     joined:boolean;
-    tournamentName:string;
+    name:string;
+    maxNumberOfOponents:number;
+    simulOrganizer:any;
+    gamesWaitingForMove: string[]
 }
 
 
@@ -38,6 +41,8 @@ export class TournamentLobbyComponent implements OnInit, OnDestroy {
   currentPairings: any;
   userscore:any;
   byeReceived:boolean;
+
+  simulGameIds: string[];
 
   constructor(private webSocketService: WebSocketService, private authService: JwtAuthenticationService, private route: ActivatedRoute, private router: Router, private gameService:GameService) { }
   ngOnDestroy(): void {
@@ -65,37 +70,41 @@ export class TournamentLobbyComponent implements OnInit, OnDestroy {
     });
   }
 
-  onMessage(message): void {
-    const messageData = JSON.parse(message.data);
+    onMessage(message): void {
+        const messageData = JSON.parse(message.data);
+        switch (messageData.action) {
+            case "simulStart":
+                break;
+            case "startGame":
+                if (this.tournament.type === "SIMUL") {
+                    this.router.navigate([`simulgame/${this.tournament.id}/${messageData.gameId}/play`]);
+                } else {
+                    this.router.navigate([`tournamentgame/${this.tournament.id}/${messageData.gameId}/play`]);
+                }
+                break;
+            case "byeInCurrentRound":
+                this.byeReceived = true;
+                break;
+            case "tournamentInfo":
+                this.updateTournamentInfo(messageData);
+                break;
+        }
 
-    switch (messageData.action) {
-      case "startGame":
-        this.router.navigate([`tournamentgame/${this.tournament.tournamentId}/${messageData.gameId}/play`]);
-        break;
-      case "byeInCurrentRound":
-        this.byeReceived = true;
-break;
-      case "tournamentInfo":
-        this.updateTournamentInfo(messageData);
-        break;
+        console.log(messageData);
+
+
     }
-
-    console.log(messageData);
-
-
-  }
 
   updateTournamentInfo(messageData){
     this.tournament= JSON.parse(messageData.tournament);
-    this.tournament.tournamentPlayers = this.tournament.tournamentPlayers.filter(player => player);
+    this.tournament.players = this.tournament.players.filter(player => player);
         
     let tournamentStartDateTime: Date = this.gameService.convertUTCDateToLocalDate(this.tournament.utcStartDateTime);
     this.tournament.utcStartDateTime = tournamentStartDateTime;
-    
 
     this.secondsTillStart = Math.round((tournamentStartDateTime.getTime() - new Date().getTime()) / 1000);
     this.currentPairings = this.tournament.pairings.filter(pairing => pairing.round === this.tournament.currentRound);
-    this.tournament.joined = this.tournament.tournamentPlayers.filter(player => player).map(player=>player.username).includes(this.authService.authenticatedUser);
+    this.tournament.joined = this.tournament.players.filter(player => player).map(player=>player.username).includes(this.authService.authenticatedUser);
     this.tournament.scores = Object.values(this.tournament.scores).sort((score1,score2)=> +score2.points - score1.points);
     this.userscore = this.tournament.scores.filter(score => score.username === this.authService.getUsername());
     if(this.userscore.length > 0){
@@ -118,13 +127,13 @@ break;
 
   joinTournament(): void {
     // this.tournamentPlayers.push({ username: this.authService.authenticatedUser, tournamentId: this.tournamentId });
-    this.websocket.send(JSON.stringify({ action: 'joinTournament', username: this.authService.authenticatedUser, tournamentId: this.tournament.tournamentId }));
+    this.websocket.send(JSON.stringify({ action: 'joinTournament', username: this.authService.authenticatedUser, tournamentId: this.tournament.id }));
     this.tournament.joined = true;
   }
 
   leaveTournament(){
-    this.websocket.send(JSON.stringify({ action: 'leaveTournament', username: this.authService.authenticatedUser, tournamentId: this.tournament.tournamentId }));
-    this.tournament.tournamentPlayers = this.tournament.tournamentPlayers.filter(player => player.username !== this.authService.authenticatedUser);
+    this.websocket.send(JSON.stringify({ action: 'leaveTournament', username: this.authService.authenticatedUser, tournamentId: this.tournament.id }));
+    this.tournament.players = this.tournament.players.filter(player => player.username !== this.authService.authenticatedUser);
     this.tournament.joined=false;
   }
 

@@ -104,7 +104,7 @@ public class SwissSystemPairingsGenerator implements PairingsGenerator {
 		//
 		List<Pairing> pairings = new ArrayList<>();
 
-		List<Player> tournamentPlayers = tournament.getTournamentPlayers();
+		List<Player> tournamentPlayers = tournament.getPlayers();
 
 		tournamentPlayers.forEach(player -> {
 			player.setAlreadyPaired(false);

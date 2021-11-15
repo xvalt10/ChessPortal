@@ -4,31 +4,23 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.json.JsonObject;
 import javax.json.spi.JsonProvider;
 
+import application.domain.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import application.domain.Pairing;
-import application.domain.Player;
-import application.domain.Score;
-import application.domain.Tournament;
 import application.sockets.UserSessionHandler;
-import application.util.GameColor;
 import application.util.TournamentState;
 import application.util.TournamentType;
 
@@ -39,45 +31,38 @@ public class TournamentHandler {
 	ThreadPoolTaskScheduler tournamentScheduler;
 	int tournamentId = 1;
 
-	Map<String, Tournament> tournaments = new ConcurrentHashMap<>();
-	
-//	public TournamentHandler() {
-		// TODO Auto-generated constructor stub
-//	}
+	protected Map<String, Tournament> tournaments;
 
 	public TournamentHandler(UserSessionHandler userSessionHandler,
 			@Qualifier("tournamentScheduler") ThreadPoolTaskScheduler taskScheduler) {
 		this.userSessionHandler = userSessionHandler;
 		this.tournamentScheduler = taskScheduler;
-		// createTournament(5, 0, OffsetDateTime.now().plusMinutes(2), ROUND_ROBIN);
-		// createTournament(10, 0, OffsetDateTime.now().plusHours(2), ROUND_ROBIN);
-		// createTournament(15, 0, OffsetDateTime.now().plusDays(2), ROUND_ROBIN);
+		this.tournaments = new ConcurrentHashMap<>();
 	}
+
+
 
 	public void createTournament(String tournamentName, int time, int increment, LocalDateTime utcStartTime,LocalDateTime utcEndTime,
 			TournamentType tournamentType) {
 		Tournament tournament = new Tournament(tournamentName, time, increment, utcStartTime, tournamentType);
-		tournaments.put(tournament.getTournamentId(), tournament);
+
+		tournaments.put(tournament.getId(), tournament);
 
 		Date convertedDate = Date.from(utcStartTime.plusSeconds(OffsetDateTime.now().getOffset().getTotalSeconds())
 				.atZone(ZoneId.systemDefault()).toInstant());
 
-		tournamentScheduler.schedule(() -> startTournament(tournament), convertedDate);
-		if(utcEndTime != null) {
-			
-		}
-
+		tournamentScheduler.schedule(() -> startTournament(tournament) , convertedDate);
 	}
 
 	public void joinTournament(String tournamentId, String username) {
 		Player player = userSessionHandler.getPlayerByName(username);
 		Tournament tournament = tournaments.get(tournamentId);
 		if (player != null && tournament != null) {
-			if (tournament.getTournamentPlayers().stream()
+			if (tournament.getPlayers().stream()
 					.noneMatch(playerInList -> playerInList.getUsername().equals(username))) {
-				tournament.getTournamentPlayers().add(player);
+				tournament.getPlayers().add(player);
 				for (Player tournamentPlayer : tournament.getPlayersInLobby()) {
-					sendTournamentInfoToPlayer(tournamentId, tournamentPlayer);
+					sendTournamentInfoToPlayer(tournament, tournamentPlayer);
 				}
 			}
 		}
@@ -85,15 +70,15 @@ public class TournamentHandler {
 
 	public void leaveTournament(String tournamentId, String username) {
 		Tournament tournament = tournaments.get(tournamentId);
-		tournament.getTournamentPlayers().removeIf(player -> username.equals(player.getUsername()));
+		tournament.getPlayers().removeIf(player -> username.equals(player.getUsername()));
 		for (Player tournamentPlayer : tournament.getPlayersInLobby()) {
-			sendTournamentInfoToPlayer(tournamentId, tournamentPlayer);
+			sendTournamentInfoToPlayer(tournament, tournamentPlayer);
 		}
 	}
 
 	public List<Tournament> getTournamentsByState(String state) {
 		return tournaments.values().stream()
-				.filter(tournament -> tournament.getTournamentState() == TournamentState.valueOf(state.toUpperCase()))
+				.filter(tournament -> tournament.getState() == TournamentState.valueOf(state.toUpperCase()))
 				.collect(Collectors.toList());
 	}
 
@@ -142,19 +127,18 @@ public class TournamentHandler {
 	}
 
 	public void endTournament(Tournament tournament) {
-		tournament.setTournamentState(TournamentState.FINISHED);
+		tournament.setState(TournamentState.FINISHED);
 		for (Player player : tournament.getPlayersInLobby()) {
-			sendTournamentInfoToPlayer(tournament.getTournamentId(), player);
+			sendTournamentInfoToPlayer(tournament, player);
 		}
-		for (Player player : tournament.getTournamentPlayers()) {
-			sendTournamentInfoToPlayer(tournament.getTournamentId(), player);
+		for (Player player : tournament.getPlayers()) {
+			sendTournamentInfoToPlayer(tournament, player);
 		}
 
 	}
 
-	public void sendTournamentInfoToPlayer(String tournamentId, Player player) {
+	public void sendTournamentInfoToPlayer(Tournament tournament, Player player) {
 
-		Tournament tournament = tournaments.get(tournamentId);
 		if (tournament != null) {
 			ObjectMapper objectMapper = new ObjectMapper();
 			try {
@@ -215,26 +199,25 @@ public class TournamentHandler {
 		if (playerWithBye != null) {
 			Score scorePlayerWithBye = tournament.getScores().get(playerWithBye.getUsername());
 			scorePlayerWithBye.setPoints(scorePlayerWithBye.getPoints() + 1);
-			sendTournamentActionMessageToPlayer(tournament.getTournamentId(), playerWithBye, "byeInCurrentRound");
+			sendTournamentActionMessageToPlayer(tournament.getId(), playerWithBye, "byeInCurrentRound");
 		}
 	}
 
 	public void startTournament(Tournament tournament) {
-		int numberOfPlayersRegistered = tournament.getTournamentPlayers().size();
+		int numberOfPlayersRegistered = tournament.getPlayers().size();
 		int numberOfRounds = numberOfPlayersRegistered % 2 == 0 ? numberOfPlayersRegistered - 1
 				: numberOfPlayersRegistered;
 		Map<String, Score> scores = tournament.getScores();
-		List<String> playerNames = tournament.getTournamentPlayers().stream().map(Player::getUsername)
+		List<String> playerNames = tournament.getPlayers().stream().map(Player::getUsername)
 				.collect(Collectors.toList());
 		playerNames.forEach(playerName -> scores.put(playerName, new Score(playerName)));
 		if (numberOfPlayersRegistered > 1) {
-			tournament.setTournamentState(TournamentState.STARTED);
+			tournament.setState(TournamentState.STARTED);
 			tournament.setNumberOfRounds(numberOfRounds);
 			startRound(tournament, 1);
 		} else {
-			tournament.setTournamentState(TournamentState.FINISHED);
+			tournament.setState(TournamentState.FINISHED);
 		}
-
 	}
 
 	public Tournament getTournament(String tournamentId) {

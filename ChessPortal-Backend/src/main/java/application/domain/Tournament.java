@@ -1,7 +1,6 @@
 package application.domain;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,48 +17,53 @@ import application.util.TournamentType;
 
 public class Tournament {
 
-	private List<Player> tournamentPlayers;
+	private List<Player> players;
 
 	private List<Player> playersInLobby;
 
-	private int time;
+	protected int time;
 
-	private String tournamentName;
+	protected String name;
 
 	@JsonIgnore
 	private PairingsGenerator pairingGenerator;
 
-	private int increment;
+	protected int increment;
 
-	private String tournamentId;
+	private String id;
 
-	private int numberOfRounds;
+	protected int numberOfRounds;
 
 	private int currentRound;
 
-	private LocalDateTime utcStartDateTime;
-	
-	
+	protected LocalDateTime utcStartDateTime;
 
-	private TournamentType tournamentType;
+	protected TournamentType type;
 
-	private TournamentState tournamentState;
+	private TournamentState state;
 
 	private List<Pairing> pairings;
 
 	private Map<String, Score> scores;
 
-	public Tournament(String tournamentName, int time, int increment, LocalDateTime startDateTime,
-			TournamentType tournamentType) {
-		this.tournamentId = UUID.randomUUID().toString();
-		this.tournamentName = tournamentName;
+	public Tournament(){
+		this.id = UUID.randomUUID().toString();
+		this.state = TournamentState.NOT_STARTED;
+		this.players = new ArrayList<>();
+		this.playersInLobby = new ArrayList<>();
+		this.pairings = new ArrayList<Pairing>();
+		this.scores = new HashMap<>();
+	}
+
+	public Tournament(String name, int time, int increment, LocalDateTime startDateTime,
+					  TournamentType type) {
+		this();
+		this.name = name;
 		this.time = time;
 		this.increment = increment;
-		this.tournamentPlayers = new ArrayList<>();
-		this.playersInLobby = new ArrayList<>();
 		this.utcStartDateTime = startDateTime;
-		this.tournamentType = tournamentType;
-		switch (this.tournamentType) {
+		this.type = type;
+		switch (this.type) {
 		case SWISS:
 			this.pairingGenerator = new SwissSystemPairingsGenerator();
 			break;
@@ -67,18 +71,14 @@ public class Tournament {
 			this.pairingGenerator = new RoundRobinPairingsGenerator();
 			break;
 		}
-		this.pairings = new ArrayList<Pairing>();
-		this.scores = new HashMap<>();
-		this.tournamentState = TournamentState.NOT_STARTED;
-
 	}
 
-	public List<Player> getTournamentPlayers() {
-		return tournamentPlayers;
+	public List<Player> getPlayers() {
+		return players;
 	}
 
-	public void setTournamentPlayers(List<Player> tournamentPlayers) {
-		this.tournamentPlayers = tournamentPlayers;
+	public void setPlayers(List<Player> players) {
+		this.players = players;
 	}
 
 	public int getTime() {
@@ -97,12 +97,12 @@ public class Tournament {
 		this.increment = increment;
 	}
 
-	public String getTournamentId() {
-		return tournamentId;
+	public String getId() {
+		return id;
 	}
 
-	public void setTournamentId(String tournamentId) {
-		this.tournamentId = tournamentId;
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public LocalDateTime getUtcStartDateTime() {
@@ -113,12 +113,12 @@ public class Tournament {
 		this.utcStartDateTime = startDateTime;
 	}
 
-	public TournamentType getTournamentType() {
-		return tournamentType;
+	public TournamentType getType() {
+		return type;
 	}
 
-	public void setTournamentType(TournamentType tournamentType) {
-		this.tournamentType = tournamentType;
+	public void setType(TournamentType type) {
+		this.type = type;
 	}
 
 	public List<Pairing> getPairings() {
@@ -153,12 +153,12 @@ public class Tournament {
 		this.currentRound = currentRound;
 	}
 
-	public TournamentState getTournamentState() {
-		return tournamentState;
+	public TournamentState getState() {
+		return state;
 	}
 
-	public void setTournamentState(TournamentState tournamentState) {
-		this.tournamentState = tournamentState;
+	public void setState(TournamentState state) {
+		this.state = state;
 	}
 
 	public List<Player> getPlayersInLobby() {
@@ -169,12 +169,12 @@ public class Tournament {
 		this.playersInLobby = playersInLobby;
 	}
 
-	public String getTournamentName() {
-		return tournamentName;
+	public String getName() {
+		return name;
 	}
 
-	public void setTournamentName(String tournamentName) {
-		this.tournamentName = tournamentName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public PairingsGenerator getPairingGenerator() {

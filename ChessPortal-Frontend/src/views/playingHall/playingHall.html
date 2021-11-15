@@ -30,7 +30,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <chess-clock [gameId]="gameId" [color]="whitePlayer ? 'b': 'w'"
+                            <chess-clock [clockid]="'notation-up'" [gameId]="gameId" [color]="whitePlayer ? 'b': 'w'"
                                 [time]="whitePlayer ? blackTime : whiteTime" [increment]="increment" [mode]="mode">
                             </chess-clock>
                         </tr>
@@ -146,7 +146,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <chess-clock [gameId]="gameId" [color]="whitePlayer ? 'w': 'b'"
+                            <chess-clock [clockid]="'notation-down'" [gameId]="gameId" [color]="whitePlayer ? 'w': 'b'"
                                 [time]="whitePlayer ? whiteTime : blackTime" [increment]="increment" [mode]="mode">
                             </chess-clock>
                         </tr>

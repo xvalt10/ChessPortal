@@ -5,7 +5,10 @@ import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.spi.JsonProvider;
 
+import application.domain.Game;
+import application.tournaments.SimulHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -28,6 +31,9 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 	@Autowired
 	private TournamentHandler tournamentHandler;
 
+	@Autowired
+	private SimulHandler simulHandler;
+
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 
 		Player player = sessionHandler.getPlayerByName(session.getPrincipal().getName());
@@ -38,7 +44,17 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 			System.out.println("New player Connection established - " + player.getUsername());
 		} else {
 			player.setSession(session);
-			System.out.println("Player reconnected - " + player.getUsername());
+			Game ongoingGame = sessionHandler.findGameByPlayer(player.getUsername());
+			if(ongoingGame != null) {
+				Player opponent = ongoingGame.getWhitePlayer().equals(player) ? ongoingGame.getBlackPlayer() : ongoingGame.getWhitePlayer();
+				JsonProvider provider = JsonProvider.provider();
+				JsonObject opponentReconnectedMessage = provider.createObjectBuilder()
+						.add("action", "opponentReconnected")
+						.add("opponent", player.getUsername()).build();
+				System.out.println("Sending reconnected message to " + opponent.getUsername());
+				sessionHandler.sendMessageToSession(opponent.getSession(), opponentReconnectedMessage);
+				System.out.println("Player reconnected - " + player.getUsername());
+			}
 		}
 
 	}
@@ -103,20 +119,35 @@ public class UserWebSocketServer extends TextWebSocketHandler {
 				Player player = sessionHandler.getPlayerByName(jsonMessage.getString("username"));
 				String tournamentId = jsonMessage.getString("tournamentId", null);
 				Tournament tournament = tournamentHandler.getTournament(tournamentId);
+				if(tournament == null){
+					tournament = simulHandler.getTournament(tournamentId);
+				}
 				if (!tournament.getPlayersInLobby().contains(player)) {
 					tournament.getPlayersInLobby().add(player);
 				}
-				tournamentHandler.sendTournamentInfoToPlayer(tournamentId, player);
+				tournamentHandler.sendTournamentInfoToPlayer(tournament, player);
 				break;
 			case "joinTournament":
-				tournamentHandler.joinTournament(jsonMessage.getString("tournamentId"),
-						jsonMessage.getString("username"));
+				String id = jsonMessage.getString("tournamentId");
+				String username = jsonMessage.getString("username");
+				if (tournamentHandler.getTournament(id) != null) {
+					tournamentHandler.joinTournament(id, username);
+				} else {
+					simulHandler.joinTournament(id, username);
+				}
 				break;
 			case "leaveTournament":
-				tournamentHandler.leaveTournament(jsonMessage.getString("tournamentId"),
-						jsonMessage.getString("username"));
+				String tid = jsonMessage.getString("tournamentId");
+				String tusername = jsonMessage.getString("username");
+				if (tournamentHandler.getTournament(tid) != null) {
+					tournamentHandler.leaveTournament(tid, tusername);
+				} else{
+					simulHandler.leaveTournament(tid, tusername);
+				}
 				break;
+
 			}
+
 
 		} catch (Exception e) {
 			e.printStackTrace();

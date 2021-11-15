@@ -1,6 +1,7 @@
 package application.domain;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public class Move implements Serializable {
 
@@ -13,6 +14,8 @@ public class Move implements Serializable {
     String blackMove;
     Integer whiteTime;
     Integer blackTime;
+    LocalDateTime whiteMoveTimestamp;
+    LocalDateTime blackMoveTimestamp;
 
     String chessboardAfterWhiteMove;
     String chessboardAfterBlackMove;
@@ -71,5 +74,21 @@ public class Move implements Serializable {
 
     public void setBlackTime(Integer blackTime) {
         this.blackTime = blackTime;
+    }
+
+    public LocalDateTime getWhiteMoveTimestamp() {
+        return whiteMoveTimestamp;
+    }
+
+    public void setWhiteMoveTimestamp(LocalDateTime whiteMoveTimestamp) {
+        this.whiteMoveTimestamp = whiteMoveTimestamp;
+    }
+
+    public LocalDateTime getBlackMoveTimestamp() {
+        return blackMoveTimestamp;
+    }
+
+    public void setBlackMoveTimestamp(LocalDateTime blackMoveTimestamp) {
+        this.blackMoveTimestamp = blackMoveTimestamp;
     }
 }

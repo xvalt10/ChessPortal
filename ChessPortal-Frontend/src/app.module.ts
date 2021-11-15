@@ -46,9 +46,10 @@ import {MatCardModule} from '@angular/material/card';
 import {MatTableModule} from '@angular/material/table';
 
 import {MatCkeditorModule, MatContenteditableModule} from 'mat-contenteditable';
-import {CKEditorModule} from "@ckeditor/ckeditor5-angular";
+//import {CKEditorModule} from "@ckeditor/ckeditor5-angular";
 import {MatButtonModule} from "@angular/material/button";
 import {MatSelectModule} from "@angular/material/select";
+import { ArticleComponent } from './views/article/article.component';
 
 
 const appRoutes: Routes = [
@@ -57,11 +58,13 @@ const appRoutes: Routes = [
     { path: 'tournaments', component: TournamentSummaryComponent, canActivate: [AuthGuard]},
     { path: 'tournaments/:tournamentId', component: TournamentLobbyComponent, canActivate: [AuthGuard]},
     { path: 'tournamentgame/:tournamentId/:gameId/:action', component: PlayingHall, canActivate: [AuthGuard]},
+    { path: 'simulgame/:tournamentId/:gameId/:action', component: PlayingHall, canActivate: [AuthGuard]},
     //{ path: 'observeGame/:gameId', component: PlayingHall, canActivate: [AuthGuard]},
     { path: 'register', component: RegistrationComponent},
     { path: 'watchGames', component: WatchGamesComponent},
     { path: 'login', component: LoginComponent},
     { path: 'news', component: NewsComponent},
+    { path: 'articles/:articleId', component: ArticleComponent},
     { path: 'lobby', component: LobbyComponent, canActivate: [AuthGuard]},
 
     { path: 'userprofile', component: UserProfileComponent},
@@ -78,7 +81,7 @@ export function tokenGetter(){
 
 @NgModule({
     imports: [
-        CKEditorModule,
+      //  CKEditorModule,
         MatContenteditableModule,
         BrowserModule,
         FormsModule,
@@ -109,7 +112,7 @@ export function tokenGetter(){
         MatPaginatorModule,
         MatCardModule,
         MatTableModule,
-        CKEditorModule,
+       // CKEditorModule,
         MatCkeditorModule,
         MatButtonModule,
         MatSelectModule,
@@ -123,7 +126,7 @@ export function tokenGetter(){
 
     ],
   providers: [AuthGuard, JwtAuthenticationService, FormBuilder, {provide:HTTP_INTERCEPTORS,useClass : AuthInterceptor, multi: true}],
-  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent, WatchGamesComponent, ChessboardAndClockComponent, AnnotatedMovesComponent, ChessClockComponent, PositionSetupComponent, UserProfileComponent, RatingChartComponent, TournamentSummaryComponent, NewGameDialogComponent, NewsComponent ],
+  declarations: [ HomePageComponent, PlayingHall, MoveVariationTreeComponent, LobbyComponent, LoginComponent, RegistrationComponent, TournamentLobbyComponent, WatchGamesComponent, ChessboardAndClockComponent, AnnotatedMovesComponent, ChessClockComponent, PositionSetupComponent, UserProfileComponent, RatingChartComponent, TournamentSummaryComponent, NewGameDialogComponent, NewsComponent, ArticleComponent ],
   exports:      [ HomePageComponent],
   entryComponents:[NewGameDialogComponent],
   bootstrap:    [ HomePageComponent ] 

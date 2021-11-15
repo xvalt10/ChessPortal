@@ -16,7 +16,7 @@ public class RoundRobinPairingsGenerator implements PairingsGenerator {
 	@Override
 	public List<Pairing> generatePairings(Tournament tournament, int round) {
 		
-		List<Player> tournamentPlayers = tournament.getTournamentPlayers();
+		List<Player> tournamentPlayers = tournament.getPlayers();
 		List<Pairing> pairingsForRound = new ArrayList<>();
 		if (tournamentPlayers.size() % 2 != 0) {
 			Player player = null;

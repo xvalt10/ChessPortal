@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { map, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { BASEURL } from '../../js/constants.js'
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -71,6 +71,12 @@ export class HttpService {
       .pipe(catchError(this.handleError));
   }
 
+  scheduleSimul(tournamentparams: any) {
+    let apiURL = `${BASEURL}/simuls/schedule`;
+    return this.http.post(apiURL, tournamentparams)
+        .pipe(catchError(this.handleError));
+  }
+
   uploadFileToS3(playerName: string, file: File) {
     const uploadData = new FormData;
     uploadData.append('userImage', file, file.name)
@@ -88,6 +94,45 @@ export class HttpService {
     let apiURL = `${BASEURL}/users/${playerName}/updateUserProfile`;
     return this.http.post(apiURL, { email, countrycode }).pipe(catchError(this.handleError));
 
+  }
+  getAllArticles(){
+    let apiURL = `${BASEURL}/articles/`;
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+    return this.http.get(apiURL,httpOptions).pipe(catchError(this.handleError));
+  }
+  getArticlesByCategory(category:string){
+    let apiURL = `${BASEURL}/articles/category/${category}`;
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+    return this.http.get(apiURL,httpOptions).pipe(catchError(this.handleError));
+  }
+
+  getArticleById(id:number){
+    let apiURL = `${BASEURL}/articles/${id}`;
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+    return this.http.get(apiURL,httpOptions).pipe(catchError(this.handleError));
+
+  }
+
+  postArticle(article:string){
+    let apiURL = `${BASEURL}/articles`;
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+    return this.http.post(apiURL,article, httpOptions).pipe(catchError(this.handleError));
   }
 
 }

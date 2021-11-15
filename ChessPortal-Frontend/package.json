@@ -31,6 +31,7 @@
     "canvg": "^3.0.7",
     "chart.js": "^2.9.4",
     "ckeditor4-angular": "^2.1.0",
+    "ckeditor5-build-classic-simpleupload-imageresize": "^1.0.20",
     "cm-chessboard": "^2.15.3",
     "countries-list": "^2.5.6",
     "flag-icon-css": "^3.5.0",

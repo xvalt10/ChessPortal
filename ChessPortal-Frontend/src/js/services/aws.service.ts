@@ -39,6 +39,17 @@ export class AwsService {
     return this.s3client.getObject({'Bucket':this.BUCKET,'Key':"avatars/"+username+".png"}).promise();
   }
 
+  async uploadArticleImageToS3Bucket(imageFile:File ){
+    return this.s3client.upload({
+      Bucket: this.BUCKET,
+      Key: "articleImages/"+imageFile.name,
+      Body: imageFile,
+      ContentType: "image/svg+xml"
+    }).promise();
+  }
+
+
+
 
 
 

@@ -7,18 +7,18 @@
                     <div class="card mb-4 shadow-sm">
                         <div class="card-header">         
                             <div class="centeredFlexWrapper" style="justify-content: space-around;">
-                                <h2 style="padding-top:8px">{{tournament.tournamentName}}</h2>
-                                <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===false"
+                                <h2 style="padding-top:8px">{{tournament.name}}</h2>
+                                <button *ngIf="tournament.state === 'NOT_STARTED' && tournament.joined===false && (tournament.type !== 'SIMUL' || tournament.players.length < tournament.maxNumberOfOponents)"
                                     class="btn btn-primary" (click)="joinTournament()">Join tournament</button>
-                                <button *ngIf="tournament.tournamentState === 'NOT_STARTED' && tournament.joined===true"
+                                <button *ngIf="tournament.state === 'NOT_STARTED' && tournament.joined===true"
                                     class="btn btn-primary" (click)="leaveTournament()">Leave tournament</button>
-                                <h2 *ngIf="tournament.tournamentState === 'NOT_STARTED'" style="padding-top:8px">Starts in <br>
+                                <h2 *ngIf="tournament.state === 'NOT_STARTED'" style="padding-top:8px">Starts in <br>
                                     {{secondsTillStartString}}</h2>
-                                <h2 *ngIf="tournament.tournamentState === 'STARTED'" class="marginRight" style="padding-top:8px">
+                                <h2 *ngIf="tournament.state === 'STARTED'" class="marginRight" style="padding-top:8px">
                                     <span class="badge badge-primary">Round {{tournament.currentRound}} in progress</span></h2>
-                                <h2 *ngIf="tournament.tournamentState === 'FINISHED'" class="marginRight" style="padding-top:8px">
+                                <h2 *ngIf="tournament.state === 'FINISHED'" class="marginRight" style="padding-top:8px">
                                     <span class="badge badge-success" >Tournament finished</span></h2>
-                                <h2 *ngIf="tournament.tournamentState === 'ABORTED'" class="marginRight" style="padding-top:8px">
+                                <h2 *ngIf="tournament.state === 'ABORTED'" class="marginRight" style="padding-top:8px">
                                     <span class="badge badge-warning" >Tournament has been aborted</span></h2>
                             </div>
                         </div>
@@ -28,11 +28,19 @@
                                 <tbody >
                                     <tr>
                                         <td class="col-6"><b>Tournament name:</b></td>
-                                        <td class="col-6">{{tournament.tournamentName}}</td>
+                                        <td class="col-6">{{tournament.name}}</td>
                                     </tr>
                                     <tr>
                                         <td class="col-6"><b>Time control:</b></td>
                                         <td class="col-6">{{tournament.time}} + {{tournament.increment}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-6"><b>Tournament type:</b></td>
+                                        <td class="col-6">{{tournament.type}}</td>
+                                    </tr>
+                                    <tr *ngIf="tournament.type === 'SIMUL'">
+                                        <td class="col-6"><b>Simul organizer:</b></td>
+                                        <td class="col-6">{{tournament.simulOrganizer.username}}</td>
                                     </tr>
                                     <tr>
                                         <td class="col-6"><b>Start date:</b></td>
@@ -49,11 +57,11 @@
             </div>
             <div class="row">
                 <div class="col">
-                    <div class="alert alert-info" *ngIf="tournament.tournamentState === 'FINISHED' ">Your final standing: #{{this.userscore.standing + 1}} out of {{this.tournament.tournamentPlayers.length}} players<br> Your final score: {{this.userscore.points}}/{{this.tournament.numberOfRounds}}</div>
+                    <div class="alert alert-info" *ngIf="tournament.state === 'FINISHED' ">Your final standing: #{{this.userscore.standing + 1}} out of {{this.tournament.players.length}} players<br> Your final score: {{this.userscore.points}}/{{this.tournament.numberOfRounds}}</div>
                     <div class="alert alert-info" *ngIf="byeReceived">You received a bye in round {{this.tournament.currentRound + 1}}</div>
                 </div>
             </div>
-            <div class="row" *ngIf="tournament.tournamentPlayers.length > 0 && tournament.tournamentState === 'NOT_STARTED'">
+            <div class="row" *ngIf="tournament.players.length > 0 && tournament.state === 'NOT_STARTED'">
                 <div class="col">
                     <div class="card mb-4 shadow-sm">
                         <div class="card-header">
@@ -69,7 +77,7 @@
                                     </tr>
                                 </thead>
                                 <tbody >
-                                    <tr *ngFor="let player of tournament.tournamentPlayers">
+                                    <tr *ngFor="let player of tournament.players">
                                         <td class="col-6">{{player.username}}</td>
                                         <td class="col-6">{{player.elobullet}}</td>
                                     </tr>
@@ -165,4 +173,5 @@
             </div>
         </div>
     </div>
+</div>
 </div>

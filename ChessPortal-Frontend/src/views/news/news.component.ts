@@ -4,15 +4,23 @@ import { Router, ActivatedRoute} from '@angular/router'
 
 import {JwtAuthenticationService} from '../../js/services/jwtAuthenticationService'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import ClassicEditor from 'ckeditor5-build-classic-simpleupload-imageresize';
+import { ChangeEvent } from '@ckeditor/ckeditor5-angular/ckeditor.component';
 //import * as ClassicEditor from '../../assets/ckeditor5';
 //import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
 import html2canvas from "html2canvas";
 import {GameService} from "../../js/services/game.service";
 import {PIECES_INITIAL_POSITIONS} from "../../js/constants";
+import {HttpService} from "../../js/services/http-service.service";
+import {AwsService} from "../../js/services/aws.service";
 
 
-
+export interface Article{
+    title:string,
+    category:string,
+    text:string,
+    articleId:number
+}
 
 @Component({
     selector: 'news-articles',
@@ -23,77 +31,126 @@ import {PIECES_INITIAL_POSITIONS} from "../../js/constants";
 export class NewsComponent implements OnInit {
 
     @ViewChild('chessboardDiv') chessboardDiv: ElementRef;
-    categoryForm: FormGroup;
-    catContent = '';
+
+    saveArticleForm: FormGroup;
+
+    article= {} as Article;
+    saveArticleMessage = null;
+
     editor = null;
     editorData = "";
     editorConfig = null;
     piecesSvg = "";
+    imageUploaded = false;
+    imageUrl = null;
+
+    categories = ['World News', 'Slovakia News']
+    articles = [];
+
+
+
+    showChessboardButtonMessage = 'Hide chessboard'
+    columnsToDisplay = ['category', 'title', 'action'];
 
 
     gameId = null;
 
-    constructor(private gameService:GameService,private router:Router, private route: ActivatedRoute,private http:HttpClient, private authenticationService:JwtAuthenticationService,  private formBuilder: FormBuilder) {
-        this.categoryForm = this.formBuilder.group({
+    showChessboard = false;
+    showTableWithArticles: boolean;
+    showCreateArticleForm = false;
+    showArticlesForCategoryView = false;
+    showArticleView = false;
 
-            catContent : [null, Validators.required]
+    constructor(private gameService:GameService,private router:Router, private route: ActivatedRoute,
+                private httpService:HttpService, private authenticationService:JwtAuthenticationService,
+                private formBuilder: FormBuilder, private awsService:AwsService) {
+        this.saveArticleForm = this.formBuilder.group({
+
+
+            article_title : [null, Validators.required],
+            article_category: [null, Validators.required]
+
+
         });
 
-        this.editor = ClassicEditor;
-        this.editorConfig = {
-
-            toolbar: {
-                items: [
-                    'heading',
-                    '|',
-                    'bold',
-                    'italic',
-                    'link',
-                    'bulletedList',
-                    'numberedList',
-                    '|',
-                    'outdent',
-                    'indent',
-                    '|',
-                    'blockQuote',
-                    'insertTable',
-                    'mediaEmbed',
-                    'undo',
-                    'redo',
-                    'htmlEmbed',
-                    'imageInsert',
-                    'imageUpload'
-                ]
-            },
-            language: 'en',
-            image: {
-                toolbar: [
-                    'imageTextAlternative',
-                    'imageStyle:full',
-                    'imageStyle:side'
-                ]
-            },
-            table: {
-                contentToolbar: [
-                    'tableColumn',
-                    'tableRow',
-                    'mergeTableCells'
-                ]
-            },
-            licenseKey: '',
+this.showTableWithArticles = false;
+this.showCreateArticleForm = false;
+this.showChessboard = true;
 
 
-        }
 
 
+
+    //     this.editorConfig = {
+    //         height: '700',
+    //         toolbar: {
+    //             items: [
+    //                 'heading',
+    //                 '|',
+    //                 'bold',
+    //                 'italic',
+    //                 'link',
+    //                 'bulletedList',
+    //                 'numberedList',
+    //                 '|',
+    //                 'outdent',
+    //                 'indent',
+    //                 '|',
+    //                 'blockQuote',
+    //                 'insertTable',
+    //                 'mediaEmbed',
+    //                 'undo',
+    //                 'redo',
+    //                 'htmlEmbed',
+    //                 'imageInsert',
+    //                 'imageUpload'
+    //             ]
+    //         },
+    //         language: 'en',
+    //         image: {
+    //             toolbar: [
+    //                 'imageTextAlternative',
+    //                 'imageStyle:full',
+    //                 'imageStyle:side'
+    //             ]
+    //         },
+    //         table: {
+    //             contentToolbar: [
+    //                 'tableColumn',
+    //                 'tableRow',
+    //                 'mergeTableCells'
+    //             ]
+    //         },
+    //         licenseKey: '',
+    //
+    //
+    //     }
+    //
+    //
+    //
+     }
+
+    ngOnInit(): void {
+
+        this.gameService.moveSubscriber.subscribe(playedMove => {
+            this.piecesSvg = playedMove.piecesSvg;
+        });
+        this.initializeCKEditor();
+
+        this.showArticlesForCategory(this.categories[0])
 
     }
 
-    ngOnInit(): void {
-        this.gameService.moveSubscriber.subscribe(playedMove => {
-            alert(playedMove.piecesSvg);
-            this.piecesSvg = playedMove.piecesSvg;
-        });
+
+
+    public onChange( { editor }: ChangeEvent ) {
+
+
+
+
+     //
+
+     //   console.log( data );
     }
 
 
@@ -101,41 +158,100 @@ export class NewsComponent implements OnInit {
     addDiagram(){
 
         let svg = this.chessboardDiv.nativeElement.innerHTML;
-        svg = svg.trim()
 
-           // .replaceAll("xlink:href", "href")
-        svg = svg.substr(svg.indexOf("<svg"), svg.indexOf("</svg")+"</svg>".length - svg.indexOf("<svg"))
+        svg = svg.trim()
+            .substr(svg.indexOf("<svg"), svg.indexOf("</svg")+"</svg>".length - svg.indexOf("<svg"))
             .trim()
             .replace("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" ")
             .replace("</defs></svg>", `${PIECES_INITIAL_POSITIONS}<style>.white{fill:   #c7a47b;} .black{fill: #eedab6}</style></defs></svg>`)
 
+        const imageFile = new File([svg], "diagram2.svg");
+        this.awsService.uploadArticleImageToS3Bucket(imageFile).then((data)=>{
 
-     //   let svg =`<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" class="cm-chessboard default"><g class="board input-enabled"><rect width="493" height="493" class="border"></rect><rect x="1.540625" y="430.21953125" width="61.23984375" height="61.23984375" class="square black" data-index="0"></rect><rect x="62.78046875" y="430.21953125" width="61.23984375" height="61.23984375" class="square white" data-index="1"></rect><rect x="124.0203125" y="430.21953125" width="61.23984375" height="61.23984375" class="square black" data-index="2"></rect><rect x="185.26015625" y="430.21953125" width="61.23984375" height="61.23984375" class="square white" data-index="3"></rect><rect x="246.5" y="430.21953125" width="61.23984375" height="61.23984375" class="square black" data-index="4"></rect><rect x="307.73984375" y="430.21953125" width="61.23984375" height="61.23984375" class="square white" data-index="5"></rect><rect x="368.97968749999995" y="430.21953125" width="61.23984375" height="61.23984375" class="square black" data-index="6"></rect><rect x="430.21953125" y="430.21953125" width="61.23984375" height="61.23984375" class="square white" data-index="7"></rect></g></svg>`
-        //this.editorData = svg;
 
-        const blob = new Blob([svg], {type: 'image/svg+xml'});
+           this.editorData = this.editorData + `<img src='${data.Location}'>`
+            this.imageUrl = data.Location;
+            this.imageUploaded = true;
+           // this.editor.config.imageResize.maxHeight = 492;
+            this.editor.execute('imageInsert',{source:data.Location});
 
-        const url = URL.createObjectURL(blob);
-        this.editorData = `<div style="width:492px">fdafafafasdf<img class="diagram" src="${url}" style="width:492px"/><div>`;
-        const image = document.createElement('img');
 
-        image.addEventListener('load', () => URL.revokeObjectURL(url), {once: true});
-        image.src = url;
-        image.width = 492;
-        image.height = 492;
 
-        document.getElementById('div1').append(image);
+        });
 
-        /*html2canvas(document.querySelector("#chessboardDiv")).then(canvas => {
-            document.body.appendChild(canvas)
-        });*/
+
     }
 
-    onFormSubmit() {
-        alert(this.categoryForm.controls.catContent.value);
+    saveArticle() {
+
+        this.article.text = this.editor.getData();
+        this.article.title = this.saveArticleForm.controls.article_title.value;
+        this.article.category = this.saveArticleForm.controls.article_category.value;
+
+        console.log(this.article.text);
+        console.log(this.article.title);
+        console.log(this.article.category);
+
+        this.httpService.postArticle(JSON.stringify(this.article)).subscribe( (savedArticle:Article) => {
+            this.saveArticleMessage = "Article saved successfully.";
+            setTimeout(()=>{this.saveArticleMessage = null;},5000)
+        });
     }
 
+    showArticlesForCategory(category: string) {
+
+        this.httpService.getArticlesByCategory(category).subscribe((articles:Article[]) =>{
+            this.articles = articles;
+            this.showArticleView = false;
+            this.showArticlesForCategoryView = true;
 
 
+        });
 
+    }
+
+    private initializeCKEditor(){
+        if(!this.editor){
+            ClassicEditor
+                .create(document.querySelector('#div2'), {})
+                .then(editor => {
+                    this.editor = editor;
+                    this.editor.config.height = '700px';
+                    this.editor.config.autoGrow_maxHeight = 600;
+                })
+                .catch(error => {
+                    console.error(error.stack);
+                });
+        }
+    }
+
+    private showAddArticleForm() {
+        this.httpService.getAllArticles().subscribe((articles:Article[]) =>setTimeout(()=>this.articles = articles));
+        this.showCreateArticleForm = true;
+        this.showArticlesForCategoryView = false;
+        this.showChessboard = true;
+        this.showArticleView = true;
+    }
+
+    private showChessboardDiagram(){
+
+        this.showChessboard = !this.showChessboard;
+        if(this.showChessboard){this.showChessboardButtonMessage="Hide chessboard"}else{this.showChessboardButtonMessage = "Show chessboard"}
+    }
+
+    updateArticle(article:Article) {
+        this.article = article;
+        this.showAddArticleForm();
+        this.editor.setData(this.article.text);
+        this.saveArticleForm.controls.article_title.setValue(this.article.title);
+        this.saveArticleForm.controls.article_category.setValue(this.article.category);
+
+    }
+
+    clearData() {
+        this.editor.setData("");
+        this.saveArticleForm.controls.article_title.setValue(null);
+        this.saveArticleForm.controls.article_category.setValue(null);
+        this.article = {} as Article;
+    }
 }

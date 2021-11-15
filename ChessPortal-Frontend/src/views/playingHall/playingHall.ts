@@ -79,7 +79,9 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
     user = {};
     oponent: string;
 
+
     timeToReconnect: number;
+    reconnectTimeout: any;
 
     chessboardUsageModes = CHESSBOARD_USAGE_MODES;
 
@@ -99,7 +101,6 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
     ngOnInit() {
         this.initialiseWebSockets();
 
-
         this.route.params.subscribe(params => {
             this.gameId = params['gameId'];
             let action = params['action'];
@@ -107,7 +108,6 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
             this.determineInitialModeOfUsage(action);
             if (this.mode === CHESSBOARD_USAGE_MODES.ANALYZING) {
                 this.activateAnalysisMode();
-
             }
             // this.whitePlayer = true;
             this.user = this.authenticationService.authenticatedUser.username;
@@ -127,7 +127,6 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
         })
 
         this.gameService.gameDataSubscriber.subscribe(gameData => {
-
             this.gameId = gameData.gameId;
             this.whitePlayerName = gameData.whitePlayer.username;
             this.blackPlayerName = gameData.blackPlayer.username;
@@ -142,8 +141,9 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
 
 
             setTimeout(() => {
+                if(gameData.annotatedMoves.length == 0){
                 this.whiteTime = gameData.time;
-                this.blackTime = gameData.time;
+                this.blackTime = gameData.time;}
             });
 
             this.increment = gameData.increment;
@@ -179,13 +179,17 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
             } else if (data.action === "oponentDisconnected") {
                 this.oponentDisconnected = true;
                 this.timeToReconnect = 30
-                let interval = setInterval(() => {
+                this.reconnectTimeout = setInterval(() => {
                     this.timeToReconnect -= 1;
                     if (this.timeToReconnect === 0) {
-                        clearInterval(interval);
+                        clearInterval(this.reconnectTimeout);
                     }
                 }, 1000);
-            } else if (data.action === "startPositionSetup") {
+            } else if(data.action === "opponentReconnected"){
+                this.oponentDisconnected = false;
+                clearInterval(this.reconnectTimeout);
+            }
+            else if (data.action === "startPositionSetup") {
                 this.positionSetupActive = true;
             } else if (data.action === "finishPositionSetup") {
                 this.positionSetupActive = false;
@@ -370,7 +374,7 @@ export class PlayingHall implements OnInit, OnDestroy, AfterViewInit {
             } else if (gameResult.indexOf("0-1") !== -1) {
                 gameResultWhite = 0;
                 gameResultBlack = 1;
-            } else if (gameResult === "1/2 - 1/2") {
+            } else if (gameResult.indexOf("1/2") !== -1) {
                 gameResultWhite = 0.5;
                 gameResultBlack = 0.5;
             }

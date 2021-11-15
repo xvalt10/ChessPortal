@@ -1,11 +1,11 @@
+import {ChessboardView} from "./ChessboardView.js"
+import {SQUARE_COORDINATES, ChessboardState} from "./ChessboardState.js"
 /**
  * Author and copyright: Stefan Haack (https://shaack.com)
  * Repository: https://github.com/shaack/cm-chessboard
  * License: MIT, see file 'LICENSE'
  */
 
-import {ChessboardView} from "./ChessboardView.js"
-import {SQUARE_COORDINATES, ChessboardState} from "./ChessboardState.js"
 
 export const COLOR = {
     white: "w",
@@ -110,6 +110,11 @@ export class Chessboard {
                 })
             })
         })
+    }
+
+    changeSquareColor(square, color){
+        const index = this.state.squareToIndex(square);
+        this.view.setSquareColor(index, color);
     }
 
     getPiece(square) {

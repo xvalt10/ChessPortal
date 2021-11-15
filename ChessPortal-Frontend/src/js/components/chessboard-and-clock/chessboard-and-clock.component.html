@@ -17,7 +17,7 @@
             <div class="clockPanelItem">{{_message}}</div>
 
 
-            <chess-clock [gameId]="_gameId" [color]="whitePlayer ? 'b': 'w'" [time]="whitePlayer ? blackTime: whiteTime"
+            <chess-clock  [clockid]="'board-up'" [gameId]="_gameId" [color]="whitePlayer ? 'b': 'w'" [time]="whitePlayer ? blackTime: whiteTime"
                 [increment]="increment">
             </chess-clock>
 
@@ -113,7 +113,7 @@
         </div>
 
         <div>
-            <chess-clock [gameId]="_gameId" [color]="whitePlayer ? 'w': 'b'" [time]="whitePlayer ? whiteTime: blackTime"
+            <chess-clock [clockid]="'board-down'"  [gameId]="_gameId" [color]="whitePlayer ? 'w': 'b'" [time]="whitePlayer ? whiteTime: blackTime"
                 [increment]="increment"></chess-clock>
         </div>
 

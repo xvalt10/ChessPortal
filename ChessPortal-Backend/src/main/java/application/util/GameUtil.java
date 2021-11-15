@@ -2,6 +2,13 @@ package application.util;
 
 import application.domain.Player;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Calendar;
+import java.util.Date;
+
 public class GameUtil {
 	
 	public static int getPlayerEloBasedOnGameTime(Player player, TimeControl gameTimeType) {
@@ -41,6 +48,19 @@ public class GameUtil {
 			break;
 		}
 
+	}
+
+	public static LocalDateTime convertMillisToUTCDateTime(long startDateTimeMillis, int utcOffsetSeconds) {
+		Date date = new Date(startDateTimeMillis);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+
+
+		ZoneOffset clientZoneOffset = ZoneOffset.ofTotalSeconds(-1*utcOffsetSeconds);
+
+		OffsetDateTime offsetDateTime= OffsetDateTime.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), 0, clientZoneOffset);
+		LocalDateTime utcStartTime = LocalDateTime.ofInstant(offsetDateTime.toInstant(), ZoneId.of("UTC"));
+		return utcStartTime;
 	}
 
 }

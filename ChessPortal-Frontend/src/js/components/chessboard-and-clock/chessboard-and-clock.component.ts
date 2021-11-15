@@ -1,16 +1,24 @@
-import { MediaObserver } from '@angular/flex-layout';
-import { HttpClient } from '@angular/common/http';
-import { WebSocketService } from './../../services/websocketService';
-import { JwtAuthenticationService } from './../../services/jwtAuthenticationService';
-import { GameService } from './../../services/game.service';
-import { Component, OnInit, Input, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import {MediaObserver} from '@angular/flex-layout';
+import {HttpClient} from '@angular/common/http';
+import {WebSocketService} from './../../services/websocketService';
+import {JwtAuthenticationService} from './../../services/jwtAuthenticationService';
+import {GameService} from './../../services/game.service';
+import {Component, OnInit, Input, AfterViewInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 
-import { Chessboard, COLOR, MOVE_INPUT_MODE, INPUT_EVENT_TYPE, MARKER_TYPE, PIECE } from "../../components/cm-chessboard/Chessboard.js";
-import { ActivatedRoute, Router } from "@angular/router";
-import { CHESSBOARD_USAGE_MODES, BASEURL } from "../../../js/constants.js";
-import { withLatestFrom, retryWhen, delay, tap } from 'rxjs/operators';
+import {
+    Chessboard,
+    COLOR,
+    MOVE_INPUT_MODE,
+    INPUT_EVENT_TYPE,
+    MARKER_TYPE,
+    PIECE
+} from "../../components/cm-chessboard/Chessboard.js";
+import {ActivatedRoute, Router} from "@angular/router";
+import {CHESSBOARD_USAGE_MODES, BASEURL} from "../../../js/constants.js";
+import {withLatestFrom, retryWhen, delay, tap} from 'rxjs/operators';
 
 import {EngineOutput} from '../../services/stockfish.service'
+
 @Component({
     selector: 'chessboard',
     templateUrl: './chessboard-and-clock.component.html',
@@ -22,16 +30,17 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         this.chess = new this.chessRules();
         this._showClocks = true;
         this.heightOfEngineScoreDivBlack = 50;
-        this.heightOfEngineScoreDivWhite= 50
+        this.heightOfEngineScoreDivWhite = 50;
+        this.preMove = null;
     }
-  
+
     _gameId: string;
     _gamedata: any;
     _mode: string;
     _color: string;
     _message: string;
     _showClocks: boolean;
-   
+
 
     tournamentId: any;
 
@@ -82,17 +91,17 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     moveNumber;
     socket: WebSocket;
     user;
-    enPassant;
     element;
     castling = null;
-    pawnPromotionMove = { from: null, to: null, promotion: null }
-    lastMove = { san: null, moveSent: false }
+    pawnPromotionMove = {from: null, to: null, promotion: null}
+    lastMove = {san: null, color: null, moveSent: false}
 
     positionOccurrencesMap = new Map();
     observedPlayer: string;
 
     chessboardUsageModes = CHESSBOARD_USAGE_MODES;
 
+    playingSimul: boolean;
     playingGame: boolean;
     seekingOponent: boolean;
     seekOponentInterval = null;
@@ -118,7 +127,7 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     whitePlayerEloChange = 0;
     blackPlayerEloChange = 0;
 
-    whitePlayerCountryCode= null;
+    whitePlayerCountryCode = null;
     blackPlayerCountryCode = null;
 
     whiteTime: number;
@@ -132,11 +141,12 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     showGameResultDiv = false;
     alternativeMoves = [];
 
-    engineOutput:EngineOutput;
+    engineOutput: EngineOutput;
     heightOfEngineScoreDivWhite: number;
     heightOfEngineScoreDivBlack: number;
 
     markedSquares = [];
+    preMove = {}
 
     activeMedia: string;
 
@@ -156,17 +166,23 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         }
     }
 
-    ngOnInit(): void {
+    ngOnInit() {
 
         this.initialiseEventSubscription();
         this.initialiseWebSockets();
         this.user = this.authService.getUsername();
+        this.route.url.subscribe(segments => {
+            segments.forEach(segment => {
+                    if(segment.path.indexOf("simulgame") !== -1){
+                        this.playingSimul = true;
+                    }
+                }
+            );
+        });
         this.route.params.subscribe(params => {
 
             this.tournamentId = params['tournamentId'];
         });
-
-
     }
 
     ngAfterViewInit() {
@@ -188,6 +204,8 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
                     }
                 }
                 this.redrawChessboard(fenAfterLastMove);
+            } else{
+                this.chess = new this.chessRules();
             }
 
         } else if (this._mode === CHESSBOARD_USAGE_MODES.ANALYZING) {
@@ -209,48 +227,59 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     }
 
 
-
     initialiseEventSubscription() {
         this.gameService.gamePositionSubscriber.subscribe(gamePosition => {
             console.log(gamePosition);
             this.redrawChessboard(gamePosition.positionAsFEN);
         });
-        this.gameService.clockEventSubscriber.subscribe(clockEvent => this.onTimeevents(clockEvent));
+        this.gameService.clockEventSubscriber.subscribe(clockEvent => {
+            if (this._gameId === clockEvent.gameId) {
+                this.onTimeevents(clockEvent)
+            }
+        });
 
         //this.gameService.annotatedMovesSubscriber.subscribe(annotatedMoves => { this.annotatedMoves = annotatedMoves; });
 
         this.gameService.gameActionSubscriber.subscribe(gameAction => {
-            if (gameAction.action === "sendMoveAfterClockPressed") {
-                if (this._mode === CHESSBOARD_USAGE_MODES.PLAYING && this.lastMove && this.lastMove.san && !this.lastMove.moveSent) {
-                    this.sendMove(this.chess.fen(), this.lastMove['san'], gameAction.gamedata[0].color, gameAction.gamedata[0].time);
-                    this.lastMove.moveSent = true;
+            if (gameAction.gameId === this._gameId) {
+                if (gameAction.action === "sendMoveAfterClockPressed") {
+                    if (this._mode === CHESSBOARD_USAGE_MODES.PLAYING && this.lastMove && this.lastMove.san && !this.lastMove.moveSent) {
+                        this.sendMove(this.chess.fen(), this.lastMove['san'], gameAction.gamedata[0].color, gameAction.gamedata[0].time, gameAction.gamedata[0].timestamp);
+                        this.lastMove.moveSent = true;
+                    }
+                } else if (gameAction.action === "showAlternativeMoves") {
+                    this.alternativeMoves = gameAction.gamedata;
+                    this.showMoveAlternativesDiv = true;
+                } else if (gameAction.action === "startPositionSetup") {
+                    this.startPositionSetup();
+                } else if (gameAction.action === "setPieceOnMarkedSquares") {
+                    this.setPieceToMarkedSquares(gameAction.gamedata[0].piece);
+                } else if (gameAction.action === "emptyBoard") {
+                    this.emptyBoard();
+                } else if (gameAction.action === "finishPositionSetup") {
+                    this.chess.load(gameAction.gamedata[0].position);
+                    this.moveNumber = gameAction.gamedata[0].moveNumber;
+                } else if (gameAction.action === "startGameAnalysis") {
+                    this.startAnalysis();
+                } else if (gameAction.action === "executeReceivedMove") {
+                    this.executeReceivedMove(gameAction.gamedata);
+                    if(this.preMove){
+                        this.handlePreMove();
+                    }
+
                 }
-            } else if (gameAction.action === "showAlternativeMoves") {
-                this.alternativeMoves = gameAction.gamedata;
-                this.showMoveAlternativesDiv = true;
-            } else if (gameAction.action === "startPositionSetup") {
-                this.startPositionSetup();
-            } else if (gameAction.action === "setPieceOnMarkedSquares") {
-                this.setPieceToMarkedSquares(gameAction.gamedata[0].piece);
-            } else if (gameAction.action === "emptyBoard") {
-                this.emptyBoard();
-            } else if (gameAction.action === "finishPositionSetup") {
-                this.chess.load(gameAction.gamedata[0].position);
-                this.moveNumber = gameAction.gamedata[0].moveNumber;
-            } else if (gameAction.action === "startGameAnalysis") {
-                this.startAnalysis();
             }
         });
 
         this.gameService.gameResultSubscriber.subscribe(gameResult => {
             if (gameResult.gameId === this._gameId) {
                 this.gameResult = gameResult.gameResult;
-                if((this.gameResult.indexOf("1-0") !== -1 && this.whitePlayer) || 
-                (this.gameResult.indexOf("0-1") !== -1 && !this.whitePlayer)){
-                   this.gameResultMessage = "Congratulation you won the game.";
-                }else if(this.gameResult.indexOf("1/2") !== -1){
+                if ((this.gameResult.indexOf("1-0") !== -1 && this.whitePlayer) ||
+                    (this.gameResult.indexOf("0-1") !== -1 && !this.whitePlayer)) {
+                    this.gameResultMessage = "Congratulation you won the game.";
+                } else if (this.gameResult.indexOf("1/2") !== -1) {
                     this.gameResultMessage = "Game ended with a draw.";
-                }else{
+                } else {
                     this.gameResultMessage = "You have lost the game.";
                 }
                 this.playingGame = false;
@@ -262,16 +291,16 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         });
 
         this.gameService.engineOutputSubscriber.subscribe(engineOutput => {
-            let divHeightPercentage = +engineOutput.score/10 * 50;
-            
-            
-            if(divHeightPercentage > 0){
-                divHeightPercentage = Math.min(50,divHeightPercentage);
+            let divHeightPercentage = +engineOutput.score / 10 * 50;
+
+
+            if (divHeightPercentage > 0) {
+                divHeightPercentage = Math.min(50, divHeightPercentage);
                 this.heightOfEngineScoreDivWhite = Math.round(50 + Math.abs(divHeightPercentage));
                 this.heightOfEngineScoreDivBlack = 100 - this.heightOfEngineScoreDivWhite;
 
-            }else if (divHeightPercentage < 0){
-                divHeightPercentage = Math.max(-50,divHeightPercentage);
+            } else if (divHeightPercentage < 0) {
+                divHeightPercentage = Math.max(-50, divHeightPercentage);
                 this.heightOfEngineScoreDivBlack = Math.round(50 + Math.abs(divHeightPercentage));
                 this.heightOfEngineScoreDivWhite = 100 - this.heightOfEngineScoreDivBlack;
             } else {
@@ -281,18 +310,23 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         })
     }
 
+    private handlePreMove() {
+        this.handleRegularMove(this.preMove);
+        this.svgChessboard.changeSquareColor(this.preMove['from']);
+        this.svgChessboard.changeSquareColor(this.preMove['to']);
+        this.preMove = null;
+    }
+
     startAnalysis() {
         this._mode = this.chessboardUsageModes.ANALYZING;
         console.log("Setting ananlyzing mode");
         if (!this.lastMove['whiteMove']) {
             this.svgChessboard.enableMoveInput(this.moveInputHandler, COLOR.white);
-        }
-        else {
+        } else {
             this.svgChessboard.enableMoveInput(this.moveInputHandler, COLOR.black);
         }
 
     }
-
 
 
     requestGameInfo() {
@@ -344,16 +378,15 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
 
         //  this.time = 10;
         this.time = game.time;
-
         this.increment = game.increment;
 
         this.initialiseChessboard(COLOR.white);
 
-        if(game.whitePlayer.countrycode){
-            this.whitePlayerCountryCode = game.whitePlayer.countrycode;      
+        if (game.whitePlayer.countrycode) {
+            this.whitePlayerCountryCode = game.whitePlayer.countrycode;
         }
-        
-        if(game.blackPlayer.countrycode){
+
+        if (game.blackPlayer.countrycode) {
             this.blackPlayerCountryCode = game.blackPlayer.countrycode;
         }
 
@@ -370,40 +403,62 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
             this.blackPlayerElo = this.gameService.getPlayerEloByGameTimeType(game.gameTimeType, game.blackPlayer);
         }
 
-        if (game.movesJson) {
-            this.annotatedMoves = JSON.parse(game.movesJson);
-        } else {
-            this.annotatedMoves = Object.keys(game.annotatedMoves).map(key => game.annotatedMoves[key]);
-            this.annotatedMoves = this.annotatedMoves.map(annotatedMove => {
-                if (!annotatedMove.whiteMove) {
-                    annotatedMove.whiteMove = "";
-                }
-                if ((!annotatedMove.blackMove)) {
-                    annotatedMove.blackMove = "";
-                }
-                return annotatedMove;
-            })
-        }
-
-        this.gameService.emitGameData({ blackPlayer: game.blackPlayer, whitePlayer: game.whitePlayer, gameId: game.gameId, increment: game.increment, time: game.time, annotatedMoves: this.annotatedMoves })
-
-        if (this.annotatedMoves.length !== 0) {
-            let lastMove = this.annotatedMoves[this.annotatedMoves.length - 1];
-            if (lastMove.blackMove) {
-                this.moveNumber = this.annotatedMoves.length;
-                this.redrawChessboard(lastMove.chessboardAfterBlackMove);
-                // this.startClock(true)
-            } else {
-                this.moveNumber = this.annotatedMoves.length - 1;
-                this.redrawChessboard(lastMove.chessboardAfterWhiteMove);
-                // this.startClock(false);
-            }
-            this.whiteTime = lastMove.whiteTime;
-            this.blackTime = lastMove.blackTime;
-        }
+        this.parseGameMoves(game);
+        this.redrawLastPosition();
+        this.gameService.emitGameData({
+            blackPlayer: game.blackPlayer,
+            whitePlayer: game.whitePlayer,
+            gameId: game.gameId,
+            increment: game.increment,
+            time: game.time,
+            annotatedMoves: this.annotatedMoves
+        });
 
     };
 
+
+    private redrawLastPosition() {
+        if (this.annotatedMoves.length !== 0) {
+            let lastMove = this.annotatedMoves[this.annotatedMoves.length - 1];
+
+            if (lastMove.blackMove) {
+                this.moveNumber = this.annotatedMoves.length;
+                this.blackTime = lastMove.blackTime;
+                this.redrawChessboard(lastMove.chessboardAfterBlackMove);
+            } else {
+                this.moveNumber = this.annotatedMoves.length - 1;
+                this.whiteTime = lastMove.whiteTime;
+                this.redrawChessboard(lastMove.chessboardAfterWhiteMove);
+                if(!this.whitePlayer && this._mode===this.chessboardUsageModes.PLAYING){
+                    this.svgChessboard.enableMoveInput(this.moveInputHandler, COLOR.black);
+                }
+            }
+        }
+    }
+
+    private parseGameMoves(game) {
+        if (game.movesJson) {
+            this.annotatedMoves = JSON.parse(game.movesJson);
+        } else {
+            if (Object.keys(game.annotatedMoves).length > 0) {
+                this.annotatedMoves = Object.keys(game.annotatedMoves).map(key => {
+                    if(typeof game.annotatedMoves[key] === 'string'){
+                        return JSON.parse(game.annotatedMoves[key]);
+                    }else {return  game.annotatedMoves[key]}});
+
+                //this.annotatedMoves = JSON.parse(game.annotatedMoves);
+                this.annotatedMoves = this.annotatedMoves.map(annotatedMove => {
+                    if (!annotatedMove.whiteMove) {
+                        annotatedMove.whiteMove = "";
+                    }
+                    if ((!annotatedMove.blackMove)) {
+                        annotatedMove.blackMove = "";
+                    }
+                    return annotatedMove;
+                });
+            }
+        }
+    }
 
     determineInitialModeOfUsage() {
         /* if (!this._mode) {
@@ -452,7 +507,7 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     };
 
     onTimeevents($event) {
-        console.log("Color:" + $event.color + " Time:" + $event.time);
+        console.log("Setting " + $event.color + " time:" + $event.time);
         console.log($event);
         if ($event.color === COLOR.white) {
             this.whiteTime = $event.time;
@@ -461,40 +516,50 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         }
     }
 
+    public isPremove():boolean{
+        return this.annotatedMoves.length>0 && this.svgChessboard.getOrientation() === this.lastMove.color;
+    }
+
     public moveInputHandler = (event) => {
 
-        //const startPosition = this.convertSquareToCoordinates(event.squareFrom);
-        //const endPosition = this.convertSquareToCoordinates(event.squareTo);
-        let piece: string;
-
-        console.log("event", event);
-
         if (event.type === INPUT_EVENT_TYPE.moveStart) {
-            piece = this.svgChessboard.getPiece(event.square);
+            if(this.preMove && (event.square === this.preMove['from'] || event.square === this.preMove['to'])){
+            this.svgChessboard.changeSquareColor(this.preMove['from']);
+            this.svgChessboard.changeSquareColor(this.preMove['to']);
+            this.preMove = null;}
         }
 
         if (event.type === INPUT_EVENT_TYPE.moveDone) {
-            const move = { from: event.squareFrom, to: event.squareTo, promotion: null };
-
-            const validMove = this.chess.move(move);
-            if (validMove) {
-                const currentPositionAsFEN = this.chess.fen();
-
-                setTimeout(() => {
-                    this.processValidMove(validMove, currentPositionAsFEN, true);
-
-                });
-            } else {
-                if (this.pawnReachedPromotionSquare(event.squareFrom, event.squareTo)) {
-                    this.pawnPromotionMove = move;
-                    this.showPawnPromotionDiv = true;
-                }
-                console.warn("invalid move", move)
+            const move = {from: event.squareFrom, to: event.squareTo, promotion: null};
+            if(this.isPremove()){
+                this.preMove = move;
+                this.svgChessboard.changeSquareColor(event.squareFrom,'yellow');
+                this.svgChessboard.changeSquareColor(event.squareTo,'yellow');
+            } else{
+                this.handleRegularMove(move);
             }
         } else {
             return true;
         }
 
+    }
+
+    private handleRegularMove(move) {
+        const validMove = this.chess.move(move);
+        if (validMove) {
+            const currentPositionAsFEN = this.chess.fen();
+
+            setTimeout(() => {
+                this.processValidMove(validMove, currentPositionAsFEN, true);
+
+            });
+        } else {
+            if (this.pawnReachedPromotionSquare(move.from, move.to)) {
+                this.pawnPromotionMove = move;
+                this.showPawnPromotionDiv = true;
+            }
+            console.warn("invalid move", move)
+        }
     }
 
     processValidMove(validMove, currentPositionAsFEN: string, sendMoveToOponent: boolean) {
@@ -507,6 +572,7 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
             moveNotation = validMove.san;
         }
         this.lastMove.san = moveNotation;
+        this.lastMove.color = validMove.color
         this.lastMove.moveSent = false;
         this.svgChessboard.setPosition(currentPositionAsFEN).then(() => {
             //this.svgChessboard.disableMoveInput();
@@ -521,15 +587,19 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
                     this.svgChessboard.enableMoveInput(this.moveInputHandler, COLOR.white);
                 }
             }
-            if (this._mode === this.chessboardUsageModes.PLAYING) {
+            /*if (this._mode === this.chessboardUsageModes.PLAYING) {
                 if (sendMoveToOponent) {
                     this.svgChessboard.disableMoveInput();
                 }
-            }
+            }*/
             if (this.chess.game_over()) {
                 this.gameResult = this.getGameResult(validMove);
                 if (this._mode === this.chessboardUsageModes.PLAYING) {
-                    this.gameService.emitGameAction({ action: "gameResult", gameId: this._gameId, gamedata: { gameResult: this.gameResult } });
+                    this.gameService.emitGameAction({
+                        action: "gameResult",
+                        gameId: this._gameId,
+                        gamedata: {gameResult: this.gameResult}
+                    });
                 }
             }
 
@@ -537,11 +607,21 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
             this.svgChessboard.addMarker(validMove.from, MARKER_TYPE.move);
             this.svgChessboard.addMarker(validMove.to, MARKER_TYPE.move);
 
-            this.gameService.emitPlayedMove({ gameId: this._gameId, moveNotation, moveColor: validMove.color, fen: currentPositionAsFEN, gameResult: this.gameResult, sendMoveToOponent, whiteTime: validMove.whiteTime ? validMove.whiteTime : this.whiteTime, blackTime: validMove.blackTime ? validMove.blackTime : this.blackTime, moveReceived: !sendMoveToOponent, piecesSvg: this.svgChessboard.getPieceGroup().innerHTML });
+            this.gameService.emitPlayedMove({
+                gameId: this._gameId,
+                moveNotation,
+                moveColor: validMove.color,
+                fen: currentPositionAsFEN,
+                gameResult: this.gameResult,
+                sendMoveToOponent,
+                whiteTime: validMove.whiteTime ? validMove.whiteTime : this.whiteTime,
+                blackTime: validMove.blackTime ? validMove.blackTime : this.blackTime,
+                moveReceived: !sendMoveToOponent,
+                piecesSvg: this.svgChessboard.getPieceGroup().innerHTML
+            });
             this.whiteMove = !this.whiteMove;
             this.playSoundAfterMove();
         });
-
 
 
     }
@@ -591,11 +671,13 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     };
 
     seekOponent(time, increment): void {
-        this.seekOponentInterval = setInterval(() => { this.websocketService.seekNewOponentCommand(time, increment) }, 1000);
+        this.seekOponentInterval = setInterval(() => {
+            this.websocketService.seekNewOponentCommand(time, increment)
+        }, 1000);
         this.seekingOponent = true;
-      }
+    }
 
-      analyzeGame() {        
+    analyzeGame() {
         this.router.navigateByUrl(`/game/${this.route.snapshot.paramMap.get("gameId")}/analyze`);
     };
 
@@ -627,7 +709,8 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     }
 
     executeReceivedMove(move) {
-        console.log(move);
+        console.log(`Executing move ${move.annotatedMove} (${move.gameId}) - board ${this._gameId}`);
+        //console.log(this.chess.getPosition());
 
         this.castling = "";
 
@@ -645,11 +728,22 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         // this.blackTime = move.blackTime;
         console.log("received move blacktime:" + move.blackTime);
         const validMove = this.chess.move(move.annotatedMove);
-        validMove.whiteTime = move.whiteTime;
-        validMove.blackTime = move.blackTime;
-        this.processValidMove(validMove, move.chessboardAfterMove, false);
-        if (this._mode === this.chessboardUsageModes.PLAYING) {
-            this.svgChessboard.enableMoveInput(this.moveInputHandler, validMove.color === COLOR.black ? COLOR.white : COLOR.black);
+        if (validMove) {
+            validMove.whiteTime = move.whiteTime;
+            validMove.blackTime = move.blackTime;
+            if (validMove.color === 'w') {
+                this.whiteTime = validMove.whiteTime;
+            } else {
+                this.blackTime = validMove.blackTime;
+            }
+
+            this.processValidMove(validMove, move.chessboardAfterMove, false);
+            if (this._mode === this.chessboardUsageModes.PLAYING) {
+                this.svgChessboard.enableMoveInput(this.moveInputHandler, validMove.color === COLOR.black ? COLOR.white : COLOR.black);
+            }
+        } else {
+            console.error("InvalidMove");
+            console.error(move);
         }
     };
 
@@ -674,28 +768,33 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     };
 
     displayPromotionPicker(elem,
-        startPos, endPos) {
+                           startPos, endPos) {
         this.element = elem;
         this.showPawnPromotionDiv = true;
 
     };
 
-    sendMove(fen: string, annotatedMove: string, color: string, timeRemainingAfterMove: number) {
+    sendMove(fen: string, annotatedMove: string, color: string, timeRemainingAfterMove: number, timestamp:number) {
 
         let moveAction = {
             action: "move",
             chessboardAfterMove: fen,
             gameId: this._gameId,
+            tournamentId: this.tournamentId,
             annotatedMove: annotatedMove,
+            timestamp: timestamp,
+            utcOffset: new Date().getTimezoneOffset() * 60,
             whiteMove: this.whiteMove,
             whiteTime: this.whiteTime,
             blackTime: this.blackTime
         };
 
-        if (this._color === COLOR.white) {
+        if (color === COLOR.white) {
             moveAction.whiteTime = timeRemainingAfterMove;
+            this.whiteTime = timeRemainingAfterMove;
         } else {
             moveAction.blackTime = timeRemainingAfterMove;
+            this.blackTime = timeRemainingAfterMove;
         }
 
         console.log("sending move to server:");
@@ -705,13 +804,9 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     };
 
 
-
     startGame(game) {
-
-
         console.log("Received gameInfo");
         console.log(game);
-
 
         this.gameResult = "N/A";
 
@@ -719,15 +814,18 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         this.blackPlayerName = game.blackPlayer.username;
         this.whitePlayerElo = game.whitePlayer.elo;
         this.blackPlayerElo = game.blackPlayer.elo;
+        if(game.annotatedMoves.length == 0){
         this.whiteTime = game.time;
         this.blackTime = game.time;
-        this.annotatedMoves = [];
-
-        if(game.whitePlayer.countrycode){
-            this.whitePlayerCountryCode = game.whitePlayer.countrycode;      
         }
-        
-        if(game.blackPlayer.countrycode){
+        this.annotatedMoves = game.annotatedMoves.length > 0 ? game.annotatedMoves : [];
+
+
+        if (game.whitePlayer.countrycode) {
+            this.whitePlayerCountryCode = game.whitePlayer.countrycode;
+        }
+
+        if (game.blackPlayer.countrycode) {
             this.blackPlayerCountryCode = game.blackPlayer.countrycode;
         }
 
@@ -737,7 +835,6 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
         this.increment = game.increment;
 
         this.whitePlayer = this.user === this.whitePlayerName;
-        this.gameService.emitGameData({ blackPlayer: game.blackPlayer, whitePlayer: game.whitePlayer, gameId: game.gameId, increment: game.increment, time: game.time, annotatedMoves: [] })
 
         if (!this.whitePlayer) {
             this.initialiseChessboard(COLOR.black)
@@ -747,8 +844,19 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
 
         }
 
+        this.parseGameMoves(game);
+        this.redrawLastPosition();
+        this.gameService.emitGameData({
+            blackPlayer: game.blackPlayer,
+            whitePlayer: game.whitePlayer,
+            gameId: game.gameId,
+            increment: game.increment,
+            time: game.time,
+            annotatedMoves: this.annotatedMoves
+        });
+
         clearInterval(this.seekOponentInterval);
-        this.seekingOponent=false;
+        this.seekingOponent = false;
         this.playingGame = true;
     }
 
@@ -773,10 +881,34 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
                     this.observeGame(data);
                 }
             } else if (data.action === "move") {
-                this.executeReceivedMove(data);
-            } else if (data.action === "startGame") {
+                console.log("Received move for game:" + data.gameId);
+                if (data.gameId === this._gameId) {
+                    this.executeReceivedMove(data);
+                    if(this.preMove){
+                        this.handlePreMove();
+                    }
+                } else {
+                    this.gameService.emitGameAction({
+                        gameId: data.gameId,
+                        action: 'executeReceivedMove',
+                        gamedata: data
+                    });
+                }
+            } else if (data.action === "nextSimulGame") {
+
+                this.router.navigate([`simulgame/${this.tournamentId}/${data.gameId}/play`]).then(navigationSuccessful => {
+                    if (navigationSuccessful) {
+                        this.chess = new this.chessRules();
+                        this.chess.reset();
+                        this.gameId = data.gameId;
+                        this.whiteMove = true;
+                        this.requestGameInfo();
+                    }
+                });
+            }else if (data.action === "startGame") {
                 if (this.tournamentId) {
-                    this.router.navigate([`tournamentgame/${this.tournamentId}/${data.gameId}/play`]).then(navigationSuccessful => {
+                    let urlstart = !this.playingSimul?'tournamentgame':'simulgame';
+                    this.router.navigate([`${urlstart}/${this.tournamentId}/${data.gameId}/play`]).then(navigationSuccessful => {
                         if (navigationSuccessful) {
                             this.chess = new this.chessRules();
                             this.chess.reset();
@@ -797,11 +929,12 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
                     });
                 }
             } else {
-                if (data.action === "gameResult" || data.action === "resign") {
-                    this.playingGame = false;
+                if (data.gameId === this.gameId) {
+                    if (data.action === "gameResult" || data.action === "resign") {
+                        this.playingGame = false;
+                    }
                 }
-
-                this.gameService.emitGameAction({ action: data.action, gameId: this._gameId, gamedata: data });
+                this.gameService.emitGameAction({action: data.action, gameId: this._gameId, gamedata: data});
             }
         }
 
@@ -814,7 +947,11 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     };
 
     selectMove(move: any) {
-        this.gameService.emitGamePosition({ gameId: this.gameId, positionAsFEN: move['fen'], variationId: move['variation'] });
+        this.gameService.emitGamePosition({
+            gameId: this.gameId,
+            positionAsFEN: move['fen'],
+            variationId: move['variation']
+        });
         this.showMoveAlternativesDiv = false;
     }
 
@@ -833,7 +970,11 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     setPieceToMarkedSquares(piece) {
         this.markedSquares.forEach(square => {
             this.svgChessboard.setPiece(square, piece)
-                .then(response => this.gameService.emitGameAction({ gameId: this.gameId, action: "positionAfterSetup", gamedata: [{ position: this.svgChessboard.getPosition() }] }));
+                .then(response => this.gameService.emitGameAction({
+                    gameId: this.gameId,
+                    action: "positionAfterSetup",
+                    gamedata: [{position: this.svgChessboard.getPosition()}]
+                }));
             this.svgChessboard.removeMarkers(square, MARKER_TYPE.emphasize);
         });
         this.markedSquares = [];
@@ -841,7 +982,11 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
 
     emptyBoard() {
         this.svgChessboard.setPosition("empty")
-            .then(response => this.gameService.emitGameAction({ gameId: this.gameId, action: "positionAfterSetup", gamedata: [{ position: this.svgChessboard.getPosition() }] }));
+            .then(response => this.gameService.emitGameAction({
+                gameId: this.gameId,
+                action: "positionAfterSetup",
+                gamedata: [{position: this.svgChessboard.getPosition()}]
+            }));
 
     }
 

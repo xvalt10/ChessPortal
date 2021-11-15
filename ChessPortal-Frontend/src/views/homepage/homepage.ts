@@ -9,6 +9,7 @@ import { map, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs'
 import { BASEURL } from '../../js/constants.js'
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {Article} from "../news/news.component";
 
 @Component({
     selector: 'homepage',
@@ -25,6 +26,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     socket: WebSocket;
     topGamesInterval: any;
+    articles: Article[];
 
     constructor(private httpService: HttpService, private authService: JwtAuthenticationService, private router: Router, private http: HttpClient, private gameService: GameService, private webSocketService: WebSocketService) { }
     ngOnDestroy(): void {
@@ -39,6 +41,10 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         //this.initialiseWebSockets();
+        this.httpService.getArticlesByCategory("two").subscribe((articles:Article[])=>{
+            this.articles = articles.slice(articles.length-3);
+        })
+
         this.user = this.authService.getUsername();
 
         this.gameService.gameResultSubscriber.subscribe(game => {
@@ -70,10 +76,11 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     }
 
-    setTopPlayers(timecontrol) {
-        this.httpService.getTopPlayers(timecontrol).subscribe(data => {
+    setTopPlayers(timecontrol:string) {
+        this.httpService.getTopPlayers(timecontrol).subscribe((data:[]) => {
+            const eloparam = 'elo'+timecontrol.toLowerCase();
             console.log(data);
-            this.bestPlayers[timecontrol] = data;
+            this.bestPlayers[timecontrol] = data.sort((player1:any, player2:any)=> player1[eloparam] < player2[eloparam] ? 1 : player1[eloparam] > player2[eloparam] ? -1 : 0);
         }, error => {
             console.log(error);
         });
