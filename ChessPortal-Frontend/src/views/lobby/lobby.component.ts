@@ -7,8 +7,6 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { Router } from '@angular/router'
 import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
 
-
-
 @Component({
   selector: 'app-lobby',
   templateUrl: './lobby.component.html',
@@ -24,8 +22,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
   @ViewChild('chatDiv') chatWindowDiv: ElementRef;
 
   chatMessage = { action: "chatMessageLobby", author: null, message: "", color: "" };
-
-
 
   time = 0;
   increment = 0;
@@ -46,12 +42,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
   chatMessageColor: string;
 
   ngOnInit(): void {
-
-
-
     this.socket = this.websocketService.initWebSocket();
     this.socket.onmessage = (message) => {
-
       this.onMessage(message)
     };
 

@@ -49,7 +49,8 @@ import {MatCkeditorModule, MatContenteditableModule} from 'mat-contenteditable';
 //import {CKEditorModule} from "@ckeditor/ckeditor5-angular";
 import {MatButtonModule} from "@angular/material/button";
 import {MatSelectModule} from "@angular/material/select";
-import { ArticleComponent } from './views/article/article.component';
+import {ArticleComponent} from "./views/article/article.component";
+//import { ArticleComponent } from './views/article/article.component';
 
 
 const appRoutes: Routes = [

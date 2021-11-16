@@ -16,7 +16,7 @@ class TournamentHandlerTest {
 	
 	///TournamentHandler tournamentHandler = new TournamentHandler();
 
-	@Test
+	/*@Test
 	void testJoinTournament() {
 		fail("Not yet implemented");
 	}
@@ -29,7 +29,7 @@ class TournamentHandlerTest {
 	@Test
 	void testGeneratePairings() {
 		fail("Not yet implemented");
-	}
+	}*/
 
 	@Test
 	void testGeneratePairingsRoundRobin2() {

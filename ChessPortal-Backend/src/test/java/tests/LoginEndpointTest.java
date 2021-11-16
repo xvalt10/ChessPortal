@@ -66,13 +66,13 @@ public class LoginEndpointTest {
 
             }
 
-    @Test
+  /*  @Test
     public void userValidated() throws Exception {
         mockMvc.perform(get("/login?username=tomas&password=tomas")
                 .content(this.json(new Useraccount()))
                 .contentType(contentType))
         		.andExpect(jsonPath("$.present",is(Boolean.TRUE)));
-    }
+    }*/
 
    
     protected String json(Object o) throws IOException {
