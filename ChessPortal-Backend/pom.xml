@@ -43,6 +43,27 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.20.0</version>
+				<configuration>
+					<images>
+						<image>
+							<name>chessportal-dockerimage:${project.version}</name>
+							<alias>chessportal-dockerimage</alias>
+							<build>
+								<dockerFileDir>${project.basedir}</dockerFileDir>
+							</build>
+							<run>
+								<ports>
+									<port>8080:8080</port>
+								</ports>
+							</run>
+						</image>
+					</images>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
