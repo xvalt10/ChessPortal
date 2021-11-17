@@ -108,7 +108,7 @@
             <app-position-setup *ngIf="mode === chessboardUsageModes.ANALYZING"></app-position-setup>
             <div class="row" *ngIf="mode === chessboardUsageModes.ANALYZING">
                 <div class="col">
-                    <div style="border:1px solid black;padding:5px; display:flex;flex-direction:column;height:105px">
+                    <div style="border:1px solid black;padding:5px; display:flex;flex-direction:column">
                         <div style="display:flex;align-items: center; flex-direction:row; justify-content:flex-start">
                             <label for="engineToggle" class="marginRight">Engine analysis</label>
                             <ng-toggle class="marginRight" id="engineToggle" [value]="false" [width]="55"

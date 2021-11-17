@@ -124,14 +124,12 @@ public class SwissSystemPairingsGenerator implements PairingsGenerator {
 		}
 
 		if (round == 1) {
-
-			pairings = generatePairingsForRoundOne(tournamentPlayers);
+			pairings = PairingHelper.generatePairingsForRoundOne(tournamentPlayers);
 		} else {
-			List<ScoreGroup> scoreGroups = groupPlayersByTheirScores(tournamentPlayers);
+			List<ScoreGroup> scoreGroups = PairingHelper.groupPlayersByTheirScores(tournamentPlayers);
 			SwissSystemPairingContext pairingContext = new SwissSystemPairingContext(round, false, scoreGroups);
 			scoreGroups.forEach(sg -> sg.setSwissSystemPairingContext(pairingContext));
 			pairings = generatePairingsAfterRoundOne(round, pairingContext);
-
 		}
 
 		return pairings;
@@ -177,42 +175,17 @@ public class SwissSystemPairingsGenerator implements PairingsGenerator {
 		GameColor player2ExpectedColor = player2.getExpectedColor();
 
 		if (Math.abs(player1.getColorBalance()) > Math.abs(player2.getColorBalance())) {
-			return createPairing(round, player1, player2, player1ExpectedColor);
+			return PairingHelper.createPairing(round, player1, player2, player1ExpectedColor);
 		} else if (Math.abs(player1.getColorBalance()) < Math.abs(player2.getColorBalance())) {
-			return createPairing(round, player2, player1, player2ExpectedColor);
+			return PairingHelper.createPairing(round, player2, player1, player2ExpectedColor);
 		} else if (player1.getPoints() > player2.getPoints()) {
-			return createPairing(round, player1, player2, player1ExpectedColor);
+			return PairingHelper.createPairing(round, player1, player2, player1ExpectedColor);
 		} else if (player1.getPoints() < player2.getPoints()) {
-			return createPairing(round, player2, player1, player2ExpectedColor);
+			return PairingHelper.createPairing(round, player2, player1, player2ExpectedColor);
 		} else {
-			return createPairing(round, player2, player1, player2ExpectedColor);
+			return PairingHelper.createPairing(round, player2, player1, player2ExpectedColor);
 		}
 
-	}
-
-	private List<Pairing> generatePairingsForRoundOne(List<Player> tournamentPlayers) {
-		List<Pairing> pairings = new ArrayList<>();
-		for (Player player : tournamentPlayers) {
-			if (player.isAlreadyPaired()) {
-				continue;
-			}
-			List<Player> candidateOponents = tournamentPlayers.stream()
-					.filter(player2 -> !player.getUsername().equals(player2.getUsername()))
-					.filter(player2 -> !player2.isAlreadyPaired()).collect(Collectors.toList());
-
-			Player oponent = candidateOponents.get(candidateOponents.size() - 1);
-			GameColor playerColorInThisRound;
-
-			if (Math.random() >= 0.5) {
-				playerColorInThisRound = WHITE;
-			} else {
-				playerColorInThisRound = BLACK;
-			}
-
-			Pairing pairing = createPairing(1, player, oponent, playerColorInThisRound);
-			pairings.add(pairing);
-		}
-		return pairings;
 	}
 
 	private Player getPlayerWithBye(List<Player> tournamentPlayers, int round) {
@@ -227,66 +200,6 @@ public class SwissSystemPairingsGenerator implements PairingsGenerator {
 		return playerWithBye;
 	}
 
-	private Pairing createPairing(int round, Player player, Player oponent, GameColor playerColor) {
-
-		player.setAlreadyPaired(true);
-		player.getPreviousOponents().add(oponent);
-
-		oponent.setAlreadyPaired(true);
-		oponent.getPreviousOponents().add(player);
-
-		if (oponent.getPoints() > player.getPoints()) {
-			player.setFloatStatus(FloatStatus.UP);
-			oponent.setFloatStatus(FloatStatus.DOWN);
-		} else if (oponent.getPoints() < player.getPoints()) {
-			player.setFloatStatus(FloatStatus.DOWN);
-			oponent.setFloatStatus(FloatStatus.UP);
-		} else {
-			player.setFloatStatus(FloatStatus.NONE);
-			oponent.setFloatStatus(FloatStatus.NONE);
-		}
-
-		Pairing pairing = new Pairing();
-
-		switch (playerColor) {
-		case WHITE:
-			pairing.setWhitePlayer(player);
-			pairing.setBlackPlayer(oponent);
-
-			player.addColorToColorSequence(WHITE.getColorAbbreviation());
-			oponent.addColorToColorSequence(BLACK.getColorAbbreviation());
-
-			player.setColorBalance(player.getColorBalance() + 1);
-			oponent.setColorBalance(oponent.getColorBalance() - 1);
-			break;
-		case BLACK:
-			pairing.setWhitePlayer(oponent);
-			pairing.setBlackPlayer(player);
-
-			oponent.addColorToColorSequence(WHITE.getColorAbbreviation());
-			player.addColorToColorSequence(BLACK.getColorAbbreviation());
-
-			oponent.setColorBalance(oponent.getColorBalance() + 1);
-			player.setColorBalance(player.getColorBalance() - 1);
-			break;
-		case BYE:
-			break;
-		}
-
-		pairing.setRound(round);
-		log.info("Round {} - Pairing: {}", round, pairing);
-		return pairing;
-	}
-
-	private List<ScoreGroup> groupPlayersByTheirScores(List<Player> players) {
-		List<ScoreGroup> scoregroups = new ArrayList<>();
-		Map<Float, List<Player>> playersGroupedByPoints = players.stream()
-				.collect(Collectors.groupingBy(tplayer -> tplayer.getPoints(), TreeMap::new, Collectors.toList()));
-		scoregroups = playersGroupedByPoints.entrySet().stream()
-				.map(entry -> new ScoreGroup(entry.getKey(), entry.getValue())).collect(Collectors.toList());
-		Collections.reverse(scoregroups);
-		return scoregroups;
-	}
 
 	private List<Player> getPlayersByColorInLastRound(List<Player> players, GameColor gamecolor) {
 		return players.stream()

@@ -88,15 +88,7 @@ public class RoundRobinPairingsGenerator implements PairingsGenerator {
 			player.setLastGameColor(playerColourInThisRound);
 			Player oponent = null;
 
-			List<Player> previousOponents = previousParings.stream().filter(
-					pairing -> player.equals(pairing.getWhitePlayer()) || player.equals(pairing.getBlackPlayer()))
-					.map(pairing -> {
-						if (player.equals(pairing.getWhitePlayer())) {
-							return pairing.getBlackPlayer();
-						} else {
-							return pairing.getWhitePlayer();
-						}
-					}).map(Player.class::cast).collect(Collectors.toList());
+			List<Player> previousOponents = getPreviousOponents(previousParings, player);
 
 			List<Player> pairingCandidates = tournamentPlayers.stream()
 					.filter(tournamentPlayer -> !player.equals(tournamentPlayer))
@@ -160,6 +152,18 @@ public class RoundRobinPairingsGenerator implements PairingsGenerator {
 
 		return pairingsForRound;
 
+	}
+
+	private List<Player> getPreviousOponents(List<Pairing> previousParings, Player player) {
+		return previousParings.stream().filter(
+				pairing -> player.equals(pairing.getWhitePlayer()) || player.equals(pairing.getBlackPlayer()))
+				.map(pairing -> {
+					if (player.equals(pairing.getWhitePlayer())) {
+						return pairing.getBlackPlayer();
+					} else {
+						return pairing.getWhitePlayer();
+					}
+				}).map(Player.class::cast).collect(Collectors.toList());
 	}
 
 }

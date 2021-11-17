@@ -517,7 +517,7 @@ export class ChessboardAndClockComponent implements OnInit, AfterViewInit, OnDes
     }
 
     public isPremove():boolean{
-        return this.annotatedMoves.length>0 && this.svgChessboard.getOrientation() === this.lastMove.color;
+        return this._mode === CHESSBOARD_USAGE_MODES.PLAYING && this.annotatedMoves.length>0 && this.svgChessboard.getOrientation() === this.lastMove.color;
     }
 
     public moveInputHandler = (event) => {
