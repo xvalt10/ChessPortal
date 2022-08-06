@@ -22,7 +22,7 @@
     "@auth0/angular-jwt": "^4.0.0",
     "@ckeditor/ckeditor5-angular": "^2.0.1",
     "@ckeditor/ckeditor5-build-classic": "^26.0.0",
-    "@ckeditor/ckeditor5-html-embed": "^27.0.0",
+    "@ckeditor/ckeditor5-html-embed": "^35.0.1",
     "@fortawesome/fontawesome-free": "5.15.1",
     "@types/jquery": "^3.3.34",
     "angular-in-memory-web-api": "0.9.0",
